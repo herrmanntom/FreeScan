@@ -28,10 +28,10 @@ CDashBoardDlg::CDashBoardDlg() : CTTPropertyPage(CDashBoardDlg::IDD)
 	//}}AFX_DATA_INIT
 	m_pMainDlg = NULL;
 	
-	m_fOilTemp = 0.0;
-	m_fWaterTemp = 0.0;
-	m_fMATTemp = 0.0;
-	m_fBatteryVolts = 0.0;
+	m_fOilTemp = -1.0;
+	m_fWaterTemp = -1.0;
+	m_fMATTemp = -1.0;
+	m_fBatteryVolts = -1.0;
 }
 
 CDashBoardDlg::~CDashBoardDlg()
@@ -45,13 +45,22 @@ void CDashBoardDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_THROT, m_Throttle);
 	DDX_Control(pDX, IDC_ENGINELOAD, m_EngineLoad);	
 	DDX_Control(pDX, IDC_BOOST, m_Boost);
+	DDX_Control(pDX, IDC_BOOST_TEXT, m_BoostText);
 	DDX_Control(pDX, IDC_MAT, m_MAT);
+	DDX_Control(pDX, IDC_MAT_TEXT, m_MATText);
 	DDX_Control(pDX, IDC_SPEEDO, m_Speedo);
+	DDX_Control(pDX, IDC_SPEEDO_MPH_TEXT, m_SpeedoMphText);
+	DDX_Control(pDX, IDC_SPEEDO_KPH_TEXT, m_SpeedoKphText);
 	DDX_Control(pDX, IDC_TACHO, m_Tacho);
+	DDX_Control(pDX, IDC_TACHO_TEXT, m_TachoText);	
 	DDX_Control(pDX, IDC_OILTEMP, m_OilTemp);
+	DDX_Control(pDX, IDC_OILTEMP_TEXT, m_OilTempText);	
 	DDX_Control(pDX, IDC_WATER, m_Water);
+	DDX_Control(pDX, IDC_WATER_TEXT, m_WaterText);	
 	DDX_Control(pDX, IDC_VOLT, m_Volt);
+	DDX_Control(pDX, IDC_VOLT_TEXT, m_VoltText);
 	DDX_Control(pDX, IDC_SPARK, m_Spark);
+	DDX_Control(pDX, IDC_SPARK_TEXT, m_SparkText);
 	//}}AFX_DATA_MAP
 
 	//Updates the dialog.
@@ -91,10 +100,10 @@ void CDashBoardDlg::Refresh(void)
 	float fValue = GetData()->m_fOilTemp;
 	if (fValue != m_fOilTemp)
 	{ // check for a different value
-		buf.Format("Oil Temp: %3.1f", fValue);
-		//m_OilTemp.SetCaption(buf);
-		if (fValue < 49.5f) {
-			fValue = 49.5f;
+		buf.Format("%3.1f", fValue);
+		m_OilTempText.SetWindowText(buf);
+		if (fValue < 50.0f) {
+			fValue = 50.0f;
 		}
 		else if (fValue > 110.0f) {
 			fValue = 110.0f;
@@ -106,10 +115,10 @@ void CDashBoardDlg::Refresh(void)
 	fValue = GetData()->m_fWaterTemp;
 	if (fValue != m_fWaterTemp)
 	{ // check for a different value
-		buf.Format("Water Temp: %3.1f", fValue);
-		//m_Water.SetCaption(buf);
-		if (fValue < 49.5f) {
-			fValue = 49.5f;
+		buf.Format("%3.1f", fValue);
+		m_WaterText.SetWindowText(buf);
+		if (fValue < 50.0f) {
+			fValue = 50.0f;
 		}
 		else if (fValue > 110.0f) {
 			fValue = 110.0f;
@@ -121,10 +130,10 @@ void CDashBoardDlg::Refresh(void)
 	fValue = GetData()->m_fMATTemp;
 	if (fValue != m_fMATTemp)
 	{ // check for a different value
-		buf.Format("Mass Air Temp: %3.1f", fValue);
-		//m_MAT.SetCaption(buf);
-		if (fValue < 19.5f) {
-			fValue = 19.5f;
+		buf.Format("%3.1f", fValue);
+		m_MATText.SetWindowText(buf);
+		if (fValue < 20.0f) {
+			fValue = 20.0f;
 		}
 		else if (fValue > 80.0f) {
 			fValue = 80.0f;
@@ -136,21 +145,21 @@ void CDashBoardDlg::Refresh(void)
 	fValue = GetData()->m_fBatteryVolts;
 	if (fValue != m_fBatteryVolts)
 	{ // check for a different value
-		buf.Format("Battery Volts: %3.1f", fValue);
-		//m_Volt.SetCaption(buf);
-		if (fValue < 7.9f) {
-			fValue = 7.9f;
+		buf.Format("%3.1f", fValue);
+		m_VoltText.SetWindowText(buf);
+		if (fValue < 8.0f) {
+			fValue = 8.0f;
 		}
 		else if (fValue > 16.0f) {
-			fValue = 16.9f;
+			fValue = 16.0f;
 		}
 		m_Volt.SetPos((int) (fValue * 10));
 		m_fBatteryVolts = fValue; // store the new value
 	}
 
 	fValue = GetData()->m_fMAP;
-	buf.Format("MAP: %3.2f", fValue);
-	//m_Boost.SetCaption(buf);
+	buf.Format("%3.2f", fValue);
+	m_BoostText.SetWindowText(buf);
 	if (fValue < 0.0f) {
 		fValue = 0.0f;
 	}
@@ -160,8 +169,8 @@ void CDashBoardDlg::Refresh(void)
 	m_Boost.SetPos((int) (fValue * 100));
 
 	fValue = GetData()->m_fSparkAdvance;
-	buf.Format("Spark Adv: % 3.1f", fValue);
-	//m_Spark.SetCaption(buf);
+	buf.Format("%3.1f", fValue);
+	m_SparkText.SetWindowText(buf);
 	if (fValue < 0.0f) {
 		fValue = 0.0f;
 	}
@@ -171,8 +180,8 @@ void CDashBoardDlg::Refresh(void)
 	m_Spark.SetPos((int) (fValue * 10));
 
 	int iValue = GetData()->m_iRPM;
-	buf.Format("RPM: %4d", iValue);
-	//m_Tacho.SetCaption(buf);
+	buf.Format("%4d", iValue);
+	m_TachoText.SetWindowText(buf);
 	if (iValue < 0) {
 		iValue = 0;
 	}
@@ -182,13 +191,15 @@ void CDashBoardDlg::Refresh(void)
 	m_Tacho.SetPos(iValue);
 
 	iValue = GetData()->m_iMPH;
-	buf.Format("MPH: %3d", iValue);
-	//m_Speedo.SetCaption(buf);
+	buf.Format("%3d", iValue);
+	m_SpeedoMphText.SetWindowText(buf);
+	buf.Format("%3d", (int) (((float) iValue) * 1.609344f));
+	m_SpeedoKphText.SetWindowText(buf);
 	if (iValue < 0) {
 		iValue = 0;
 	}
-	else if (iValue > 120) {
-		iValue = 120;
+	else if (iValue > 170) {
+		iValue = 170;
 	}
 	m_Speedo.SetPos(iValue);
 
@@ -223,7 +234,7 @@ BOOL CDashBoardDlg::OnInitDialog()
 	m_Boost.SetRange32(0, 200);
 	m_Boost.SetStep(5);
 
-	m_MAT.SetRange32(195, 800);
+	m_MAT.SetRange32(200, 800);
 	m_MAT.SetStep(5);
 
 	m_Speedo.SetRange32(0, 120);
@@ -232,13 +243,13 @@ BOOL CDashBoardDlg::OnInitDialog()
 	m_Tacho.SetRange32(0, 8000);
 	m_Tacho.SetStep(5);
 
-	m_OilTemp.SetRange32(495, 1100);
+	m_OilTemp.SetRange32(500, 1100);
 	m_OilTemp.SetStep(5);
 
-	m_Water.SetRange32(495, 1100);
+	m_Water.SetRange32(500, 1100);
 	m_Water.SetStep(5);
 
-	m_Volt.SetRange32(79, 160);
+	m_Volt.SetRange32(80, 160);
 	m_Volt.SetStep(1);
 
 	m_Spark.SetRange32(0, 600);

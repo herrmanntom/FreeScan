@@ -30,13 +30,22 @@ public:
 	CProgressCtrl	m_Throttle;
 	CProgressCtrl	m_EngineLoad;
 	CProgressCtrl	m_Boost;
+	CEdit			m_BoostText;
 	CProgressCtrl	m_MAT;
+	CEdit			m_MATText;
 	CProgressCtrl	m_Speedo;
+	CEdit			m_SpeedoMphText;
+	CEdit			m_SpeedoKphText;
 	CProgressCtrl	m_Tacho;
+	CEdit			m_TachoText;
 	CProgressCtrl	m_OilTemp;
+	CEdit			m_OilTempText;
 	CProgressCtrl	m_Water;
+	CEdit			m_WaterText;
 	CProgressCtrl	m_Volt;
+	CEdit			m_VoltText;
 	CProgressCtrl	m_Spark;
+	CEdit			m_SparkText;
 	//}}AFX_DATA
 
 	CFreeScanDlg*	m_pMainDlg; // Base Dialog Pointer.
