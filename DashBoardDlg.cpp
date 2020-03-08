@@ -100,7 +100,7 @@ void CDashBoardDlg::Refresh(void)
 	float fValue = GetData()->m_fOilTemp;
 	if (fValue != m_fOilTemp)
 	{ // check for a different value
-		buf.Format("%3.1f", fValue);
+		buf.Format("%3.1f ", fValue);
 		m_OilTempText.SetWindowText(buf);
 		if (fValue < 50.0f) {
 			fValue = 50.0f;
@@ -115,7 +115,7 @@ void CDashBoardDlg::Refresh(void)
 	fValue = GetData()->m_fWaterTemp;
 	if (fValue != m_fWaterTemp)
 	{ // check for a different value
-		buf.Format("%3.1f", fValue);
+		buf.Format("%3.1f ", fValue);
 		m_WaterText.SetWindowText(buf);
 		if (fValue < 50.0f) {
 			fValue = 50.0f;
@@ -130,7 +130,7 @@ void CDashBoardDlg::Refresh(void)
 	fValue = GetData()->m_fMATTemp;
 	if (fValue != m_fMATTemp)
 	{ // check for a different value
-		buf.Format("%3.1f", fValue);
+		buf.Format("%3.1f ", fValue);
 		m_MATText.SetWindowText(buf);
 		if (fValue < 20.0f) {
 			fValue = 20.0f;
@@ -145,7 +145,7 @@ void CDashBoardDlg::Refresh(void)
 	fValue = GetData()->m_fBatteryVolts;
 	if (fValue != m_fBatteryVolts)
 	{ // check for a different value
-		buf.Format("%3.1f", fValue);
+		buf.Format("%3.1f ", fValue);
 		m_VoltText.SetWindowText(buf);
 		if (fValue < 8.0f) {
 			fValue = 8.0f;
@@ -158,7 +158,7 @@ void CDashBoardDlg::Refresh(void)
 	}
 
 	fValue = GetData()->m_fMAP;
-	buf.Format("%3.2f", fValue);
+	buf.Format("%3.2f ", fValue);
 	m_BoostText.SetWindowText(buf);
 	if (fValue < 0.0f) {
 		fValue = 0.0f;
@@ -169,7 +169,7 @@ void CDashBoardDlg::Refresh(void)
 	m_Boost.SetPos((int) (fValue * 100));
 
 	fValue = GetData()->m_fSparkAdvance;
-	buf.Format("%3.1f", fValue);
+	buf.Format("%3.1f ", fValue);
 	m_SparkText.SetWindowText(buf);
 	if (fValue < 0.0f) {
 		fValue = 0.0f;
@@ -180,7 +180,7 @@ void CDashBoardDlg::Refresh(void)
 	m_Spark.SetPos((int) (fValue * 10));
 
 	int iValue = GetData()->m_iRPM;
-	buf.Format("%4d", iValue);
+	buf.Format("%4d ", iValue);
 	m_TachoText.SetWindowText(buf);
 	if (iValue < 0) {
 		iValue = 0;
@@ -191,9 +191,9 @@ void CDashBoardDlg::Refresh(void)
 	m_Tacho.SetPos(iValue);
 
 	iValue = GetData()->m_iMPH;
-	buf.Format("%3d", iValue);
+	buf.Format("%3d ", iValue);
 	m_SpeedoMphText.SetWindowText(buf);
-	buf.Format("%3d", (int) (((float) iValue) * 1.609344f));
+	buf.Format("%3d ", (int) (((float) iValue) * 1.609344f));
 	m_SpeedoKphText.SetWindowText(buf);
 	if (iValue < 0) {
 		iValue = 0;
