@@ -1,6 +1,4 @@
-//{{AFX_INCLUDES()
-#include "rbgauge.h"
-//}}AFX_INCLUDES
+
 #if !defined(AFX_ABOUT_H__09BF9084_1326_11D2_983E_00E018900F2A__INCLUDED_)
 #define AFX_ABOUT_H__09BF9084_1326_11D2_983E_00E018900F2A__INCLUDED_
 
@@ -52,7 +50,6 @@ public:
 	enum { IDD = IDD_ABOUT };
 	CHyperLink	m_HyperLink1;
 	CHyperLink	m_HyperLink2;
-	CRBGauge	m_gauge;
 	//}}AFX_DATA
 
 
@@ -67,7 +64,6 @@ public:
 protected:
 	// Generated message map functions
 	//{{AFX_MSG(CAbout)
-	afx_msg void OnRbgabout();
 	afx_msg void OnPaint();
 	virtual BOOL OnInitDialog();
 	afx_msg void OnTimer(UINT nIDEvent);

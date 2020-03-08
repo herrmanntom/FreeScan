@@ -110,9 +110,6 @@ char *pArrCredit[] = { 	"LOGO\b",
 						"Communications Class \t",
 						"Remon Spekreijse, et al \f",
 						"",
-						"Gauge ActiveX Control \t",
-						"Redbird Software \f",
-						"",
 						"Scrolling Credits \t",
 						"Mark Findlay \f",
 						"",
@@ -150,14 +147,12 @@ void CAbout::DoDataExchange(CDataExchange* pDX)
 	//{{AFX_DATA_MAP(CAbout)
 	DDX_Control(pDX, IDC_HYPERLINK, m_HyperLink1);
 	DDX_Control(pDX, IDC_HYPERLINK2, m_HyperLink2);
-	DDX_Control(pDX, IDC_RBGAUGE1, m_gauge);
 	//}}AFX_DATA_MAP
 }
 
 
 BEGIN_MESSAGE_MAP(CAbout, CPropertyPage)
 	//{{AFX_MSG_MAP(CAbout)
-	ON_BN_CLICKED(IDC_RBGABOUT, OnRbgabout)
 	ON_WM_PAINT()
 	ON_WM_TIMER()
 	ON_WM_DESTROY()
@@ -166,13 +161,6 @@ BEGIN_MESSAGE_MAP(CAbout, CPropertyPage)
 	ON_STN_CLICKED(IDC_HYPERLINK2, &CAbout::OnStnClickedHyperlink2)
 END_MESSAGE_MAP()
 
-/////////////////////////////////////////////////////////////////////////////
-// CAbout message handlers
-
-void CAbout::OnRbgabout() 
-{
-	m_gauge.AboutBox();
-}
 
 //************************************************************************
 //	 OnPaint

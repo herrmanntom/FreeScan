@@ -147,8 +147,6 @@
 #define IDC_SPIN                        1482
 #define IDC_RESETBLM                    1483
 #define IDC_RESETIAC                    1484
-#define IDC_RBGABOUT                    1487
-#define IDC_RBGAUGE1                    1488
 #define IDC_THROT                       1489
 #define IDC_MODEL                       1491
 #define IDC_COMMENTS                    1494

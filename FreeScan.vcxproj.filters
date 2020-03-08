@@ -94,9 +94,6 @@
     <ClCompile Include="picture.cpp">
       <Filter>Source Files\ActiveX</Filter>
     </ClCompile>
-    <ClCompile Include="rbgauge.cpp">
-      <Filter>Source Files\ActiveX</Filter>
-    </ClCompile>
     <ClCompile Include="DesIdleDlg.cpp">
       <Filter>Source Files\SetDesiredIdle</Filter>
     </ClCompile>
@@ -240,13 +237,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="font.h">
-      <Filter>Source Files\ActiveX</Filter>
-    </ClInclude>
     <ClInclude Include="picture.h">
-      <Filter>Source Files\ActiveX</Filter>
-    </ClInclude>
-    <ClInclude Include="rbgauge.h">
       <Filter>Source Files\ActiveX</Filter>
     </ClInclude>
     <ClInclude Include="DesIdleDlg.h">
@@ -389,6 +380,9 @@
     </ClInclude>
     <ClInclude Include="Protocols\ELM327Parser.h">
       <Filter>Source Files\Protocols\ELM327</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.24.28314\include\vcruntime.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

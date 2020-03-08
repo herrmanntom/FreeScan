@@ -15,7 +15,7 @@
     <SccLocalPath />
     <Keyword>MFCProj</Keyword>
     <ProjectGuid>{D1DDC93D-3507-E8EE-01A1-AF3073C7D24A}</ProjectGuid>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -138,7 +138,6 @@
     <ClCompile Include="picture.cpp" />
     <ClCompile Include="Protocols\ELM327Parser.cpp" />
     <ClCompile Include="Protocols\ELM327Protocol.cpp" />
-    <ClCompile Include="rbgauge.cpp" />
     <ClCompile Include="DesIdleDlg.cpp" />
     <ClCompile Include="OXToolTipCtrl.cpp" />
     <ClCompile Include="TTPropertyPage.cpp" />
@@ -191,11 +190,10 @@
     <ClCompile Include="TCodesDlg.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="font.h" />
+    <ClInclude Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.24.28314\include\vcruntime.h" />
     <ClInclude Include="picture.h" />
     <ClInclude Include="Protocols\ELM327Parser.h" />
     <ClInclude Include="Protocols\ELM327Protocol.h" />
-    <ClInclude Include="rbgauge.h" />
     <ClInclude Include="DesIdleDlg.h" />
     <ClInclude Include="OXToolTipCtrl.h" />
     <ClInclude Include="TTPropertyPage.h" />

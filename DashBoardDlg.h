@@ -1,6 +1,4 @@
-//{{AFX_INCLUDES()
-#include "rbgauge.h"
-//}}AFX_INCLUDES
+
 #if !defined(AFX_DashBoardDlg_H__CB945454_6752_11D3_1234_0080C83832F8__INCLUDED_)
 #define AFX_DashBoardDlg_H__CB945664_6752_11D3_1234_0080C83832F8__INCLUDED_
 
@@ -30,19 +28,22 @@ public:
 	//{{AFX_DATA(CDashBoardDlg)
 	enum { IDD = IDD_DASHBOARD };
 	CProgressCtrl	m_Throttle;
-	CRBGauge	m_Boost;
-	CRBGauge	m_MAT;
-	CRBGauge	m_Speedo;
-	CRBGauge	m_Tacho;
-	CRBGauge	m_Water;
-	CRBGauge	m_Volt;
-	CRBGauge	m_Spark;
+	CProgressCtrl	m_EngineLoad;
+	CProgressCtrl	m_Boost;
+	CProgressCtrl	m_MAT;
+	CProgressCtrl	m_Speedo;
+	CProgressCtrl	m_Tacho;
+	CProgressCtrl	m_OilTemp;
+	CProgressCtrl	m_Water;
+	CProgressCtrl	m_Volt;
+	CProgressCtrl	m_Spark;
 	//}}AFX_DATA
 
 	CFreeScanDlg*	m_pMainDlg; // Base Dialog Pointer.
 
 protected:
 	// Variables store to reduce unnecessary updates
+	float	m_fOilTemp;
 	float	m_fWaterTemp;
 	float	m_fMATTemp;
 	float	m_fBatteryVolts;
