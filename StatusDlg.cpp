@@ -351,8 +351,8 @@ BOOL CStatusDlg::OnInitDialog()
 {
 	//Retrieve the Window Position from the registry
 	CWinApp* pApp = AfxGetApp();
-	m_WindowPos.left   = pApp->GetProfileInt(_T("StatusDlg"), _T("left pos"), 0);
-	m_WindowPos.top    = pApp->GetProfileInt(_T("StatusDlg"), _T("top pos"), 0);
+	m_WindowPos.left   = pApp->GetProfileInt(_T("StatusDlg"), _T("left pos"), 100);
+	m_WindowPos.top    = pApp->GetProfileInt(_T("StatusDlg"), _T("top pos"), 100);
 
 	// Set the window position
 	SetWindowPos( &wndBottom, m_WindowPos.left, m_WindowPos.top, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW);
