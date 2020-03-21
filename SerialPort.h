@@ -7,10 +7,10 @@
 **						program is not blocked.
 **
 **	CREATION DATE		15-09-1997
-**	LAST MODIFICATION	24-11-1998
+**	LAST MODIFICATION	21-03-2020
 **
 **	AUTHOR				Remon Spekreijse
-**	MODIFIED BY			Brian Koh Sze Hsian
+**	MODIFIED BY			Brian Koh Sze Hsian - Tom Herrmann
 **
 */
 
@@ -90,7 +90,7 @@ public:
   void CSerialPort::Dump(CDumpContext& dc) const;
 #endif
 
-protected:
+private:
 	// protected memberfunctions
 	void		ProcessErrorMessage(char* ErrorText);
 	static UINT	CommThread(LPVOID pParam);

@@ -8,10 +8,10 @@
 **						NOTE: Writing is now not on thread *** ARW ***
 **
 **	CREATION DATE		15-09-1997
-**	LAST MODIFICATION	24-11-1998
+**	LAST MODIFICATION	21-03-2020
 **
 **	AUTHOR				Remon Spekreijse
-**	MODIFIED BY			Brian Koh Sze Hsian - Andy Whittaker
+**	MODIFIED BY			Brian Koh Sze Hsian - Andy Whittaker - Tom Herrmann
 **
 */
 
@@ -267,11 +267,13 @@ BOOL CSerialPort::InitPort(CWnd* pPortOwner,	// the owner (CWnd) of the port (re
 	// set buffersize for writing and save the owner
 	m_pOwner = pPortOwner;
 
+	m_nWriteBufferSize = min(writebuffersize, MAX_WRITE_BUFFER);
+
 	if (m_szWriteBuffer != NULL) // delete the buffer if it exists
 		delete [] m_szWriteBuffer;
-	m_szWriteBuffer = new unsigned char[writebuffersize];
+	m_szWriteBuffer = new unsigned char[m_nWriteBufferSize + 1];
+	memset(m_szWriteBuffer, 0, m_nWriteBufferSize + 1);
 
-	m_nWriteBufferSize = writebuffersize;
 	m_dwCommEvents = dwCommEvents;
 
 	char *szPort = new char[50];
@@ -809,24 +811,29 @@ void CSerialPort::ReceiveChar(CSerialPort* port, COMSTAT comstat)
 // Write a string to the port - This can write even NULL characters
 void CSerialPort::WriteToPort(unsigned char* string, int stringlength, BOOL bDelay)
 {	
+	DWORD messageLength = max(stringlength, 0);
+
 	assert(m_hComm != 0);
+
+	if (messageLength > m_nWriteBufferSize) {
+		messageLength = m_nWriteBufferSize;
+	}
 
 	::EnterCriticalSection(&m_csCommunicationSync);
 
-//	memset(m_szWriteBuffer, 0, sizeof(m_szWriteBuffer));
-	if (stringlength > MAX_WRITE_BUFFER)
-		stringlength = MAX_WRITE_BUFFER;
-	for(int i=0;i<stringlength;i++)
-		m_szWriteBuffer[i]=string[i];
-	m_nActualWriteBufferSize=stringlength;
+	memcpy(m_szWriteBuffer, string, messageLength);
+	if (messageLength < m_nWriteBufferSize) {
+		memset(m_szWriteBuffer + messageLength, 0, m_nWriteBufferSize - messageLength);
+	}
+	m_nActualWriteBufferSize=messageLength;
 
 	::LeaveCriticalSection(&m_csCommunicationSync);
 
 	if (bDelay)
-		Sleep(10); // reduces stress on ECU serial port.
+		Sleep(min(10, m_nWriteDelay)); // reduces stress on ECU serial port.
 	WriteChar(this); // Write to port immediately
-	if (bDelay)
-		Sleep(m_nWriteDelay); // reduces stress on ECU serial port.
+	if (bDelay && m_nWriteDelay > 10)
+		Sleep(m_nWriteDelay - 10); // reduces stress on ECU serial port.
 }
 
 // Write a string to the port ** Caution - May be broken

@@ -532,11 +532,11 @@ BOOL CSupervisor::GetInteract(void)
 // Returns the current ECU Mode
 DWORD CSupervisor::GetCurrentMode(void)
 {
-#ifdef _DEBUG
-	return 1;// **** Test
-#else
+//#ifdef _DEBUG
+//	return 1;// **** Test
+//#else
 	return (DWORD) ::SendMessage(m_ProtocolWnd, WM_PROT_CMD_GETECUMODE, (WPARAM) NULL, (LPARAM) NULL);
-#endif // _DEBUG
+//#endif // _DEBUG
 }
 
 // This switches the mode number that is sent to the ECU. It changes the
