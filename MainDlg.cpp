@@ -142,40 +142,40 @@ void CFreeScanDlg::UpdateDialog(void)
 	{
 		m_pDetailDlg->Refresh();
 	}
-	if (IsWindow(*m_pEngineViewDlg))
+	else if (IsWindow(*m_pEngineViewDlg))
 	{
 		m_pEngineViewDlg->Refresh();
 	}
-	if (IsWindow(*m_pStatusBitsDlg))
+	else if (IsWindow(*m_pStatusBitsDlg))
 	{
 		m_pStatusBitsDlg->Refresh();
 	}
-	if (IsWindow(*m_pDashBoardDlg))
+	else if (IsWindow(*m_pDashBoardDlg))
 	{
 		m_pDashBoardDlg->Refresh();
 	}
-	if (IsWindow(*m_pTCodesDlg))
+	else if (IsWindow(*m_pTCodesDlg))
 	{
 		m_pTCodesDlg->Refresh();
 	}
-	if (IsWindow(*m_pSensorDlg))
+	else if (IsWindow(*m_pSensorDlg))
 	{
 		m_pSensorDlg->Refresh();
 	}
-	if (IsWindow(*m_pAdvancedDlg))
+	else if (IsWindow(*m_pAdvancedDlg))
 	{
 		m_pAdvancedDlg->Refresh();
 	}
 #ifdef _DEBUG // Handle these only in Debug builds
-	if (IsWindow(*m_pEngineDlg))
+	else if (IsWindow(*m_pEngineDlg))
 	{ // Old Engine Data View
 		m_pEngineDlg->Refresh();
 	}
-	if (IsWindow(*m_pRawMode00Dlg))
+	else if (IsWindow(*m_pRawMode00Dlg))
 	{
 		m_pRawMode00Dlg->Refresh();
 	}
-	if (IsWindow(*m_pRawMode01Dlg))
+	else if (IsWindow(*m_pRawMode01Dlg))
 	{
 		m_pRawMode01Dlg->Refresh();
 	}

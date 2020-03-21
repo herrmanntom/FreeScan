@@ -81,9 +81,7 @@ BOOL CFreeScanApp::InitInstance()
 			AfxMessageBox(szBuffer, MB_ICONEXCLAMATION | MB_OK);
 			//return FALSE;
 			}
-    }            
-
-	AfxEnableControlContainer(); // For ActiveX Controls
+    }
 
 	// Standard initialization
 	// If you are not using these features and wish to reduce the size

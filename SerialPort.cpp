@@ -392,7 +392,7 @@ UINT CSerialPort::CommThread(LPVOID pParam)
 	DWORD Event = 0;
 	DWORD CommEvent = 0;
 	DWORD dwError = 0;
-	COMSTAT comstat;
+	COMSTAT comstat = {0};
 	BOOL  bResult = TRUE;
 		
 	// Clear comm buffers at startup
