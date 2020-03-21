@@ -106,7 +106,10 @@ void CEngineViewDlg::Refresh(void)
 	buf.Format("%d  ", GetData()->m_iDesiredIdle);
 	Client.TextOut(COLD1, 3  * HS, buf); // Desired Idle
 
-	buf.Format("%d   ", GetData()->m_iMPH);
+	if (GetData()->m_bMiles == TRUE)
+		buf.Format("%d   ", GetData()->m_iMPH);
+	else
+		buf.Format("%d   ", GetData()->m_iMPH_inKPH);
 	Client.TextOut(COLD1, 4  * HS, buf); // MPH
 
 	buf.Format("%d   ", GetData()->m_iThrottlePos);
@@ -143,23 +146,32 @@ void CEngineViewDlg::Refresh(void)
 	Client.TextOut(COLD1, 11 * HS, buf); // Engine Run Time
 
 	// Draw second column
-	if (GetData()->m_fStartWaterTemp != 0.0)
+	if (GetSupervisor()->m_bCentigrade == TRUE && GetData()->m_fStartWaterTemp != 0.0)
 		buf.Format("%3.0f  ", GetData()->m_fStartWaterTemp);
+	else if (GetData()->m_fStartWaterTemp_inF != 32.0)
+		buf.Format("%3.0f  ", GetData()->m_fStartWaterTemp_inF);
 	else
 		buf.Format(" ");
 	Client.TextOut(COLD2, 0  * HS, buf); // Start Temp
 
-	buf.Format("%3.0f  ", GetData()->m_fWaterTemp);
+	if (GetSupervisor()->m_bCentigrade == TRUE)
+		buf.Format("%3.0f  ", GetData()->m_fWaterTemp);
+	else
+		buf.Format("%3.0f  ", GetData()->m_fWaterTemp_inF);
 	Client.TextOut(COLD2, 1  * HS, buf); // Coolant Temp
 
-	if (GetData()->m_fMATTemp != 0.0)
+	if (GetSupervisor()->m_bCentigrade == TRUE && GetData()->m_fMATTemp != 0.0)
 		buf.Format("%3.0f  ", GetData()->m_fMATTemp);
+	else if (GetSupervisor()->m_bCentigrade == FALSE && GetData()->m_fMATTemp_inF != 32.0)
+		buf.Format("%3.0f ", GetData()->m_fMATTemp_inF);
 	else
 		buf.Format(" ");
 	Client.TextOut(COLD2, 2  * HS, buf); // MAT
 
-	if ( ((GetSupervisor()->m_bCentigrade == TRUE && GetData()->m_fOilTemp != 0.0) || (GetSupervisor()->m_bCentigrade == FALSE && GetData()->m_fOilTemp != 32.0)))
+	if (GetSupervisor()->m_bCentigrade == TRUE && GetData()->m_fOilTemp != 0.0)
 		buf.Format("%3.0f ", GetData()->m_fOilTemp);
+	else if (GetSupervisor()->m_bCentigrade == FALSE && GetData()->m_fOilTemp_inF != 32.0)
+		buf.Format("%3.0f ", GetData()->m_fOilTemp_inF);
 	else
 		buf.Format(" ");
 	Client.TextOut(COLD2, 3  * HS, buf); // Oil Temp
@@ -295,7 +307,7 @@ void CEngineViewDlg::OnPaint()
 	Client.TextOut(COLT2, 0  * HS,"Start Temp");
 	Client.TextOut(COLT2, 1  * HS,"Coolant Temp");
 	Client.TextOut(COLT2, 2  * HS,"Mass Air Temp");
-	if ( ((GetSupervisor()->m_bCentigrade == TRUE && GetData()->m_fOilTemp != 0.0) || (GetSupervisor()->m_bCentigrade == FALSE && GetData()->m_fOilTemp != 32.0)))
+	if ( GetData()->m_fOilTemp != 0.0 )
 	{
 		Client.TextOut(COLT2, 3  * HS,"Oil Temp");
 	}
@@ -325,7 +337,7 @@ void CEngineViewDlg::OnPaint()
 		Client.TextOut(COLT2 + 137, 0  * HS,"°F");
 		Client.TextOut(COLT2 + 137, 1  * HS,"°F");
 		Client.TextOut(COLT2 + 137, 2  * HS,"°F");
-		if (GetData()->m_fOilTemp != 32.0)
+		if (GetData()->m_fOilTemp_inF != 32.0)
 			Client.TextOut(COLT2 + 137, 3  * HS,"°F");
 	}
 

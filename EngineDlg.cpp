@@ -158,8 +158,10 @@ void CEngineDlg::Refresh(void)
 	if (!( (dwCurrentMode == 1) ||
 		(dwCurrentMode == 0) ))
 		buf.Format("N/A");
-	else
+	else if (GetData()->m_bMiles == TRUE)
 		buf.Format("%d", GetData()->m_iMPH);
+	else
+		buf.Format("%d", GetData()->m_iMPH_inKPH);
 	m_MPH.SetWindowText(buf);
 
 	if (!( (dwCurrentMode == 1) ||
@@ -172,8 +174,10 @@ void CEngineDlg::Refresh(void)
 	if (!( (dwCurrentMode == 1) ||
 		(dwCurrentMode == 0) ))
 		buf.Format("N/A");
-	else if (GetData()->m_fStartWaterTemp != 0.0)
+	else if (GetData()->m_bCentigrade == TRUE && GetData()->m_fStartWaterTemp != 0.0)
 		buf.Format("%3.1f", GetData()->m_fStartWaterTemp);
+	else if (GetData()->m_fStartWaterTemp_inF != 32.0)
+		buf.Format("%3.1f", GetData()->m_fStartWaterTemp_inF);
 	else
 		buf.Format(" ");
 	m_StartCoolant.SetWindowText(buf);
@@ -181,14 +185,18 @@ void CEngineDlg::Refresh(void)
 	if (!( (dwCurrentMode == 1) ||
 		(dwCurrentMode == 0) ))
 		buf.Format("N/A");
-	else
+	else if (GetData()->m_bCentigrade == TRUE)
 		buf.Format("%3.1f", GetData()->m_fWaterTemp);
+	else
+		buf.Format("%3.1f", GetData()->m_fStartWaterTemp_inF);
 	m_CoolantTemp.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
-	else if (GetData()->m_fMATTemp != 0.0)
+	else if (GetData()->m_bCentigrade == TRUE && GetData()->m_fMATTemp != 0.0)
 		buf.Format("%3.1f", GetData()->m_fMATTemp);
+	else if (GetData()->m_bCentigrade == FALSE && GetData()->m_fMATTemp_inF != 32.0)
+		buf.Format("%3.1f", GetData()->m_fMATTemp_inF);
 	else
 		buf.Format(" ");
 	m_MAT.SetWindowText(buf);

@@ -395,7 +395,7 @@ void CDetailDlg::OnDegF()
 	m_DegF.SetCheck(TRUE);
 	GetSupervisor()->Centigrade(FALSE);
 	WriteStatus("Temperatures will be in degrees F");
-	AfxMessageBox("Please Note: this version only displays Centrigrade and Miles correctly in the dashboard");
+	AfxMessageBox("Please Note: this version only displays Centrigrade in the dashboard");
 }
 
 void CDetailDlg::OnKph() 
@@ -404,7 +404,6 @@ void CDetailDlg::OnKph()
 	m_mph.SetCheck(FALSE);
 	GetSupervisor()->Miles(FALSE);
 	WriteStatus("Speeds will be in kph");
-	AfxMessageBox("Please Note: this version only displays Centrigrade and Miles correctly in the dashboard");
 }
 
 void CDetailDlg::OnMph() 

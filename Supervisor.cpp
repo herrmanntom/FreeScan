@@ -120,12 +120,17 @@ void CSupervisor::ResetVariables(void)
 	m_iIACPosition = 0;
 	m_iDesiredIdle = 0;
 	m_iMPH = 0;
+	m_iMPH_inKPH = 0;
 	m_fStartWaterTemp = 0.0;
+	m_fStartWaterTemp_inF = 0.0;
 	m_fWaterTemp = 0.0;
+	m_fWaterTemp_inF = 0.0;
 	m_iWaterTempADC = 0;
 	m_fOilTemp = 0.0;
+	m_fOilTemp_inF = 0.0;
 	m_fWaterVolts = 0.0;
 	m_fMATTemp = 0.0;
+	m_fMATTemp_inF = 0.0;
 	m_fMATVolts = 0.0;
 	m_iMATADC = 0;
 	m_iEpromID = 0;
@@ -384,16 +389,16 @@ void CSupervisor::UpdateDialog(void)
 // Converts temps to degF
 void CSupervisor::ConvertDegrees(void)
 {
-	m_fStartWaterTemp	= (float)((m_fStartWaterTemp * (float)1.8) + (float)32.0);
-	m_fWaterTemp		= (float)((m_fWaterTemp * (float)1.8) + (float)32.0);
-	m_fOilTemp			= (float)((m_fOilTemp * (float)1.8) + (float)32.0);
-	m_fMATTemp			= (float)((m_fMATTemp * (float)1.8) + (float)32.0);
+	m_fStartWaterTemp_inF	= (float)((m_fStartWaterTemp * (float)1.8) + (float)32.0);
+	m_fWaterTemp_inF		= (float)((m_fWaterTemp * (float)1.8) + (float)32.0);
+	m_fOilTemp_inF			= (float)((m_fOilTemp * (float)1.8) + (float)32.0);
+	m_fMATTemp_inF			= (float)((m_fMATTemp * (float)1.8) + (float)32.0);
 }
 
 // Converts miles to kilometers
 void CSupervisor::ConvertMiles(void)
 {
-	m_iMPH = (int)((float)m_iMPH * (float)1.6); 
+	m_iMPH_inKPH = (int)((float)m_iMPH * (float)1.609344f);
 }
 
 // Writes a line of ASCII to the spy window

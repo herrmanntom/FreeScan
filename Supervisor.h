@@ -108,12 +108,17 @@ public:
 	int		m_iIACPosition; // Idle Stepper Motor Position 1 - 170
 	int		m_iDesiredIdle;
 	int		m_iMPH;
+	int		m_iMPH_inKPH;
 	float	m_fStartWaterTemp; // Coolant Temperature when engine was started Deg C
+	float	m_fStartWaterTemp_inF;
 	float	m_fWaterTemp; // Coolant Temperature Deg C
+	float	m_fWaterTemp_inF;
 	float	m_fWaterVolts; // Coolant Temperature Sensor Voltage
 	int		m_iWaterTempADC; // Coolant Temperature A/D Converter
 	float	m_fOilTemp; // Oil Temperature Deg C
+	float	m_fOilTemp_inF;
 	float	m_fMATTemp; // Manifold Air Temperature Deg C
+	float	m_fMATTemp_inF;
 	float	m_fMATVolts; // Manifold Air Temperature Sensor Voltage
 	int 	m_iMATADC; // Manifold Air Temperature A/D Converter
 	int		m_iEpromID;

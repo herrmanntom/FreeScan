@@ -109,8 +109,10 @@ void CSensorDlg::Refresh(void)
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
-	else
+	else if (GetData()->m_bCentigrade == TRUE)
 		buf.Format("%3.1f", GetData()->m_fMATTemp);
+	else
+		buf.Format("%3.1f", GetData()->m_fMATTemp_inF);
 	m_MAT.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)

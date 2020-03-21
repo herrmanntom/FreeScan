@@ -193,7 +193,7 @@ void CDashBoardDlg::Refresh(void)
 	iValue = GetData()->m_iMPH;
 	buf.Format("%3d ", iValue);
 	m_SpeedoMphText.SetWindowText(buf);
-	buf.Format("%3d ", (int) (((float) iValue) * 1.609344f));
+	buf.Format("%3d ", GetData()->m_iMPH_inKPH);
 	m_SpeedoKphText.SetWindowText(buf);
 	if (iValue < 0) {
 		iValue = 0;
