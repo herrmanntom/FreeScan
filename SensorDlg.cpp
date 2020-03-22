@@ -82,8 +82,7 @@ void CSensorDlg::Refresh(const CEcuData* const ecuData)
 	CString buf;
 	DWORD	dwCurrentMode = GetCurrentMode();
 
-	if (!( (dwCurrentMode == 1) ||
-		(dwCurrentMode == 0) ))
+	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
 		buf.Format("%3.1f", ecuData->m_fWaterTemp);
