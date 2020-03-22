@@ -41,17 +41,11 @@ void CTCodesDlg::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 
 	//Updates the dialog.
-	Refresh();
+	Refresh(GetSupervisor()->GetEcuData());
 }
 
 // Returns a pointer to the Supervisor
 CSupervisor* CTCodesDlg::GetSupervisor(void)
-{
-	return m_pMainDlg->m_pSupervisor;
-}
-
-// Returns a pointer to the Supervisor
-CSupervisor* CTCodesDlg::GetData(void)
 {
 	return m_pMainDlg->m_pSupervisor;
 }
@@ -63,7 +57,7 @@ BOOL CTCodesDlg::GetInteract(void)
 }
 
 // Populates a ListBox with a CString
-void CTCodesDlg::FillListBox(CListBox& lbT, CString& csT)
+void CTCodesDlg::FillListBox(CListBox& lbT, const CString& csT)
 {
 	lbT.ResetContent();
 	// parse the CString Buffer
@@ -86,12 +80,12 @@ BEGIN_MESSAGE_MAP(CTCodesDlg, CPropertyPage)
 END_MESSAGE_MAP()
 
 // Updates all of our controls
-void CTCodesDlg::Refresh(void)
+void CTCodesDlg::Refresh(const CEcuData* const ecuData)
 {
 	//CListBox
 	m_TList.ResetContent();
 
-	FillListBox(m_TList, GetData()->m_csDTC);
+	FillListBox(m_TList, ecuData->m_csDTC);
 
 	// Hide the buttons that don't work when not interactive
 	if (GetInteract())

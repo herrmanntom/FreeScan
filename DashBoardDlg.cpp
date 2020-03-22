@@ -64,17 +64,11 @@ void CDashBoardDlg::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 
 	//Updates the dialog.
-	Refresh();
+	Refresh(GetSupervisor()->GetEcuData());
 }
 
 // Returns a pointer to the Supervisor
 CSupervisor* CDashBoardDlg::GetSupervisor(void)
-{
-	return m_pMainDlg->m_pSupervisor;
-}
-
-// Returns a pointer to the Supervisor
-CSupervisor* CDashBoardDlg::GetData(void)
 {
 	return m_pMainDlg->m_pSupervisor;
 }
@@ -92,12 +86,12 @@ DWORD CDashBoardDlg::GetCurrentMode(void)
 }
 
 // Updates all of our controls
-void CDashBoardDlg::Refresh(void)
+void CDashBoardDlg::Refresh(const CEcuData* const ecuData)
 {
 	CString buf;
 	DWORD	dwCurrentMode = GetCurrentMode();
 
-	float fValue = GetData()->m_fOilTemp;
+	float fValue = ecuData->m_fOilTemp;
 	if (fValue != m_fOilTemp)
 	{ // check for a different value
 		buf.Format("%3.1f ", fValue);
@@ -112,7 +106,7 @@ void CDashBoardDlg::Refresh(void)
 		m_fOilTemp = fValue; // store the new value
 	}
 
-	fValue = GetData()->m_fWaterTemp;
+	fValue = ecuData->m_fWaterTemp;
 	if (fValue != m_fWaterTemp)
 	{ // check for a different value
 		buf.Format("%3.1f ", fValue);
@@ -127,7 +121,7 @@ void CDashBoardDlg::Refresh(void)
 		m_fWaterTemp = fValue; // store the new value
 	}
 
-	fValue = GetData()->m_fMATTemp;
+	fValue = ecuData->m_fMATTemp;
 	if (fValue != m_fMATTemp)
 	{ // check for a different value
 		buf.Format("%3.1f ", fValue);
@@ -142,7 +136,7 @@ void CDashBoardDlg::Refresh(void)
 		m_fMATTemp = fValue; // store the new value
 	}
 
-	fValue = GetData()->m_fBatteryVolts;
+	fValue = ecuData->m_fBatteryVolts;
 	if (fValue != m_fBatteryVolts)
 	{ // check for a different value
 		buf.Format("%3.1f ", fValue);
@@ -157,7 +151,7 @@ void CDashBoardDlg::Refresh(void)
 		m_fBatteryVolts = fValue; // store the new value
 	}
 
-	fValue = GetData()->m_fMAP;
+	fValue = ecuData->m_fMAP;
 	buf.Format("%3.2f ", fValue);
 	m_BoostText.SetWindowText(buf);
 	if (fValue < 0.0f) {
@@ -168,7 +162,7 @@ void CDashBoardDlg::Refresh(void)
 	}
 	m_Boost.SetPos((int) (fValue * 100));
 
-	fValue = GetData()->m_fSparkAdvance;
+	fValue = ecuData->m_fSparkAdvance;
 	buf.Format("%3.1f ", fValue);
 	m_SparkText.SetWindowText(buf);
 	if (fValue < 0.0f) {
@@ -179,7 +173,7 @@ void CDashBoardDlg::Refresh(void)
 	}
 	m_Spark.SetPos((int) (fValue * 10));
 
-	int iValue = GetData()->m_iRPM;
+	int iValue = ecuData->m_iRPM;
 	buf.Format("%4d ", iValue);
 	m_TachoText.SetWindowText(buf);
 	if (iValue < 0) {
@@ -190,10 +184,10 @@ void CDashBoardDlg::Refresh(void)
 	}
 	m_Tacho.SetPos(iValue);
 
-	iValue = GetData()->m_iMPH;
+	iValue = ecuData->m_iMPH;
 	buf.Format("%3d ", iValue);
 	m_SpeedoMphText.SetWindowText(buf);
-	buf.Format("%3d ", GetData()->m_iMPH_inKPH);
+	buf.Format("%3d ", ecuData->m_iMPH_inKPH);
 	m_SpeedoKphText.SetWindowText(buf);
 	if (iValue < 0) {
 		iValue = 0;
@@ -203,9 +197,9 @@ void CDashBoardDlg::Refresh(void)
 	}
 	m_Speedo.SetPos(iValue);
 
-	m_Throttle.SetPos(GetData()->m_iThrottlePos);
+	m_Throttle.SetPos(ecuData->m_iThrottlePos);
 
-	m_EngineLoad.SetPos(GetData()->m_iEngineLoad);
+	m_EngineLoad.SetPos(ecuData->m_iEngineLoad);
 }
 
 BEGIN_MESSAGE_MAP(CDashBoardDlg, CTTPropertyPage)

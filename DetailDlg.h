@@ -10,6 +10,7 @@
 
 #include "TTPropertyPage.h" // Our Tooltip Class
 #include "EnumSer.h"
+#include "Protocols/EcuData.h"
 class CSupervisor;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -69,7 +70,7 @@ protected:
 	void WriteStatus(CString csText);
 	void WriteASCII(unsigned char * buffer, int ilength);
 public:
-	void Refresh(void);
+	void Refresh(const CEcuData* const ecuData);
 	void Init(void);
 
 protected:

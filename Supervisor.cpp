@@ -47,18 +47,6 @@ CSupervisor::CSupervisor(CFreeScanDlg* pMainDlg, CStatusDlg* pStatusDlg)
 	m_bCentigrade = pApp->GetProfileInt(_T("Supervisor"), _T("Centigrade"), TRUE);
 	m_bMiles = pApp->GetProfileInt(_T("Supervisor"), _T("Miles"), TRUE);
 
-	m_dwBytesSent = 0;
-	m_dwBytesReceived = 0;
-
-	m_ucF005 = new unsigned char[100]; // never should get this big
-	m_ucF00A = new unsigned char[100]; // never should get this big
-	m_ucF001 = new unsigned char[100]; // Mode 1 data buffer
-	m_ucF002 = new unsigned char[100]; // Mode 2 data buffer
-	m_ucF003 = new unsigned char[100]; // Mode 3 data buffer
-	m_ucF004 = new unsigned char[100]; // Mode 4 data buffer
-
-	ResetVariables();
-
 	m_pCom = NULL;
 	m_ProtocolWnd = NULL;
 	m_pParentWnd = NULL;
@@ -76,6 +64,8 @@ CSupervisor::CSupervisor(CFreeScanDlg* pMainDlg, CStatusDlg* pStatusDlg)
 	m_pGMA140Protocol = NULL;
 	m_pGMA143Protocol = NULL;
 	m_pGMA160Protocol = NULL;
+
+	m_pEcuData = new CEcuData();
 }
 
 CSupervisor::~CSupervisor()
@@ -85,87 +75,8 @@ CSupervisor::~CSupervisor()
 	pApp->WriteProfileInt(_T("Supervisor"), _T("Centigrade"), m_bCentigrade);
 	pApp->WriteProfileInt(_T("Supervisor"), _T("Miles"), m_bMiles);
 
-	delete m_ucF005;
-	delete m_ucF00A;
-	delete m_ucF001; // Delete Mode 1 data buffer
-	delete m_ucF002; // Delete Mode 2 data buffer
-	delete m_ucF003; // Delete Mode 3 data buffer
-	delete m_ucF004; // Delete Mode 4 data buffer
-
 	// Mop-up any allocated protocol classes
 	Deallocate();
-}
-
-// Reset variables.
-void CSupervisor::ResetVariables(void)
-{
-	m_csProtocolComment = "";
-
-	memset(m_ucF005, 0, 100);
-	memset(m_ucF00A, 0, 100);
-	memset(m_ucF001, 0, 90);
-	memset(m_ucF002, 0, 90);
-	memset(m_ucF003, 0, 25);
-	memset(m_ucF004, 0, 25);
-
-	m_csDTC = "No reported faults."; // Reset Fault Codes
-
-	// Reset normal engine parameters
-	m_bEngineClosedLoop = FALSE; //
-	m_bEngineStalled = TRUE;  // bit 6
-	m_bACRequest = FALSE; // mode 1,  bit 0
-	m_bACClutch = FALSE; // mode 1, bit 2
-	m_fBatteryVolts = 0.0;
-	m_iRPM = 0;
-	m_iIACPosition = 0;
-	m_iDesiredIdle = 0;
-	m_iMPH = 0;
-	m_iMPH_inKPH = 0;
-	m_fStartWaterTemp = 0.0;
-	m_fStartWaterTemp_inF = 0.0;
-	m_fWaterTemp = 0.0;
-	m_fWaterTemp_inF = 0.0;
-	m_iWaterTempADC = 0;
-	m_fOilTemp = 0.0;
-	m_fOilTemp_inF = 0.0;
-	m_fWaterVolts = 0.0;
-	m_fMATTemp = 0.0;
-	m_fMATTemp_inF = 0.0;
-	m_fMATVolts = 0.0;
-	m_iMATADC = 0;
-	m_iEpromID = 0;
-	m_iRunTime = 0;
-	m_iCrankSensors = 0;
-	m_iThrottlePos = 0;
-	m_fThrottleVolts = 0.0;
-	m_iThrottleADC = 0;
-	m_iEngineLoad = 0;
-	m_fBaro = 0.0;
-	m_fBaroVolts = 0.0;
-	m_iBaroADC = 0;
-	m_fMAP = 0.0;
-	m_fMAPVolts = 0.0;
-	m_iMAPADC = 0;
-	m_iBoostPW = 0; // Pulse-width of the turbo boost controller
-	m_iCanisterDC = 0; // Duty Cycle of Charcoal Cansister controller
-	m_iSecondaryInjPW = 0; // Pulse-width of secondary injectors
-	m_iInjectorBasePWMsL = 0; // Injector Opening Time in Ms Left
-	m_iInjectorBasePWMsR = 0; // Injector Opening Time in Ms Right
-	m_fAFRatio = 0.0; // Air Fuel Ratio
-	m_fAirFlow = 0.0; // Air Flow
-	m_fSparkAdvance = 0.0;
-	m_fKnockRetard = 0.0;
-	m_iKnockCount = 0;
-	m_fO2VoltsLeft = 0.0;
-	m_fO2VoltsRight = 0.0;
-	m_iIntegratorL = 0; // Integrator Value Left
-	m_iIntegratorR = 0; // Integrator Value Right
-	m_iRichLeanCounterL = 0; // Rich/Lean Counter Left
-	m_iRichLeanCounterR = 0; // Rich/Lean Counter Right
-	m_iBLM = 0;	// Contents of the current BLM Cell
-	m_iBLMRight = 0;	// Contents of the current BLM Cell
-	m_iBLMCell = 0; // Current BLM Cell
-
 }
 
 // Deallocates the models we don't want to monitor.
@@ -240,6 +151,11 @@ void CSupervisor::Deallocate(void)
 	if (m_pCom != NULL)
 		delete m_pCom;
 	m_pCom = NULL;
+
+	if (m_pEcuData != NULL) {
+		delete m_pEcuData;
+	}
+	m_pEcuData = NULL;
 }
 
 // Initialises the Supervisor
@@ -255,7 +171,7 @@ void CSupervisor::Init(CWnd* pParentWnd, int iModel)
 	// Allocate and initialise the chosen ECU protocol.
 	Stop();
 	Deallocate();
-	ResetVariables();
+	m_pEcuData = new CEcuData();
 
 	// ****** This pointer should be the protocol window ******
 	// The protocol window also needs access to the com port.
@@ -279,7 +195,7 @@ void CSupervisor::Init(CWnd* pParentWnd, int iModel)
 			m_ProtocolWnd = m_pEspritProtocol->Init(this, m_pCom, pParentWnd, m_pStatusDlg);
 
 			// Copy the protocol's comments across to the Supervisor.
-			m_csProtocolComment = m_pEspritProtocol->m_csComment;
+			m_pEcuData->m_csProtocolComment = m_pEspritProtocol->m_csComment;
 			break;
 
 	case 2: // Lotus Elan M100.
@@ -287,7 +203,7 @@ void CSupervisor::Init(CWnd* pParentWnd, int iModel)
 			m_ProtocolWnd = m_pElanProtocol->Init(this, m_pCom, pParentWnd, m_pStatusDlg);
 
 			// Copy the protocol's comments across to the Supervisor.
-			m_csProtocolComment = m_pElanProtocol->m_csComment;
+			m_pEcuData->m_csProtocolComment = m_pElanProtocol->m_csComment;
 			break;
 
 	case 3: // Lotus Carlton.
@@ -295,7 +211,7 @@ void CSupervisor::Init(CWnd* pParentWnd, int iModel)
 			m_ProtocolWnd = m_pLotusCarltonProtocol->Init(this, m_pCom, pParentWnd, m_pStatusDlg);
 
 			// Copy the protocol's comments across to the Supervisor.
-			m_csProtocolComment = m_pLotusCarltonProtocol->m_csComment;
+			m_pEcuData->m_csProtocolComment = m_pLotusCarltonProtocol->m_csComment;
 			break;
 
 	case 4:	// GM 1994 Camaro Z28.
@@ -303,7 +219,7 @@ void CSupervisor::Init(CWnd* pParentWnd, int iModel)
 			m_ProtocolWnd = m_pGM1994CamaroZ28Protocol->Init(this, m_pCom, pParentWnd, m_pStatusDlg);
 
 			// Copy the protocol's comments across to the Supervisor.
-			m_csProtocolComment = m_pGM1994CamaroZ28Protocol->m_csComment;
+			m_pEcuData->m_csProtocolComment = m_pGM1994CamaroZ28Protocol->m_csComment;
 			break;
 	
 	case 5:	// GM 1993 Camaro Z28.
@@ -311,7 +227,7 @@ void CSupervisor::Init(CWnd* pParentWnd, int iModel)
 			m_ProtocolWnd = m_pGM1993CamaroZ28Protocol->Init(this, m_pCom, pParentWnd, m_pStatusDlg);
 
 			// Copy the protocol's comments across to the Supervisor.
-			m_csProtocolComment = m_pGM1993CamaroZ28Protocol->m_csComment;
+			m_pEcuData->m_csProtocolComment = m_pGM1993CamaroZ28Protocol->m_csComment;
 			break;
 	
 	case 6:	// GM 1992 Pontiac.
@@ -319,7 +235,7 @@ void CSupervisor::Init(CWnd* pParentWnd, int iModel)
 			m_ProtocolWnd = m_pGM1992PontiacProtocol->Init(this, m_pCom, pParentWnd, m_pStatusDlg);
 
 			// Copy the protocol's comments across to the Supervisor.
-			m_csProtocolComment = m_pGM1992PontiacProtocol->m_csComment;
+			m_pEcuData->m_csProtocolComment = m_pGM1992PontiacProtocol->m_csComment;
 			break;
 	
 	case 7:	// GM 1989 Corvette.
@@ -327,7 +243,7 @@ void CSupervisor::Init(CWnd* pParentWnd, int iModel)
 			m_ProtocolWnd = m_pGM1989CorvetteProtocol->Init(this, m_pCom, pParentWnd, m_pStatusDlg);
 
 			// Copy the protocol's comments across to the Supervisor.
-			m_csProtocolComment = m_pGM1989CorvetteProtocol->m_csComment;
+			m_pEcuData->m_csProtocolComment = m_pGM1989CorvetteProtocol->m_csComment;
 			break;
 	
 	case 8:	// GM A140
@@ -335,7 +251,7 @@ void CSupervisor::Init(CWnd* pParentWnd, int iModel)
 			m_ProtocolWnd = m_pGMA140Protocol->Init(this, m_pCom, pParentWnd, m_pStatusDlg);
 
 			// Copy the protocol's comments across to the Supervisor.
-			m_csProtocolComment = m_pGMA140Protocol->m_csComment;
+			m_pEcuData->m_csProtocolComment = m_pGMA140Protocol->m_csComment;
 			break;
 	
 	case 9:	// GM A143
@@ -343,7 +259,7 @@ void CSupervisor::Init(CWnd* pParentWnd, int iModel)
 			m_ProtocolWnd = m_pGMA143Protocol->Init(this, m_pCom, pParentWnd, m_pStatusDlg);
 
 			// Copy the protocol's comments across to the Supervisor.
-			m_csProtocolComment = m_pGMA143Protocol->m_csComment;
+			m_pEcuData->m_csProtocolComment = m_pGMA143Protocol->m_csComment;
 			break;
 	
 	case 10:	// GM A160
@@ -351,7 +267,7 @@ void CSupervisor::Init(CWnd* pParentWnd, int iModel)
 			m_ProtocolWnd = m_pGMA160Protocol->Init(this, m_pCom, pParentWnd, m_pStatusDlg);
 
 			// Copy the protocol's comments across to the Supervisor.
-			m_csProtocolComment = m_pGMA160Protocol->m_csComment;
+			m_pEcuData->m_csProtocolComment = m_pGMA160Protocol->m_csComment;
 			break;
 	
 	default:
@@ -375,30 +291,24 @@ void CSupervisor::PumpMessages()
 // Updates the dialogs because of a data change
 void CSupervisor::UpdateDialog(void)
 {
-	// If we want kph, work it out
-	if (!m_bMiles)
-		ConvertMiles();
-
-	// If we want imperial temperatures, work them out
-	if (!m_bCentigrade)
-		ConvertDegrees();
-
-	m_pMainDlg->UpdateDialog();
+	ConvertMiles();
+	ConvertDegrees();
+	m_pMainDlg->UpdateDialog(GetEcuData());
 }
 
 // Converts temps to degF
 void CSupervisor::ConvertDegrees(void)
 {
-	m_fStartWaterTemp_inF	= (float)((m_fStartWaterTemp * (float)1.8) + (float)32.0);
-	m_fWaterTemp_inF		= (float)((m_fWaterTemp * (float)1.8) + (float)32.0);
-	m_fOilTemp_inF			= (float)((m_fOilTemp * (float)1.8) + (float)32.0);
-	m_fMATTemp_inF			= (float)((m_fMATTemp * (float)1.8) + (float)32.0);
+	m_pEcuData->m_fStartWaterTemp_inF	= (float)((m_pEcuData->m_fStartWaterTemp * (float)1.8) + (float)32.0);
+	m_pEcuData->m_fWaterTemp_inF		= (float)((m_pEcuData->m_fWaterTemp * (float)1.8) + (float)32.0);
+	m_pEcuData->m_fOilTemp_inF			= (float)((m_pEcuData->m_fOilTemp * (float)1.8) + (float)32.0);
+	m_pEcuData->m_fMATTemp_inF			= (float)((m_pEcuData->m_fMATTemp * (float)1.8) + (float)32.0);
 }
 
 // Converts miles to kilometers
 void CSupervisor::ConvertMiles(void)
 {
-	m_iMPH_inKPH = (int)((float)m_iMPH * (float)1.609344f);
+	m_pEcuData->m_iMPH_inKPH = (int)((float)m_pEcuData->m_iMPH * (float)1.609344f);
 }
 
 // Writes a line of ASCII to the spy window
@@ -555,6 +465,14 @@ void CSupervisor::ECUMode(DWORD dwMode, unsigned char Data)
 void CSupervisor::ForceShutUp(void)
 {
 	::SendMessage(m_ProtocolWnd, WM_PROT_CMD_FORCESHUTUP, (WPARAM) NULL, (LPARAM) NULL);
+}
+
+const CEcuData *const CSupervisor::GetEcuData(void) {
+	return m_pEcuData;
+}
+
+CEcuData *const CSupervisor::GetModifiableEcuData(void) {
+	return m_pEcuData;
 }
 
 // Sends a packet to the current parser for testing

@@ -55,17 +55,11 @@ void CSensorDlg::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 
 	//Updates the dialog.
-	Refresh();
+	Refresh(GetSupervisor()->GetEcuData());
 }
 
 // Returns a pointer to the Supervisor
 CSupervisor* CSensorDlg::GetSupervisor(void)
-{
-	return m_pMainDlg->m_pSupervisor;
-}
-
-// Returns a pointer to the Supervisor
-CSupervisor* CSensorDlg::GetData(void)
 {
 	return m_pMainDlg->m_pSupervisor;
 }
@@ -83,7 +77,7 @@ DWORD CSensorDlg::GetCurrentMode(void)
 }
 
 // Updates all of our controls
-void CSensorDlg::Refresh(void)
+void CSensorDlg::Refresh(const CEcuData* const ecuData)
 {
 	CString buf;
 	DWORD	dwCurrentMode = GetCurrentMode();
@@ -92,93 +86,93 @@ void CSensorDlg::Refresh(void)
 		(dwCurrentMode == 0) ))
 		buf.Format("N/A");
 	else
-		buf.Format("%3.1f", GetData()->m_fWaterTemp);
+		buf.Format("%3.1f", ecuData->m_fWaterTemp);
 	m_CoolantTemp.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("%4.2f", GetData()->m_fWaterVolts);
+		buf.Format("%4.2f", ecuData->m_fWaterVolts);
 	m_CoolantVolts.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("0x%02X", GetData()->m_iWaterTempADC);
+		buf.Format("0x%02X", ecuData->m_iWaterTempADC);
 	m_CoolantADC.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
-	else if (GetData()->m_bCentigrade == TRUE)
-		buf.Format("%3.1f", GetData()->m_fMATTemp);
+	else if (GetSupervisor()->m_bCentigrade == TRUE)
+		buf.Format("%3.1f", ecuData->m_fMATTemp);
 	else
-		buf.Format("%3.1f", GetData()->m_fMATTemp_inF);
+		buf.Format("%3.1f", ecuData->m_fMATTemp_inF);
 	m_MAT.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("%4.2f", GetData()->m_fMATVolts);
+		buf.Format("%4.2f", ecuData->m_fMATVolts);
 	m_MATVolts.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("0x%02X", GetData()->m_iMATADC);
+		buf.Format("0x%02X", ecuData->m_iMATADC);
 	m_MATADC.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("%3d", GetData()->m_iThrottlePos);
+		buf.Format("%3d", ecuData->m_iThrottlePos);
 	m_ThrottlePos.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("%4.2f", GetData()->m_fThrottleVolts);
+		buf.Format("%4.2f", ecuData->m_fThrottleVolts);
 	m_ThrottleVolts.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("0x%02X", GetData()->m_iThrottleADC);
+		buf.Format("0x%02X", ecuData->m_iThrottleADC);
 	m_ThrottleADC.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("%5.3f", GetData()->m_fBaro);
+		buf.Format("%5.3f", ecuData->m_fBaro);
 	m_Baro.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("%4.2f", GetData()->m_fBaroVolts);
+		buf.Format("%4.2f", ecuData->m_fBaroVolts);
 	m_BaroVolts.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("0x%02X", GetData()->m_iBaroADC);
+		buf.Format("0x%02X", ecuData->m_iBaroADC);
 	m_BaroADC.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("%5.3f", GetData()->m_fMAP);
+		buf.Format("%5.3f", ecuData->m_fMAP);
 	m_Boost.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("%4.2f", GetData()->m_fMAPVolts);
+		buf.Format("%4.2f", ecuData->m_fMAPVolts);
 	m_MapVolts.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("0x%02X", GetData()->m_iMAPADC);
+		buf.Format("0x%02X", ecuData->m_iMAPADC);
 	m_MapADC.SetWindowText(buf);
 }
 

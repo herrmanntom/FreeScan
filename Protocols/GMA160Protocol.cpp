@@ -268,8 +268,9 @@ BOOL CGMA160Protocol::SetDesiredIdle(unsigned char DesIdle)
 
 // Write a string to the port - This can even write NULL characters
 void CGMA160Protocol::WriteToECU(unsigned char* string, int stringlength, BOOL bDelay)
-{	
-	m_pSupervisor->m_dwBytesSent += stringlength;
+{
+	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
+	ecuData->m_dwBytesSent += stringlength;
 	m_pcom->WriteToPort(string, stringlength, bDelay);
 }
 
@@ -338,6 +339,8 @@ BOOL CGMA160Protocol::CreateProtocolWnd(CWnd* pParentWnd)
 // Handle the message from the serial port class.
 LONG CGMA160Protocol::OnCharReceived(WPARAM ch, LPARAM BytesRead)
 {
+	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
+
 	 // convert passed variables
 	unsigned char*	pucRX = (unsigned char*) ch;
 	DWORD			uBytesRead = (DWORD) BytesRead;
@@ -350,7 +353,7 @@ LONG CGMA160Protocol::OnCharReceived(WPARAM ch, LPARAM BytesRead)
 	for(uByteIndex = 0; uByteIndex < uBytesRead; uByteIndex++)
 	{
 		ucRX = pucRX[uByteIndex]; // index the read-in byte
-		m_pSupervisor->m_dwBytesReceived ++;
+		ecuData->m_dwBytesReceived ++;
 
 		// Character received is returned in "ch", then copied as ucRX.
 

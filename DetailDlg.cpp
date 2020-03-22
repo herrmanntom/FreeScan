@@ -71,7 +71,7 @@ void CDetailDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_INTERACT, m_Interact);
 	//}}AFX_DATA_MAP
 
-	Refresh();
+	Refresh(GetSupervisor()->GetEcuData());
 }
 
 // Write to the Status Dialog
@@ -138,21 +138,21 @@ BOOL CDetailDlg::GetMiles(void)
 }
 
 // Updates all of our controls
-void CDetailDlg::Refresh(void)
+void CDetailDlg::Refresh(const CEcuData* const ecuData)
 {
 	CString buf;
 	
 	// Update bytes sent and received
-	buf.Format("%d", GetSupervisor()->m_dwBytesReceived);
+	buf.Format("%d", ecuData->m_dwBytesReceived);
 	m_Received.SetWindowText(buf);
-	buf.Format("%d", GetSupervisor()->m_dwBytesSent);
+	buf.Format("%d", ecuData->m_dwBytesSent);
 	m_Sent.SetWindowText(buf);
 
 	m_Comments.ResetContent();	// Clear protocol comments
 
 	// Display the protocol's comments
 	CString csTemp;
-	csTemp = GetSupervisor()->m_csProtocolComment;
+	csTemp = ecuData->m_csProtocolComment;
 	int		iIndex=0;
 
 	// Format the text in the ListBox.
@@ -187,7 +187,7 @@ void CDetailDlg::Init(void)
 	csTemp.Format("COM%d", GetSupervisor()->GetCurrentPort());
 	m_ComSelect.SetWindowText(csTemp);
 
-	Refresh();
+	Refresh(GetSupervisor()->GetEcuData());
 
 	// Set up interact/listen buttons
 	if (GetInteract())

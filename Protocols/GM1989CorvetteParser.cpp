@@ -114,13 +114,14 @@ void CGM1989CorvetteParser::WriteCSV(BOOL bTitle)
 	}
 	else
 	{
+		const CEcuData *const ecuData = m_pSupervisor->GetEcuData();
 		csBuf.Format("%ld,%4.2f,%3.1f,%4.2f,%d,%d,%d,%5.3f,%5.3f,%d,%d,%4.2f,%4.2f,%3.1f,%d,%4.2f,%3.1f,%3.1f,%d,%3.1f,%3.1f,%3.1f,%d",
-			m_dwCSVRecord,m_pSupervisor->m_fWaterVolts,m_pSupervisor->m_fStartWaterTemp,m_pSupervisor->m_fThrottleVolts,
-			m_pSupervisor->m_iDesiredIdle,m_pSupervisor->m_iRPM,m_pSupervisor->m_iMPH,m_pSupervisor->m_fO2VoltsLeft,m_pSupervisor->m_fO2VoltsRight,
-			m_pSupervisor->m_iInjectorBasePWMsL,m_pSupervisor->m_iIACPosition,
-			m_pSupervisor->m_fBaro,m_pSupervisor->m_fMAP,m_pSupervisor->m_fAFRatio,m_pSupervisor->m_iThrottlePos,
-			(float)m_pSupervisor->m_fMATVolts,(float)m_pSupervisor->m_fKnockRetard,(float)m_pSupervisor->m_fBatteryVolts,(int)m_pSupervisor->m_iEngineLoad,(float)m_pSupervisor->m_fSparkAdvance,
-			(float)m_pSupervisor->m_fWaterTemp,(float)m_pSupervisor->m_fMATTemp,(int)m_pSupervisor->m_iRunTime);
+			m_dwCSVRecord, ecuData->m_fWaterVolts, ecuData->m_fStartWaterTemp, ecuData->m_fThrottleVolts,
+			ecuData->m_iDesiredIdle, ecuData->m_iRPM, ecuData->m_iMPH, ecuData->m_fO2VoltsLeft, ecuData->m_fO2VoltsRight,
+			ecuData->m_iInjectorBasePWMsL, ecuData->m_iIACPosition,
+			ecuData->m_fBaro, ecuData->m_fMAP, ecuData->m_fAFRatio, ecuData->m_iThrottlePos,
+			(float) ecuData->m_fMATVolts, (float) ecuData->m_fKnockRetard, (float) ecuData->m_fBatteryVolts, (int) ecuData->m_iEngineLoad, (float) ecuData->m_fSparkAdvance,
+			(float) ecuData->m_fWaterTemp, (float) ecuData->m_fMATTemp, (int) ecuData->m_iRunTime);
 		m_dwCSVRecord++;
 	}
 	csBuf = csBuf + "\n"; // Line Feed because we're logging to disk
@@ -254,7 +255,7 @@ void CGM1989CorvetteParser::ParseMode90(unsigned char* buffer, int len)
 // Translates the incoming data stream as Mode 1 Msg 0
 void CGM1989CorvetteParser::ParseMode1_0(unsigned char* buffer, int len)
 {
-	int iIndex;
+	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
 
 	if (len<10) // remember half duplex. We read our commands as well
 	{
@@ -266,66 +267,65 @@ void CGM1989CorvetteParser::ParseMode1_0(unsigned char* buffer, int len)
 		WriteStatus("Warning: F001 larger than expected, packet truncated.");
 		len = 67;
 	}
-	// copy buffer into raw data array
-	for(iIndex=0; iIndex<len; iIndex++)
-		m_pSupervisor->m_ucF001[iIndex]=buffer[iIndex];
+
+	memcpy(ecuData->m_ucF001, buffer, len);
 
 	// Work out real-world data from the packet.
 	// Mode number is in index 0
 
 	// Status Word 1
 	if (buffer[63] & 0x80)
-		m_pSupervisor->m_bEngineClosedLoop = TRUE;  // bit 7
+		ecuData->m_bEngineClosedLoop = TRUE;  // bit 7
 	else
-		m_pSupervisor->m_bEngineClosedLoop = FALSE; // bit 7
+		ecuData->m_bEngineClosedLoop = FALSE; // bit 7
 
 	if (buffer[55] & 0x80)
-		m_pSupervisor->m_bACRequest = TRUE;  // mode 1, byte 59, bit 7
+		ecuData->m_bACRequest = TRUE;  // mode 1, byte 59, bit 7
 	else
-		m_pSupervisor->m_bACRequest = FALSE; // mode 1, byte 59, bit 7
+		ecuData->m_bACRequest = FALSE; // mode 1, byte 59, bit 7
 
 	if (buffer[57] & 0x20)
-		m_pSupervisor->m_bACClutch = FALSE;  // mode 1, byte 54, bit 5
+		ecuData->m_bACClutch = FALSE;  // mode 1, byte 54, bit 5
 	else
-		m_pSupervisor->m_bACClutch = TRUE; // mode 1, byte 54, bit 5
+		ecuData->m_bACClutch = TRUE; // mode 1, byte 54, bit 5
 
-	m_pSupervisor->m_iEpromID = (int)buffer[2] + ((int)buffer[1] * 256);
+	ecuData->m_iEpromID = (int)buffer[2] + ((int)buffer[1] * 256);
 	// Analogues
 	m_ucDTC[0] = buffer[3]; // Fault code byte 1
 	m_ucDTC[1] = buffer[4]; // Fault code byte 2
 	m_ucDTC[2] = buffer[5]; // Fault code byte 3
 	m_ucDTC[3] = buffer[6]; // Fault code byte 4
 
-	m_pSupervisor->m_fWaterTemp = ((float)buffer[8] * (float)0.75) - (float)40.0; // in °C
-	m_pSupervisor->m_fWaterVolts = (float)(((float)buffer[8] / (float)255.0) * (float) 5.0);
-	m_pSupervisor->m_iWaterTempADC = buffer[8];
-	m_pSupervisor->m_fStartWaterTemp = ((float)buffer[9] * (float)0.75) - (float)40.0; // in °C
-	m_pSupervisor->m_fThrottleVolts = (float)(((float)buffer[10] / (float)255.0) * (float) 5.0);
-	m_pSupervisor->m_iThrottleADC = buffer[10];
-	m_pSupervisor->m_iThrottlePos = (int)((float)buffer[10] / (float)2.55);
-	m_pSupervisor->m_iRPM = buffer[11] * 25;
-	m_pSupervisor->m_iMPH = (int)buffer[14]; // Count is in MPH
-	m_pSupervisor->m_fO2VoltsLeft = (float) buffer[17] * (float) 0.00444; // 1st Bank
-	m_pSupervisor->m_iRichLeanCounterL = (int)buffer[18];
-	m_pSupervisor->m_iBLM = (int)buffer[21];
-	m_pSupervisor->m_iIntegratorL = (int)buffer[22];
-	m_pSupervisor->m_iIACPosition = (int)buffer[23];
-	m_pSupervisor->m_iDesiredIdle = (int)((float)buffer[25] * (float) 12.5);
-	m_pSupervisor->m_iEngineLoad = (int)buffer[26];
-	m_pSupervisor->m_fMAP = (((float)buffer[29] + (float)28.06) / (float)271); // in Bar Absolute
-	m_pSupervisor->m_fMAPVolts = ((float)buffer[29] / (float) 255.0) * (float) 5.0; // in Volts
-	m_pSupervisor->m_iMAPADC = buffer[29];
-	m_pSupervisor->m_fMATVolts = ((float)buffer[30] / (float)255.0) * (float)5.0; // in Volts
-	m_pSupervisor->m_iMATADC = buffer[30];
-	m_pSupervisor->m_fMATTemp = ReturnTemp(buffer[30]); // in °C
-	m_pSupervisor->m_fBatteryVolts = (float)buffer[34] / (float)10.0;
-	m_pSupervisor->m_fAirFlow = (float)buffer[37] + ((float) buffer[36] * (float)256.0);
-	m_pSupervisor->m_fSparkAdvance = ((((float)buffer[40]  + ((float) buffer[39] * (float)256.0)) * (float)90.0) / (float)256.0); // in °
-	m_pSupervisor->m_iKnockCount = (int)buffer[43];
-	m_pSupervisor->m_fKnockRetard = (float)buffer[44]; // in °
-	m_pSupervisor->m_iInjectorBasePWMsL = (int) ( (float)((buffer[45] * 256) + buffer[46]) / (float)65.536);
-	m_pSupervisor->m_fAFRatio = (((float)(buffer[48])  + ((float) buffer[47] * (float)256.0))/ (float)10.0); // Air Fuel Ratio
-	m_pSupervisor->m_iRunTime = (buffer[52] * 256) + buffer[53]; // Total running time
+	ecuData->m_fWaterTemp = ((float)buffer[8] * (float)0.75) - (float)40.0; // in °C
+	ecuData->m_fWaterVolts = (float)(((float)buffer[8] / (float)255.0) * (float) 5.0);
+	ecuData->m_iWaterTempADC = buffer[8];
+	ecuData->m_fStartWaterTemp = ((float)buffer[9] * (float)0.75) - (float)40.0; // in °C
+	ecuData->m_fThrottleVolts = (float)(((float)buffer[10] / (float)255.0) * (float) 5.0);
+	ecuData->m_iThrottleADC = buffer[10];
+	ecuData->m_iThrottlePos = (int)((float)buffer[10] / (float)2.55);
+	ecuData->m_iRPM = buffer[11] * 25;
+	ecuData->m_iMPH = (int)buffer[14]; // Count is in MPH
+	ecuData->m_fO2VoltsLeft = (float) buffer[17] * (float) 0.00444; // 1st Bank
+	ecuData->m_iRichLeanCounterL = (int)buffer[18];
+	ecuData->m_iBLM = (int)buffer[21];
+	ecuData->m_iIntegratorL = (int)buffer[22];
+	ecuData->m_iIACPosition = (int)buffer[23];
+	ecuData->m_iDesiredIdle = (int)((float)buffer[25] * (float) 12.5);
+	ecuData->m_iEngineLoad = (int)buffer[26];
+	ecuData->m_fMAP = (((float)buffer[29] + (float)28.06) / (float)271); // in Bar Absolute
+	ecuData->m_fMAPVolts = ((float)buffer[29] / (float) 255.0) * (float) 5.0; // in Volts
+	ecuData->m_iMAPADC = buffer[29];
+	ecuData->m_fMATVolts = ((float)buffer[30] / (float)255.0) * (float)5.0; // in Volts
+	ecuData->m_iMATADC = buffer[30];
+	ecuData->m_fMATTemp = ReturnTemp(buffer[30]); // in °C
+	ecuData->m_fBatteryVolts = (float)buffer[34] / (float)10.0;
+	ecuData->m_fAirFlow = (float)buffer[37] + ((float) buffer[36] * (float)256.0);
+	ecuData->m_fSparkAdvance = ((((float)buffer[40]  + ((float) buffer[39] * (float)256.0)) * (float)90.0) / (float)256.0); // in °
+	ecuData->m_iKnockCount = (int)buffer[43];
+	ecuData->m_fKnockRetard = (float)buffer[44]; // in °
+	ecuData->m_iInjectorBasePWMsL = (int) ( (float)((buffer[45] * 256) + buffer[46]) / (float)65.536);
+	ecuData->m_fAFRatio = (((float)(buffer[48])  + ((float) buffer[47] * (float)256.0))/ (float)10.0); // Air Fuel Ratio
+	ecuData->m_iRunTime = (buffer[52] * 256) + buffer[53]; // Total running time
 
 	ParseDTCs(); // Process the DTCs into text
 }
@@ -333,7 +333,7 @@ void CGM1989CorvetteParser::ParseMode1_0(unsigned char* buffer, int len)
 // Translates the incoming data stream as Mode 2
 void CGM1989CorvetteParser::ParseMode2(unsigned char* buffer, int len)
 {
-	int iIndex;
+	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
 
 	if (len<10) // remember half duplex. We read our commands as well
 	{
@@ -345,9 +345,8 @@ void CGM1989CorvetteParser::ParseMode2(unsigned char* buffer, int len)
 		WriteStatus("Warning: F002 larger than expected, packet truncated.");
 		len = 65;
 	}
-	// copy buffer into raw data array
-	for(iIndex=0; iIndex<len; iIndex++)
-		m_pSupervisor->m_ucF002[iIndex]=buffer[iIndex];
+
+	memcpy(ecuData->m_ucF002, buffer, len);
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
@@ -356,7 +355,7 @@ void CGM1989CorvetteParser::ParseMode2(unsigned char* buffer, int len)
 // Translates the incoming data stream as Mode 3
 void CGM1989CorvetteParser::ParseMode3(unsigned char* buffer, int len)
 {
-	int iIndex;
+	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
 
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -373,9 +372,8 @@ void CGM1989CorvetteParser::ParseMode3(unsigned char* buffer, int len)
 		WriteStatus("Warning: F003 larger than expected, packet truncated.");
 		len = 11;
 	}
-	// copy buffer into raw data array
-	for(iIndex=0; iIndex<len; iIndex++)
-		m_pSupervisor->m_ucF003[iIndex]=buffer[iIndex];
+
+	memcpy(ecuData->m_ucF003, buffer, len);
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
@@ -390,7 +388,7 @@ void CGM1989CorvetteParser::ParseMode3(unsigned char* buffer, int len)
 // Translates the incoming data stream as Mode 4
 void CGM1989CorvetteParser::ParseMode4(unsigned char* buffer, int len)
 {
-	int iIndex;
+	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
 
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -407,9 +405,8 @@ void CGM1989CorvetteParser::ParseMode4(unsigned char* buffer, int len)
 		WriteStatus("Warning: F004 larger than expected, packet truncated.");
 		len = 11;
 	}
-	// copy buffer into raw data array
-	for(iIndex=0; iIndex<len; iIndex++)
-		m_pSupervisor->m_ucF004[iIndex]=buffer[iIndex];
+
+	memcpy(ecuData->m_ucF004, buffer, len);
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
@@ -510,215 +507,183 @@ void CGM1989CorvetteParser::ParseMode10(unsigned char* buffer, int len)
 // Translates the DTC Codes
 void CGM1989CorvetteParser::ParseDTCs(void)
 {
-	CString buf; // Temporary Buffer
+	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
 
-	m_pSupervisor->m_csDTC.Empty();
+	ecuData->m_csDTC.Empty();
 
 	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0) && (m_ucDTC[3] == 0))
-		m_pSupervisor->m_csDTC = "No reported faults.";
+		ecuData->m_csDTC = "No reported faults.";
 	else
 	{
-		m_pSupervisor->m_csDTC = "The following faults are reported:\n";
+		ecuData->m_csDTC = "The following faults are reported:\n";
 		
 		// Now print the fault-codes
 		// MALFFW1     LOGGED MALF FLAG WORD 1
 		if (m_ucDTC[0] & 0x80)
 		{ //
-			buf = "CODE 12  NO REFERENCE PULSE (ENGINE NOT RUNNING)";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 12  NO REFERENCE PULSE (ENGINE NOT RUNNING)";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[0] & 0x40)
 		{ //
-			buf = "CODE 13  OXYGEN SENSOR";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 13  OXYGEN SENSOR";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[0] & 0x20)
 		{ //
-			buf = "CODE 14  COOLANT SENSOR HIGH TEMPERATURE";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 14  COOLANT SENSOR HIGH TEMPERATURE";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[0] & 0x10)
 		{ //
-			buf = "CODE 15  COOLANT SENSOR LOW TEMPERATURE";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 15  COOLANT SENSOR LOW TEMPERATURE";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[0] & 0x08)
 		{ //
-			buf = "CODE 16 - NOT USED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 16 - NOT USED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[0] & 0x04)
 		{ //
-			buf = "CODE 21  THROTTLE POSITION SENSOR HIGH";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 21  THROTTLE POSITION SENSOR HIGH";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[0] & 0x02)
 		{ //
-			buf = "CODE 22  THROTTLE POSITION SENSOR LOW";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 22  THROTTLE POSITION SENSOR LOW";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[0] & 0x01)
 		{ //
-			buf = "CODE 23  LOW MANIFOLD AIR TEMP (MAT)";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 23  LOW MANIFOLD AIR TEMP (MAT)";
+			ecuData->m_csDTC += "\n";
 		}
 
 		// MALFFW2     LOGGED MALF FLAG WORD 2
 		if (m_ucDTC[1] & 0x80)
 		{ //
-			buf = "CODE 24  VEHICLE SPEED SENSOR LOW";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 24  VEHICLE SPEED SENSOR LOW";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[1] & 0x40)
 		{ //
-			buf = "CODE 25  HIGH MANIFOLD AIR TEMP (MAT)";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 25  HIGH MANIFOLD AIR TEMP (MAT)";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[1] & 0x20)
 		{ //
-			buf = "CODE 26 NOT USED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 26 NOT USED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[1] & 0x10)
 		{ //
-			buf = "CODE 31 NOT USED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 31 NOT USED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[1] & 0x08)
 		{ //
-			buf = "CODE 32 EGR DIAGNOSTIC";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 32 EGR DIAGNOSTIC";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[1] & 0x04)
 		{ //
-			buf = "CODE 33  MAP SENSOR HIGH";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 33  MAP SENSOR HIGH";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[1] & 0x02)
 		{ //
-			buf = "CODE 34  MAP SENSOR LOW";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 34  MAP SENSOR LOW";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[1] & 0x01)
 		{ //
-			buf = "CODE 35 NOT USED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 35 NOT USED";
+			ecuData->m_csDTC += "\n";
 		}
 
 		// MALFFW3     LOGGED MALF FLAG WORD 3
 		if (m_ucDTC[2] & 0x80)
 		{ //
-			buf = "CODE 36 BURNOFF DIAGNOSTIC";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 36 BURNOFF DIAGNOSTIC";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[2] & 0x40)
 		{ //
-			buf = "CODE 41 CYLINDER SELECT ERROR";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 41 CYLINDER SELECT ERROR";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[2] & 0x20)
 		{ //
-			buf = "CODE 42  ESC MONITOR ERROR";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 42  ESC MONITOR ERROR";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[2] & 0x10)
 		{ //
-			buf = "CODE 43  ESC FAILURE";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 43  ESC FAILURE";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[2] & 0x08)
 		{ //
-			buf = "CODE 44  OXYGEN SENSOR LEAN";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 44  OXYGEN SENSOR LEAN";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[2] & 0x04)
 		{ //
-			buf = "CODE 45  OXYGEN SENSOR RICH";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 45  OXYGEN SENSOR RICH";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[2] & 0x02)
 		{ //
-			buf = "CODE 46  VATS FAILED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 46  VATS FAILED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[2] & 0x01)
 		{ //
-			buf = "CODE 51  PROM ERROR";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 51  PROM ERROR";
+			ecuData->m_csDTC += "\n";
 		}
 
 		// MALFFW4     LOGGED MALF FLAG WORD 4
 		if (m_ucDTC[3] & 0x80)
 		{ //
-			buf = "CODE 52 CAL PACK MISSING";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 52 CAL PACK MISSING";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[3] & 0x40)
 		{ //
-			buf = "CODE 53 OVER VOLTAGE";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 53 OVER VOLTAGE";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[3] & 0x20)
 		{ //
-			buf = "CODE 54 FUEL PUMP VOLTAGE";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 54 FUEL PUMP VOLTAGE";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[3] & 0x10)
 		{ //
-			buf = "CODE 55  NOT USED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 55  NOT USED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[3] & 0x08)
 		{ //
-			buf = "CODE 56  NOT USED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 56  NOT USED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[3] & 0x04)
 		{ //
-			buf = "CODE 61  NOT USED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 61  NOT USED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[3] & 0x02)
 		{ //
-			buf = "CODE 62  NOT USED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 62  NOT USED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[3] & 0x01)
 		{ //
-			buf = "CODE 63  NOT USED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 63  NOT USED";
+			ecuData->m_csDTC += "\n";
 		}
 
 	}

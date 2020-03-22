@@ -136,48 +136,48 @@ void CFreeScanDlg::SetLogoFont(CString Name, int nHeight/* = 24*/,
 }
 
 // Updates all property pages in this dialog
-void CFreeScanDlg::UpdateDialog(void)
+void CFreeScanDlg::UpdateDialog(const CEcuData* const ecuData)
 {
 	if (IsWindow(*m_pDetailDlg))
 	{
-		m_pDetailDlg->Refresh();
+		m_pDetailDlg->Refresh(ecuData);
 	}
-	else if (IsWindow(*m_pEngineViewDlg))
+	if (IsWindow(*m_pEngineViewDlg))
 	{
-		m_pEngineViewDlg->Refresh();
+		m_pEngineViewDlg->Refresh(ecuData);
 	}
-	else if (IsWindow(*m_pStatusBitsDlg))
+	if (IsWindow(*m_pStatusBitsDlg))
 	{
-		m_pStatusBitsDlg->Refresh();
+		m_pStatusBitsDlg->Refresh(ecuData);
 	}
-	else if (IsWindow(*m_pDashBoardDlg))
+	if (IsWindow(*m_pDashBoardDlg))
 	{
-		m_pDashBoardDlg->Refresh();
+		m_pDashBoardDlg->Refresh(ecuData);
 	}
-	else if (IsWindow(*m_pTCodesDlg))
+	if (IsWindow(*m_pTCodesDlg))
 	{
-		m_pTCodesDlg->Refresh();
+		m_pTCodesDlg->Refresh(ecuData);
 	}
-	else if (IsWindow(*m_pSensorDlg))
+	if (IsWindow(*m_pSensorDlg))
 	{
-		m_pSensorDlg->Refresh();
+		m_pSensorDlg->Refresh(ecuData);
 	}
-	else if (IsWindow(*m_pAdvancedDlg))
+	if (IsWindow(*m_pAdvancedDlg))
 	{
-		m_pAdvancedDlg->Refresh();
+		m_pAdvancedDlg->Refresh(ecuData);
 	}
 #ifdef _DEBUG // Handle these only in Debug builds
-	else if (IsWindow(*m_pEngineDlg))
+	if (IsWindow(*m_pEngineDlg))
 	{ // Old Engine Data View
-		m_pEngineDlg->Refresh();
+		m_pEngineDlg->Refresh(ecuData);
 	}
-	else if (IsWindow(*m_pRawMode00Dlg))
+	if (IsWindow(*m_pRawMode00Dlg))
 	{
-		m_pRawMode00Dlg->Refresh();
+		m_pRawMode00Dlg->Refresh(ecuData);
 	}
-	else if (IsWindow(*m_pRawMode01Dlg))
+	if (IsWindow(*m_pRawMode01Dlg))
 	{
-		m_pRawMode01Dlg->Refresh();
+		m_pRawMode01Dlg->Refresh(ecuData);
 	}
 #endif // _DEBUG
 //	UpdateData(TRUE);

@@ -114,14 +114,15 @@ void CGM1994CamaroZ28Parser::WriteCSV(BOOL bTitle)
 	}
 	else
 	{
+		const CEcuData *const ecuData = m_pSupervisor->GetEcuData();
 		csBuf.Format("%ld,%4.2f,%4.2f,%d,%d,%d,%5.3f,%5.3f,%d,%d,%d,%d,%d,%d,%d,%d,%4.2f,%4.2f,%d,%4.2f,%3.1f,%d,%3.1f,%10.2f,%3.1f,%3.1f,%3.1f,%d",
-			m_dwCSVRecord,m_pSupervisor->m_fWaterVolts,m_pSupervisor->m_fThrottleVolts,
-			m_pSupervisor->m_iDesiredIdle,m_pSupervisor->m_iRPM,m_pSupervisor->m_iMPH,
-			m_pSupervisor->m_fO2VoltsLeft,m_pSupervisor->m_fO2VoltsRight,m_pSupervisor->m_iBLMCell,m_pSupervisor->m_iBLM,m_pSupervisor->m_iBLMRight,
-			m_pSupervisor->m_iIntegratorL,m_pSupervisor->m_iIntegratorR,m_pSupervisor->m_iInjectorBasePWMsL,m_pSupervisor->m_iInjectorBasePWMsR,
-			m_pSupervisor->m_iIACPosition,m_pSupervisor->m_fBaro,m_pSupervisor->m_fMAP,m_pSupervisor->m_iThrottlePos,
-			(float)m_pSupervisor->m_fMATVolts,(float)m_pSupervisor->m_fKnockRetard,(int)m_pSupervisor->m_iKnockCount,(float)m_pSupervisor->m_fBatteryVolts,(float)m_pSupervisor->m_fAirFlow,(float)m_pSupervisor->m_fSparkAdvance,
-			(float)m_pSupervisor->m_fWaterTemp,(float)m_pSupervisor->m_fMATTemp,(int)m_pSupervisor->m_iRunTime);
+			m_dwCSVRecord, ecuData->m_fWaterVolts, ecuData->m_fThrottleVolts,
+			ecuData->m_iDesiredIdle, ecuData->m_iRPM, ecuData->m_iMPH,
+			ecuData->m_fO2VoltsLeft, ecuData->m_fO2VoltsRight, ecuData->m_iBLMCell, ecuData->m_iBLM, ecuData->m_iBLMRight,
+			ecuData->m_iIntegratorL, ecuData->m_iIntegratorR, ecuData->m_iInjectorBasePWMsL, ecuData->m_iInjectorBasePWMsR,
+			ecuData->m_iIACPosition, ecuData->m_fBaro, ecuData->m_fMAP, ecuData->m_iThrottlePos,
+			(float) ecuData->m_fMATVolts, (float) ecuData->m_fKnockRetard, (int) ecuData->m_iKnockCount, (float) ecuData->m_fBatteryVolts, (float) ecuData->m_fAirFlow, (float) ecuData->m_fSparkAdvance,
+			(float) ecuData->m_fWaterTemp, (float) ecuData->m_fMATTemp, (int) ecuData->m_iRunTime);
 		m_dwCSVRecord++;
 	}
 	csBuf = csBuf + "\n"; // Line Feed because we're logging to disk
@@ -365,7 +366,7 @@ void CGM1994CamaroZ28Parser::ParseMode93(unsigned char* buffer, int len)
 // Translates the incoming data stream as Mode 1 Msg 0
 void CGM1994CamaroZ28Parser::ParseMode1_0(unsigned char* buffer, int len)
 {
-	int iIndex;
+	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
 
 	if (len<10) // remember half duplex. We read our commands as well
 	{
@@ -377,28 +378,27 @@ void CGM1994CamaroZ28Parser::ParseMode1_0(unsigned char* buffer, int len)
 		WriteStatus("Warning: F001 larger than expected, packet truncated.");
 		len = 61;
 	}
-	// copy buffer into raw data array
-	for(iIndex=0; iIndex<len; iIndex++)
-		m_pSupervisor->m_ucF001[iIndex]=buffer[iIndex];
+
+	memcpy(ecuData->m_ucF001, buffer, len);
 
 	// Work out real-world data from the packet.
 	// Mode number is in index 0
 
 	// Status Word 1
 	if (buffer[13] & 0x01)
-		m_pSupervisor->m_bEngineClosedLoop = TRUE;  // bit 7
+		ecuData->m_bEngineClosedLoop = TRUE;  // bit 7
 	else
-		m_pSupervisor->m_bEngineClosedLoop = FALSE; // bit 7
+		ecuData->m_bEngineClosedLoop = FALSE; // bit 7
 
 	if (buffer[9] & 0x02)
-		m_pSupervisor->m_bACRequest = TRUE;  // mode 1, byte 10, bit 1
+		ecuData->m_bACRequest = TRUE;  // mode 1, byte 10, bit 1
 	else
-		m_pSupervisor->m_bACRequest = FALSE; // mode 1, byte 10, bit 1
+		ecuData->m_bACRequest = FALSE; // mode 1, byte 10, bit 1
 
 	if (buffer[9] & 0x01)
-		m_pSupervisor->m_bACClutch = TRUE;  // mode 1, byte 10, bit 0
+		ecuData->m_bACClutch = TRUE;  // mode 1, byte 10, bit 0
 	else
-		m_pSupervisor->m_bACClutch = FALSE; // mode 1, byte 10, bit 0
+		ecuData->m_bACClutch = FALSE; // mode 1, byte 10, bit 0
 
 	// Analogues
 	m_ucDTC[0] = buffer[1]; // Fault code byte 1
@@ -409,42 +409,42 @@ void CGM1994CamaroZ28Parser::ParseMode1_0(unsigned char* buffer, int len)
 	m_ucDTC[5] = buffer[6]; // Fault code byte 6
 	m_ucDTC[6] = buffer[7]; // Fault code byte 7
 	m_ucDTC[7] = buffer[8]; // Fault code byte 8 - Bloody-hell!
-	m_pSupervisor->m_iDesiredIdle = (int)((float)buffer[21] * (float) 12.5);
-	m_pSupervisor->m_iRPM = buffer[22] * 25;
-	m_pSupervisor->m_fWaterTemp = ((float)buffer[23] * (float)0.75) - (float)40.0; // in °C
-	m_pSupervisor->m_fWaterVolts = (float)(((float)buffer[23] / (float)255.0) * (float) 5.0);
-	m_pSupervisor->m_iWaterTempADC = buffer[23];
-	m_pSupervisor->m_fMATVolts = ((float)buffer[25] / (float)255.0) * (float)5.0; // in Volts
-	m_pSupervisor->m_iMATADC = buffer[25];
-	m_pSupervisor->m_fMATTemp = ((float)buffer[25] * (float)0.75) - (float)40.0; // in °C
-	m_pSupervisor->m_fMAP = (((float)buffer[28] + (float)28.06) / (float)271); // in Bar Absolute
-	m_pSupervisor->m_fMAPVolts = ((float)buffer[28] / (float) 255.0) * (float) 5.0; // in Volts
-	m_pSupervisor->m_iMAPADC = buffer[28];
-	m_pSupervisor->m_fThrottleVolts = (float)(((float)buffer[29] / (float)255.0) * (float) 5.0);
-	m_pSupervisor->m_iThrottleADC = buffer[29];
-	m_pSupervisor->m_iThrottlePos = (int)((float)buffer[30] / (float)2.55);
-	m_pSupervisor->m_fBatteryVolts = (float)buffer[31] / (float)10.0;
-	m_pSupervisor->m_fBaro = (((float)buffer[32] + (float)28.06) / (float)271); // in Bar Absolute
-	m_pSupervisor->m_fBaroVolts = ((float)buffer[32] / (float) 255.0) * (float) 5.0; // in Volts
-	m_pSupervisor->m_iBaroADC = buffer[32];
-	m_pSupervisor->m_fO2VoltsLeft = (float) buffer[33] * (float) 0.00444; // 1st Bank
-	m_pSupervisor->m_fO2VoltsRight = (float) buffer[34] * (float) 0.00444; // 2nd Bank
-	m_pSupervisor->m_iBLMCell = (int)buffer[37];
-	m_pSupervisor->m_iBLM = (int)buffer[38];
-	m_pSupervisor->m_iBLMRight = (int)buffer[39];
-	m_pSupervisor->m_iIntegratorL = (int)buffer[40];
-	m_pSupervisor->m_iIntegratorR = (int)buffer[41];
-	m_pSupervisor->m_iInjectorBasePWMsL = (int) ( (float)((buffer[42] * 256) + buffer[43]) / (float)65.536);
-	m_pSupervisor->m_iInjectorBasePWMsR = (int) ( (float)((buffer[44] * 256) + buffer[45]) / (float)65.536);
-	m_pSupervisor->m_fAirFlow = ((float)((buffer[46] * 256) + buffer[47]) * (float)512.0) / (float) 65536.0;
-	m_pSupervisor->m_iIACPosition = (int)buffer[49];
-	m_pSupervisor->m_fSparkAdvance = (float)buffer[51]; // in °
-	m_pSupervisor->m_fKnockRetard = ((float)buffer[52] / (float)16.0); // in °
-	m_pSupervisor->m_iKnockCount = (int)(buffer[53] * 256) + buffer[54];
-	m_pSupervisor->m_iMPH = (int)buffer[58]; // Count is in MPH
-	m_pSupervisor->m_iRunTime = (buffer[59] * 256) + buffer[60]; // Total running time
+	ecuData->m_iDesiredIdle = (int)((float)buffer[21] * (float) 12.5);
+	ecuData->m_iRPM = buffer[22] * 25;
+	ecuData->m_fWaterTemp = ((float)buffer[23] * (float)0.75) - (float)40.0; // in °C
+	ecuData->m_fWaterVolts = (float)(((float)buffer[23] / (float)255.0) * (float) 5.0);
+	ecuData->m_iWaterTempADC = buffer[23];
+	ecuData->m_fMATVolts = ((float)buffer[25] / (float)255.0) * (float)5.0; // in Volts
+	ecuData->m_iMATADC = buffer[25];
+	ecuData->m_fMATTemp = ((float)buffer[25] * (float)0.75) - (float)40.0; // in °C
+	ecuData->m_fMAP = (((float)buffer[28] + (float)28.06) / (float)271); // in Bar Absolute
+	ecuData->m_fMAPVolts = ((float)buffer[28] / (float) 255.0) * (float) 5.0; // in Volts
+	ecuData->m_iMAPADC = buffer[28];
+	ecuData->m_fThrottleVolts = (float)(((float)buffer[29] / (float)255.0) * (float) 5.0);
+	ecuData->m_iThrottleADC = buffer[29];
+	ecuData->m_iThrottlePos = (int)((float)buffer[30] / (float)2.55);
+	ecuData->m_fBatteryVolts = (float)buffer[31] / (float)10.0;
+	ecuData->m_fBaro = (((float)buffer[32] + (float)28.06) / (float)271); // in Bar Absolute
+	ecuData->m_fBaroVolts = ((float)buffer[32] / (float) 255.0) * (float) 5.0; // in Volts
+	ecuData->m_iBaroADC = buffer[32];
+	ecuData->m_fO2VoltsLeft = (float) buffer[33] * (float) 0.00444; // 1st Bank
+	ecuData->m_fO2VoltsRight = (float) buffer[34] * (float) 0.00444; // 2nd Bank
+	ecuData->m_iBLMCell = (int)buffer[37];
+	ecuData->m_iBLM = (int)buffer[38];
+	ecuData->m_iBLMRight = (int)buffer[39];
+	ecuData->m_iIntegratorL = (int)buffer[40];
+	ecuData->m_iIntegratorR = (int)buffer[41];
+	ecuData->m_iInjectorBasePWMsL = (int) ( (float)((buffer[42] * 256) + buffer[43]) / (float)65.536);
+	ecuData->m_iInjectorBasePWMsR = (int) ( (float)((buffer[44] * 256) + buffer[45]) / (float)65.536);
+	ecuData->m_fAirFlow = ((float)((buffer[46] * 256) + buffer[47]) * (float)512.0) / (float) 65536.0;
+	ecuData->m_iIACPosition = (int)buffer[49];
+	ecuData->m_fSparkAdvance = (float)buffer[51]; // in °
+	ecuData->m_fKnockRetard = ((float)buffer[52] / (float)16.0); // in °
+	ecuData->m_iKnockCount = (int)(buffer[53] * 256) + buffer[54];
+	ecuData->m_iMPH = (int)buffer[58]; // Count is in MPH
+	ecuData->m_iRunTime = (buffer[59] * 256) + buffer[60]; // Total running time
 
-	m_pSupervisor->m_fStartWaterTemp = 0.0;
+	ecuData->m_fStartWaterTemp = 0.0;
 
 	ParseDTCs(); // Process the DTCs into text
 }
@@ -532,7 +532,7 @@ void CGM1994CamaroZ28Parser::ParseMode1_6(unsigned char* buffer, int len)
 // Translates the incoming data stream as Mode 2
 void CGM1994CamaroZ28Parser::ParseMode2(unsigned char* buffer, int len)
 {
-	int iIndex;
+	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
 
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -549,9 +549,8 @@ void CGM1994CamaroZ28Parser::ParseMode2(unsigned char* buffer, int len)
 		WriteStatus("Warning: F002 larger than expected, packet truncated.");
 		len = 65;
 	}
-	// copy buffer into raw data array
-	for(iIndex=0; iIndex<len; iIndex++)
-		m_pSupervisor->m_ucF002[iIndex]=buffer[iIndex];
+
+	memcpy(ecuData->m_ucF002, buffer, len);
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
@@ -560,7 +559,7 @@ void CGM1994CamaroZ28Parser::ParseMode2(unsigned char* buffer, int len)
 // Translates the incoming data stream as Mode 3
 void CGM1994CamaroZ28Parser::ParseMode3(unsigned char* buffer, int len)
 {
-	int iIndex;
+	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
 
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -577,9 +576,8 @@ void CGM1994CamaroZ28Parser::ParseMode3(unsigned char* buffer, int len)
 		WriteStatus("Warning: F003 larger than expected, packet truncated.");
 		len = 11;
 	}
-	// copy buffer into raw data array
-	for(iIndex=0; iIndex<len; iIndex++)
-		m_pSupervisor->m_ucF003[iIndex]=buffer[iIndex];
+
+	memcpy(ecuData->m_ucF003, buffer, len);
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
@@ -593,7 +591,7 @@ void CGM1994CamaroZ28Parser::ParseMode3(unsigned char* buffer, int len)
 // Translates the incoming data stream as Mode 4
 void CGM1994CamaroZ28Parser::ParseMode4(unsigned char* buffer, int len)
 {
-	int iIndex;
+	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
 
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -610,9 +608,8 @@ void CGM1994CamaroZ28Parser::ParseMode4(unsigned char* buffer, int len)
 		WriteStatus("Warning: F004 larger than expected, packet truncated.");
 		len = 11;
 	}
-	// copy buffer into raw data array
-	for(iIndex=0; iIndex<len; iIndex++)
-		m_pSupervisor->m_ucF004[iIndex]=buffer[iIndex];
+
+	memcpy(ecuData->m_ucF004, buffer, len);
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
@@ -713,415 +710,351 @@ void CGM1994CamaroZ28Parser::ParseMode10(unsigned char* buffer, int len)
 // Translates the DTC Codes
 void CGM1994CamaroZ28Parser::ParseDTCs(void)
 {
-	CString buf; // Temporary Buffer
+	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
 
-	m_pSupervisor->m_csDTC.Empty();
+	ecuData->m_csDTC.Empty();
 
 	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0) && (m_ucDTC[3] == 0) && (m_ucDTC[4] == 0) && (m_ucDTC[5] == 0) && (m_ucDTC[6] == 0) && (m_ucDTC[7] == 0))
-		m_pSupervisor->m_csDTC = "No reported faults.";
+		ecuData->m_csDTC = "No reported faults.";
 	else
 	{
-		m_pSupervisor->m_csDTC = "The following faults are reported:\n";
+		ecuData->m_csDTC = "The following faults are reported:\n";
 		
 		// Now print the fault-codes
 		// MALFFW1     LOGGED MALF FLAG WORD 1
 		if (m_ucDTC[0] & 0x80)
 		{ //
-			buf = "CODE 79  TRANSMISSION OVER TEMPERATURE";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 79  TRANSMISSION OVER TEMPERATURE";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[0] & 0x40)
 		{ //
-			buf = "CODE 80  TRANSMISSION COMPONENT SLIPPING";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 80  TRANSMISSION COMPONENT SLIPPING";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[0] & 0x20)
 		{ //
-			buf = "CODE 81  SHIFT B SOLENOID FAULT (ODM)";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 81  SHIFT B SOLENOID FAULT (ODM)";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[0] & 0x10)
 		{ //
-			buf = "CODE 82  SHIFT A SOLENOID FAULT (ODM)";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 82  SHIFT A SOLENOID FAULT (ODM)";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[0] & 0x08)
 		{ //
-			buf = "CODE 83  TCC CONTROL FEEDBACK FAULT (ODM)";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 83  TCC CONTROL FEEDBACK FAULT (ODM)";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[0] & 0x04)
 		{ //
-			buf = "CODE 84  3-2 DOWNSHIFT FEEDBACK FAULT (ODM)";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 84  3-2 DOWNSHIFT FEEDBACK FAULT (ODM)";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[0] & 0x02)
 		{ //
-			buf = "CODE 85  TCC STUCK ON";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 85  TCC STUCK ON";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[0] & 0x01)
 		{ //
-			buf = "CODE 86  LOW RATIO";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 86  LOW RATIO";
+			ecuData->m_csDTC += "\n";
 		}
 
 		// MALFFW2     LOGGED MALF FLAG WORD 2
 		if (m_ucDTC[1] & 0x80)
 		{ //
-			buf = "CODE 11  MALF INDICATOR LAMP (MIL) FAULT";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 11  MALF INDICATOR LAMP (MIL) FAULT";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[1] & 0x40)
 		{ //
-			buf = "CODE 12  NO REFERENCE PULSES";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 12  NO REFERENCE PULSES";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[1] & 0x20)
 		{ //
-			buf = "CODE 13  LEFT O2 SENSOR FAILED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 13  LEFT O2 SENSOR FAILED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[1] & 0x10)
 		{ //
-			buf = "CODE 16  LO-RES FAILURE";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 16  LO-RES FAILURE";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[1] & 0x08)
 		{ //
-			buf = "CODE 23  MAT SENSOR LOW";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 23  MAT SENSOR LOW";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[1] & 0x04)
 		{ //
-			buf = "CODE 25  MAT SENSOR HIGH";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 25  MAT SENSOR HIGH";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[1] & 0x02)
 		{ //
-			buf = "CODE 26  CCP ELECTRICAL FAULT (ODM)";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 26  CCP ELECTRICAL FAULT (ODM)";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[1] & 0x01)
 		{ //
-			buf = "CODE 27  EGR ELECTRICAL FAULT (ODM)";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 27  EGR ELECTRICAL FAULT (ODM)";
+			ecuData->m_csDTC += "\n";
 		}
 
 		// MALFFW3     LOGGED MALF FLAG WORD 3
 		if (m_ucDTC[2] & 0x80)
 		{ //
-			buf = "CODE 29  EAS ELECTRICAL FAULT (ODM)";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 29  EAS ELECTRICAL FAULT (ODM)";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[2] & 0x40)
 		{ //
-			buf = "CODE 32  EGR SYSTEM FAULT";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 32  EGR SYSTEM FAULT";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[2] & 0x20)
 		{ //
-			buf = "CODE 47  NOT USED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 47  NOT USED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[2] & 0x10)
 		{ //
-			buf = "CODE 48  MASS AIR FLOW SYSTEM FAILURE";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 48  MASS AIR FLOW SYSTEM FAILURE";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[2] & 0x08)
 		{ //
-			buf = "CODE 36  HI-RES FAILURE";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 36  HI-RES FAILURE";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[2] & 0x04)
 		{ //
-			buf = "CODE 41  EST OPEN";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 41  EST OPEN";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[2] & 0x02)
 		{ //
-			buf = "CODE 42  EST GROUNDED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 42  EST GROUNDED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[2] & 0x01)
 		{ //
-			buf = "CODE 43  ESC FAILURE";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 43  ESC FAILURE";
+			ecuData->m_csDTC += "\n";
 		}
 
 		// MALFFW4     LOGGED MALF FLAG WORD 4
 		if (m_ucDTC[3] & 0x80)
 		{ //
-			buf = "CODE 44  LEFT O2 SENSOR LEAN";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 44  LEFT O2 SENSOR LEAN";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[3] & 0x40)
 		{ //
-			buf = "CODE 45  LEFT O2 SENSOR RICH";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 45  LEFT O2 SENSOR RICH";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[3] & 0x20)
 		{ //
-			buf = "CODE 46  FUEL ENABLE FAILURE";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 46  FUEL ENABLE FAILURE";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[3] & 0x10)
 		{ //
-			buf = "CODE 50  SYSTEM VOLTAGE LOW";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 50  SYSTEM VOLTAGE LOW";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[3] & 0x08)
 		{ //
-			buf = "CODE 52  OIL TEMPERATURE LOW";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 52  OIL TEMPERATURE LOW";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[3] & 0x04)
 		{ //
-			buf = "CODE 54  NOT USED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 54  NOT USED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[3] & 0x02)
 		{ //
-			buf = "CODE 55  FUEL SYSTEM LEAN";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 55  FUEL SYSTEM LEAN";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[3] & 0x01)
 		{ //
-			buf = "CODE 61  A/C LOW CHARGE";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 61  A/C LOW CHARGE";
+			ecuData->m_csDTC += "\n";
 		}
 
 		// MALFFW5     LOGGED MALF FLAG WORD 5
 		if (m_ucDTC[4] & 0x80)
 		{ //
-			buf = "CODE 62  OIL TEMPERATURE HIGH";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 62  OIL TEMPERATURE HIGH";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[4] & 0x40)
 		{ //
-			buf = "CODE 63  RIGHT O2 SENSOR FAILED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 63  RIGHT O2 SENSOR FAILED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[4] & 0x20)
 		{ //
-			buf = "CODE 64  RIGHT O2 SENSOR LEAN";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 64  RIGHT O2 SENSOR LEAN";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[4] & 0x10)
 		{ //
-			buf = "CODE 65  RIGHT O2 SENSOR RICH";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 65  RIGHT O2 SENSOR RICH";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[4] & 0x08)
 		{ //
-			buf = "CODE 66  A/C PRESSURE TRANSDUCER OPEN/SHORT";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 66  A/C PRESSURE TRANSDUCER OPEN/SHORT";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[4] & 0x04)
 		{ //
-			buf = "CODE 67  A/C PRESSURE TRANSDUCER DEGRADED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 67  A/C PRESSURE TRANSDUCER DEGRADED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[4] & 0x02)
 		{ //
-			buf = "CODE 68  A/C RELAY SHORTED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 68  A/C RELAY SHORTED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[4] & 0x01)
 		{ //
-			buf = "CODE 69  A/C CLUTCH CIRCUIT OPEN";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 69  A/C CLUTCH CIRCUIT OPEN";
+			ecuData->m_csDTC += "\n";
 		}
 
 		// MALFFW6     LOGGED MALF FLAG WORD 6
  		if (m_ucDTC[5] & 0x80)
 		{ //
-			buf = "CODE 17  NOT USED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 17  NOT USED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[5] & 0x40)
 		{ //
-			buf = "CODE 18  NOT USED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 18  NOT USED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[5] & 0x20)
 		{ //
-			buf = "CODE 19  NOT USED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 19  NOT USED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[5] & 0x10)
 		{ //
-			buf = "CODE 31  NOT USED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 31  NOT USED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[5] & 0x08)
 		{ //
-			buf = "CODE 70  A/C CLUTCH RELAY FAULT (ODM)";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 70  A/C CLUTCH RELAY FAULT (ODM)";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[5] & 0x04)
 		{ //
-			buf = "CODE 71  A/C EVAPORATOR TEMP SENSOR FAILED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 71  A/C EVAPORATOR TEMP SENSOR FAILED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[5] & 0x02)
 		{ //
-			buf = "CODE 77  FAN 1 FAULT (ODM)";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 77  FAN 1 FAULT (ODM)";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[5] & 0x01)
 		{ //
-			buf = "CODE 78  FAN 2 FAULT (ODM)";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 78  FAN 2 FAULT (ODM)";
+			ecuData->m_csDTC += "\n";
 		}
 
 		// MALFFW7     LOGGED MALF FLAG WORD 7
 		if (m_ucDTC[6] & 0x80)
 		{ //
-			buf = "CODE 24  OUTPUT SPEED LOW";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 24  OUTPUT SPEED LOW";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[6] & 0x40)
 		{ //
-			buf = "CODE 35  NOT USED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 35  NOT USED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[6] & 0x20)
 		{ //
-			buf = "CODE 39  NOT USED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 39  NOT USED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[6] & 0x10)
 		{ //
-			buf = "CODE 33  MAP SENSOR HIGH";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 33  MAP SENSOR HIGH";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[6] & 0x08)
 		{ //
-			buf = "CODE 34  MAP SENSOR LOW";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 34  MAP SENSOR LOW";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[6] & 0x04)
 		{ //
-			buf = "CODE 49  NOT USED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 49  NOT USED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[6] & 0x02)
 		{ //
-			buf = "CODE 56  NOT USED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 56  NOT USED";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[6] & 0x01)
 		{ //
-			buf = "CODE 57  NOT USED";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 57  NOT USED";
+			ecuData->m_csDTC += "\n";
 		}
 
 		// MALFFW8     LOGGED MALF FLAG WORD 8
 		if (m_ucDTC[7] & 0x80)
 		{ //
-			buf = "CODE 14  COOLANT TEMPERATURE HIGH";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 14  COOLANT TEMPERATURE HIGH";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[7] & 0x40)
 		{ //
-			buf = "CODE 15  COOLANT TEMPERATURE LOW";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 15  COOLANT TEMPERATURE LOW";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[7] & 0x20)
 		{ //
-			buf = "CODE 21  THROTTLE POSITION HIGH";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 21  THROTTLE POSITION HIGH";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[7] & 0x10)
 		{ //
-			buf = "CODE 22  THROTTLE POSITION LOW";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 22  THROTTLE POSITION LOW";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[7] & 0x08)
 		{ //
-			buf = "CODE 37  BRAKE SWITCH STUCK ON";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 37  BRAKE SWITCH STUCK ON";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[7] & 0x04)
 		{ //
-			buf = "CODE 38  BRAKE SWITCH STUCK OFF";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 38  BRAKE SWITCH STUCK OFF";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[7] & 0x02)
 		{ //
-			buf = "CODE 51  PROM/FLASH ERROR";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 51  PROM/FLASH ERROR";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[7] & 0x01)
 		{ //
-			buf = "CODE 53  SYSTEM VOLTAGE HIGH";
-			m_pSupervisor->m_csDTC += buf;
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "CODE 53  SYSTEM VOLTAGE HIGH";
+			ecuData->m_csDTC += "\n";
 		}
 	}
 

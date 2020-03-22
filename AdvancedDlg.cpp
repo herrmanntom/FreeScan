@@ -46,17 +46,11 @@ void CAdvancedDlg::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 
 	//Updates the dialog.
-	Refresh();
+	Refresh(GetSupervisor()->GetEcuData());
 }
 
 // Returns a pointer to the Supervisor
 CSupervisor* CAdvancedDlg::GetSupervisor(void)
-{
-	return m_pMainDlg->m_pSupervisor;
-}
-
-// Returns a pointer to the Supervisor
-CSupervisor* CAdvancedDlg::GetData(void)
 {
 	return m_pMainDlg->m_pSupervisor;
 }
@@ -74,7 +68,7 @@ DWORD CAdvancedDlg::GetCurrentMode(void)
 }
 
 // Updates all of our controls
-void CAdvancedDlg::Refresh(void)
+void CAdvancedDlg::Refresh(const CEcuData* const ecuData)
 {
 	CString buf;
 	DWORD	dwCurrentMode = GetCurrentMode();
@@ -82,7 +76,7 @@ void CAdvancedDlg::Refresh(void)
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("%d", GetData()->m_iDesiredIdle);
+		buf.Format("%d", ecuData->m_iDesiredIdle);
 	m_DesiredIdle.SetWindowText(buf);
 
 	// Hide the buttons that don't work when not interactive
@@ -127,7 +121,7 @@ void CAdvancedDlg::OnSetdesidle()
 {
 	CDesIdleDlg		dlg;
 
-	dlg.m_Value = GetData()->m_iDesiredIdle;
+	dlg.m_Value = GetSupervisor()->GetEcuData()->m_iDesiredIdle;
 	if (dlg.m_Value == 0)
 		dlg.m_Value = 850;
 	if (dlg.DoModal() == IDOK)

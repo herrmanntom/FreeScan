@@ -7,6 +7,8 @@
 // RawMode00.h : header file
 //
 
+#include "Protocols/EcuData.h"
+
 /////////////////////////////////////////////////////////////////////////////
 // CRawMode00 dialog
 class CFreeScanDlg;
@@ -50,7 +52,7 @@ public:
 
 // Implementation
 public:
-	void Refresh(void);
+	void Refresh(const CEcuData* const ecuData);
 
 protected:
 	CSupervisor* GetSupervisor(void); // returns a pointer to the Supervisor

@@ -17,6 +17,7 @@
 #include "SensorDlg.h" // Raw ADC Sensor Values
 #include "AdvancedDlg.h" // Advanced ECU things like Desired Idle
 #include "About.h"
+#include "Protocols/EcuData.h"
 #ifdef _DEBUG
 	#include "EngineDlg.h" // Real world values of the Engine
 	#include "RawMode00.h" // Hex Dump of Mode 0 Dlg
@@ -68,7 +69,7 @@ public:
 #endif // _DEBUG
 
 	// Implementation
-	void UpdateDialog(void); //Updates the dialog
+	void UpdateDialog(const CEcuData* const ecuData); //Updates the dialog
 	BOOL StartComs(void); //Starts the ECU Comms
 	BOOL StopComs(void); //Stops the ECU Comms
 	void WriteStatus(CString csText);

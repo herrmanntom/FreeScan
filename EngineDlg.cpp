@@ -73,17 +73,11 @@ void CEngineDlg::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 
 	//Updates the dialog.
-	Refresh();
+	Refresh(GetSupervisor()->GetEcuData());
 }
 
 // Returns a pointer to the Supervisor
 CSupervisor* CEngineDlg::GetSupervisor(void)
-{
-	return m_pMainDlg->m_pSupervisor;
-}
-
-// Returns a pointer to the Supervisor
-CSupervisor* CEngineDlg::GetData(void)
 {
 	return m_pMainDlg->m_pSupervisor;
 }
@@ -95,7 +89,7 @@ DWORD CEngineDlg::GetCurrentMode(void)
 }
 
 // Updates all of our controls
-void CEngineDlg::Refresh(void)
+void CEngineDlg::Refresh(const CEcuData* const ecuData)
 {
 	CString buf;
 	DWORD	dwCurrentMode = GetCurrentMode();
@@ -103,7 +97,7 @@ void CEngineDlg::Refresh(void)
 	if (!( (dwCurrentMode == 1) ||
 		(dwCurrentMode == 0) ))
 		m_status7.SetWindowText("??");
-	else if (GetData()->m_bEngineClosedLoop)
+	else if (ecuData->m_bEngineClosedLoop)
 		m_status7.SetWindowText("Closed Loop");
 	else
 		m_status7.SetWindowText("Open Loop");
@@ -111,21 +105,21 @@ void CEngineDlg::Refresh(void)
 	if (!( (dwCurrentMode == 1) ||
 		(dwCurrentMode == 0) ))
 		m_status6.SetWindowText("N/A");
-	else if (GetData()->m_bEngineStalled)
+	else if (ecuData->m_bEngineStalled)
 		m_status6.SetWindowText("No Ref Pulses");
 	else
 		m_status6.SetWindowText("Running");
 
 	if (dwCurrentMode != 1)
 		m_ACRequest.SetWindowText("N/A");
-	else if (GetData()->m_bACRequest)
+	else if (ecuData->m_bACRequest)
 		m_ACRequest.SetWindowText("A/C Requested");
 	else
 		m_ACRequest.SetWindowText("A/C Off");
 
 	if (dwCurrentMode != 1)
 		m_ACClutch.SetWindowText("N/A");
-	else if (GetData()->m_bACClutch)
+	else if (ecuData->m_bACClutch)
 		m_ACClutch.SetWindowText("A/C Clutch ON");
 	else
 		m_ACClutch.SetWindowText("A/C Clutch OFF");
@@ -133,51 +127,51 @@ void CEngineDlg::Refresh(void)
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("%04X", GetData()->m_iEpromID);
+		buf.Format("%04X", ecuData->m_iEpromID);
 	m_EpromID.SetWindowText(buf);
 
 	if (!( (dwCurrentMode == 1) ||
 		(dwCurrentMode == 0) ))
 		buf.Format("N/A");
 	else
-		buf.Format("%d", GetData()->m_iRPM);
+		buf.Format("%d", ecuData->m_iRPM);
 	m_RPM.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("%d", GetData()->m_iIACPosition);
+		buf.Format("%d", ecuData->m_iIACPosition);
 	m_IAC.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("%d", GetData()->m_iDesiredIdle);
+		buf.Format("%d", ecuData->m_iDesiredIdle);
 	m_DesiredIdle.SetWindowText(buf);
 
 	if (!( (dwCurrentMode == 1) ||
 		(dwCurrentMode == 0) ))
 		buf.Format("N/A");
-	else if (GetData()->m_bMiles == TRUE)
-		buf.Format("%d", GetData()->m_iMPH);
+	else if (GetSupervisor()->m_bMiles == TRUE)
+		buf.Format("%d", ecuData->m_iMPH);
 	else
-		buf.Format("%d", GetData()->m_iMPH_inKPH);
+		buf.Format("%d", ecuData->m_iMPH_inKPH);
 	m_MPH.SetWindowText(buf);
 
 	if (!( (dwCurrentMode == 1) ||
 		(dwCurrentMode == 0) ))
 		buf.Format("N/A");
 	else
-		buf.Format("%3.1f", GetData()->m_fBatteryVolts);
+		buf.Format("%3.1f", ecuData->m_fBatteryVolts);
 	m_BatteryVolts.SetWindowText(buf);
 
 	if (!( (dwCurrentMode == 1) ||
 		(dwCurrentMode == 0) ))
 		buf.Format("N/A");
-	else if (GetData()->m_bCentigrade == TRUE && GetData()->m_fStartWaterTemp != 0.0)
-		buf.Format("%3.1f", GetData()->m_fStartWaterTemp);
-	else if (GetData()->m_fStartWaterTemp_inF != 32.0)
-		buf.Format("%3.1f", GetData()->m_fStartWaterTemp_inF);
+	else if (GetSupervisor()->m_bCentigrade == TRUE && ecuData->m_fStartWaterTemp != 0.0)
+		buf.Format("%3.1f", ecuData->m_fStartWaterTemp);
+	else if (GetSupervisor()->m_bCentigrade == FALSE && ecuData->m_fStartWaterTemp_inF != 32.0)
+		buf.Format("%3.1f", ecuData->m_fStartWaterTemp_inF);
 	else
 		buf.Format(" ");
 	m_StartCoolant.SetWindowText(buf);
@@ -185,18 +179,18 @@ void CEngineDlg::Refresh(void)
 	if (!( (dwCurrentMode == 1) ||
 		(dwCurrentMode == 0) ))
 		buf.Format("N/A");
-	else if (GetData()->m_bCentigrade == TRUE)
-		buf.Format("%3.1f", GetData()->m_fWaterTemp);
+	else if (GetSupervisor()->m_bCentigrade == TRUE)
+		buf.Format("%3.1f", ecuData->m_fWaterTemp);
 	else
-		buf.Format("%3.1f", GetData()->m_fStartWaterTemp_inF);
+		buf.Format("%3.1f", ecuData->m_fStartWaterTemp_inF);
 	m_CoolantTemp.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
-	else if (GetData()->m_bCentigrade == TRUE && GetData()->m_fMATTemp != 0.0)
-		buf.Format("%3.1f", GetData()->m_fMATTemp);
-	else if (GetData()->m_bCentigrade == FALSE && GetData()->m_fMATTemp_inF != 32.0)
-		buf.Format("%3.1f", GetData()->m_fMATTemp_inF);
+	else if (GetSupervisor()->m_bCentigrade == TRUE && ecuData->m_fMATTemp != 0.0)
+		buf.Format("%3.1f", ecuData->m_fMATTemp);
+	else if (GetSupervisor()->m_bCentigrade == FALSE && ecuData->m_fMATTemp_inF != 32.0)
+		buf.Format("%3.1f", ecuData->m_fMATTemp_inF);
 	else
 		buf.Format(" ");
 	m_MAT.SetWindowText(buf);
@@ -204,41 +198,41 @@ void CEngineDlg::Refresh(void)
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("%d", GetData()->m_iRunTime);
+		buf.Format("%d", ecuData->m_iRunTime);
 	m_RunTime.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("%d", GetData()->m_iCrankSensors);
+		buf.Format("%d", ecuData->m_iCrankSensors);
 	m_CrankSensors.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("%3d", GetData()->m_iThrottlePos);
+		buf.Format("%3d", ecuData->m_iThrottlePos);
 	m_ThrottlePos.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
-	else if (GetData()->m_iEngineLoad != 0)
-		buf.Format("%3d", GetData()->m_iEngineLoad);
+	else if (ecuData->m_iEngineLoad != 0)
+		buf.Format("%3d", ecuData->m_iEngineLoad);
 	else
 		buf.Format(" ");
 	m_EngineLoad.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
-	else if (GetData()->m_fBaro != 0.0)
-		buf.Format("%5.3f", GetData()->m_fBaro);
+	else if (ecuData->m_fBaro != 0.0)
+		buf.Format("%5.3f", ecuData->m_fBaro);
 	else
 		buf.Format(" ");
 	m_Baro.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
-	else if (GetData()->m_fMAP != 0.0)
-		buf.Format("%5.3f", GetData()->m_fMAP);
+	else if (ecuData->m_fMAP != 0.0)
+		buf.Format("%5.3f", ecuData->m_fMAP);
 	else
 		buf.Format(" ");
 	m_Boost.SetWindowText(buf);
@@ -246,21 +240,21 @@ void CEngineDlg::Refresh(void)
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("%3.1f", GetData()->m_fSparkAdvance);
+		buf.Format("%3.1f", ecuData->m_fSparkAdvance);
 	m_SparkAdv.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
-	else if (GetData()->m_fKnockRetard != 0.0)
-		buf.Format("%3.1f", GetData()->m_fKnockRetard);
+	else if (ecuData->m_fKnockRetard != 0.0)
+		buf.Format("%3.1f", ecuData->m_fKnockRetard);
 	else
 		buf.Format(" ");
 	m_Knock_Retard.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
-	else if (GetData()->m_iKnockCount != 0)
-		buf.Format("%3d", GetData()->m_iKnockCount);
+	else if (ecuData->m_iKnockCount != 0)
+		buf.Format("%3d", ecuData->m_iKnockCount);
 	else
 		buf.Format(" ");
 	m_Knock_Count.SetWindowText(buf);
@@ -268,77 +262,77 @@ void CEngineDlg::Refresh(void)
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
 	else
-		buf.Format("%5.3f", GetData()->m_fO2VoltsLeft);
+		buf.Format("%5.3f", ecuData->m_fO2VoltsLeft);
 	m_O2VoltsLeft.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
-	else if (GetData()->m_fO2VoltsRight != 0.0)
-		buf.Format("%5.3f", GetData()->m_fO2VoltsRight);
+	else if (ecuData->m_fO2VoltsRight != 0.0)
+		buf.Format("%5.3f", ecuData->m_fO2VoltsRight);
 	else
 		buf.Format(" ");
 	m_O2VoltsRight.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
-	else if (GetData()->m_iIntegratorL != 0)
-		buf.Format("%d", GetData()->m_iIntegratorL);
+	else if (ecuData->m_iIntegratorL != 0)
+		buf.Format("%d", ecuData->m_iIntegratorL);
 	else
 		buf.Format(" ");
 	m_IntegratorL.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
-	else if (GetData()->m_iIntegratorR != 0)
-		buf.Format("%d", GetData()->m_iIntegratorR);
+	else if (ecuData->m_iIntegratorR != 0)
+		buf.Format("%d", ecuData->m_iIntegratorR);
 	else
 		buf.Format(" ");
 	m_IntegratorR.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
-	else if (GetData()->m_iRichLeanCounterL != 0)
-		buf.Format("%d", GetData()->m_iRichLeanCounterL);
+	else if (ecuData->m_iRichLeanCounterL != 0)
+		buf.Format("%d", ecuData->m_iRichLeanCounterL);
 	else
 		buf.Format(" ");
 	m_RichLeanCounterL.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
-	else if (GetData()->m_iRichLeanCounterR != 0)
-		buf.Format("%d", GetData()->m_iRichLeanCounterR);
+	else if (ecuData->m_iRichLeanCounterR != 0)
+		buf.Format("%d", ecuData->m_iRichLeanCounterR);
 	else
 		buf.Format(" ");
 	m_RichLeanCounterR.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
-	else if (GetData()->m_fAFRatio != 0.0)
-		buf.Format("%3.1f", GetData()->m_fAFRatio);
+	else if (ecuData->m_fAFRatio != 0.0)
+		buf.Format("%3.1f", ecuData->m_fAFRatio);
 	else
 		buf.Format(" ");
 	m_AirFuel.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
-	else if (GetData()->m_iBLM != 0)
-		buf.Format("%3d", GetData()->m_iBLM);
+	else if (ecuData->m_iBLM != 0)
+		buf.Format("%3d", ecuData->m_iBLM);
 	else
 		buf.Format(" ");
 	m_BLM.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
-	else if (GetData()->m_iBLMCell != 0)
-		buf.Format("%3d", GetData()->m_iBLMCell);
+	else if (ecuData->m_iBLMCell != 0)
+		buf.Format("%3d", ecuData->m_iBLMCell);
 	else
 		buf.Format(" ");
 	m_BLM_Number.SetWindowText(buf);
 
 	if (dwCurrentMode != 1)
 		buf.Format("N/A");
-	else if (GetData()->m_fAirFlow != 0.0)
-		buf.Format("%4.0f", GetData()->m_fAirFlow);
+	else if (ecuData->m_fAirFlow != 0.0)
+		buf.Format("%4.0f", ecuData->m_fAirFlow);
 	else
 		buf.Format(" ");
 	m_AirFlow.SetWindowText(buf);

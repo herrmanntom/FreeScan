@@ -7,6 +7,8 @@
 // StatusBitsDlg.h : header file
 //
 
+#include "Protocols/EcuData.h"
+
 /////////////////////////////////////////////////////////////////////////////
 // CStatusBitsDlg dialog
 class CFreeScanDlg;
@@ -33,7 +35,7 @@ public:
 
 	CFreeScanDlg*	m_pMainDlg; // Base Dialog Pointer.
 
-	void Refresh(void);
+	void Refresh(const CEcuData* const ecuData);
 protected:
 	BOOL GetInteract(void);// Returns if the ECU is interactive
 
@@ -47,7 +49,6 @@ protected:
 // Implementation
 protected:
 	CSupervisor* GetSupervisor(void); // returns a pointer to the Supervisor
-	CSupervisor* GetData(void); // return a pointer to the Data
 	// Generated message map functions
 	//{{AFX_MSG(CStatusBitsDlg)
 	//}}AFX_MSG

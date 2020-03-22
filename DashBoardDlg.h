@@ -9,6 +9,7 @@
 //
 
 #include "TTPropertyPage.h" // Our Tooltip Class
+#include "Protocols/EcuData.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CDashBoardDlg dialog
@@ -68,10 +69,9 @@ protected:
 
 // Implementation
 public:
-	void Refresh(void); // Updates all of our controls
+	void Refresh(const CEcuData* const ecuData); // Updates all of our controls
 protected:
 	CSupervisor* GetSupervisor(void); // returns a pointer to the Supervisor
-	CSupervisor* GetData(void); // return a pointer to the Data
 	BOOL GetInteract(void);
 	DWORD GetCurrentMode(void); // Returns the current ECU Mode
 

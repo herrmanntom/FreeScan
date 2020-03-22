@@ -235,6 +235,9 @@
     <ClCompile Include="Protocols\ELM327Protocol.cpp">
       <Filter>Source Files\Protocols\ELM327</Filter>
     </ClCompile>
+    <ClCompile Include="Protocols\EcuData.cpp">
+      <Filter>Source Files\Protocols</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="picture.h">
@@ -383,6 +386,9 @@
     </ClInclude>
     <ClInclude Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.24.28314\include\vcruntime.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Protocols\EcuData.h">
+      <Filter>Source Files\Protocols</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

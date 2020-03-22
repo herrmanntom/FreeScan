@@ -42,17 +42,11 @@ void CStatusBitsDlg::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 
 	//Updates the dialog.
-	Refresh();
+	Refresh(GetSupervisor()->GetEcuData());
 }
 
 // Returns a pointer to the Supervisor
 CSupervisor* CStatusBitsDlg::GetSupervisor(void)
-{
-	return m_pMainDlg->m_pSupervisor;
-}
-
-// Returns a pointer to the Supervisor
-CSupervisor* CStatusBitsDlg::GetData(void)
 {
 	return m_pMainDlg->m_pSupervisor;
 }
@@ -71,19 +65,19 @@ END_MESSAGE_MAP()
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 // Updates all of our controls
-void CStatusBitsDlg::Refresh(void)
+void CStatusBitsDlg::Refresh(const CEcuData* const ecuData)
 {
-	if (GetData()->m_bACRequest)
+	if (ecuData->m_bACRequest)
 		m_led1.SetLed(CLed::LED_COLOR_RED,CLed::LED_ON,CLed::LED_ROUND);
 	else
 		m_led1.SetLed(CLed::LED_COLOR_RED,CLed::LED_OFF,CLed::LED_ROUND);
 
-	if (GetData()->m_bACClutch)
+	if (ecuData->m_bACClutch)
 		m_led2.SetLed(CLed::LED_COLOR_RED,CLed::LED_ON,CLed::LED_ROUND);
 	else
 		m_led2.SetLed(CLed::LED_COLOR_RED,CLed::LED_OFF,CLed::LED_ROUND);
 
-	if (GetData()->m_bEngineClosedLoop)
+	if (ecuData->m_bEngineClosedLoop)
 		m_led3.SetLed(CLed::LED_COLOR_RED,CLed::LED_ON,CLed::LED_ROUND);
 	else
 		m_led3.SetLed(CLed::LED_COLOR_RED,CLed::LED_OFF,CLed::LED_ROUND);

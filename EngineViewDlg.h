@@ -7,6 +7,7 @@
 // EngineViewDlg.h : header file
 //
 #include "TTPropertyPage.h" // Our Tooltip Class
+#include "Protocols/EcuData.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CEngineViewDlg dialog
@@ -40,11 +41,10 @@ public:
 
 // Implementation
 public:
-	void Refresh(void);
+	void Refresh(const CEcuData* const ecuData);
 
 protected:
 	CSupervisor* GetSupervisor(void); // returns a pointer to the Supervisor
-	CSupervisor* GetData(void); // return a pointer to the Data
 	DWORD GetCurrentMode(void);
 
 	// Generated message map functions

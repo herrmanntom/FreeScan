@@ -7,6 +7,8 @@
 // TCodesDlg.h : header file
 //
 
+#include "Protocols/EcuData.h"
+
 /////////////////////////////////////////////////////////////////////////////
 // CTCodesDlg dialog
 class CFreeScanDlg;
@@ -30,7 +32,7 @@ public:
 
 	CFreeScanDlg*	m_pMainDlg; // Base Dialog Pointer.
 
-	void Refresh(void);
+	void Refresh(const CEcuData* const ecuData);
 protected:
 	BOOL GetInteract(void);// Returns if the ECU is interactive
 
@@ -44,8 +46,7 @@ protected:
 // Implementation
 protected:
 	CSupervisor* GetSupervisor(void); // returns a pointer to the Supervisor
-	CSupervisor* GetData(void); // return a pointer to the Data
-	void FillListBox(CListBox& lbT, CString& csT);// Populates a ListBox with a CString
+	void FillListBox(CListBox& lbT, const CString& csT);// Populates a ListBox with a CString
 	// Generated message map functions
 	//{{AFX_MSG(CTCodesDlg)
 	afx_msg void OnResetdtc();

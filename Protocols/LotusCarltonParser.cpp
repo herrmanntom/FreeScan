@@ -114,12 +114,13 @@ void CLotusCarltonParser::WriteCSV(BOOL bTitle)
 	}
 	else
 	{
+		const CEcuData *const ecuData = m_pSupervisor->GetEcuData();
 		csBuf.Format("%ld,%4.2f,%3.1f,%4.2f,%d,%d,%d,%d,%d,%d,%5.3f,%5.3f,%d,%d,%d,%4.2f,%4.2f,%3.1f,%d,%4.2f,%3.1f,%3.1f,%d,%3.1f,%3.1f,%3.1f,%d",
-			m_dwCSVRecord,m_pSupervisor->m_fWaterVolts,m_pSupervisor->m_fStartWaterTemp,m_pSupervisor->m_fThrottleVolts,
-			m_pSupervisor->m_iDesiredIdle,m_pSupervisor->m_iRPM,m_pSupervisor->m_iMPH,m_pSupervisor->m_iBLMCell,m_pSupervisor->m_iBLM,m_pSupervisor->m_iBLMRight,m_pSupervisor->m_fO2VoltsLeft,m_pSupervisor->m_fO2VoltsRight,m_pSupervisor->m_iIntegratorL,m_pSupervisor->m_iIntegratorR,
-			m_pSupervisor->m_iIACPosition,m_pSupervisor->m_fBaro,m_pSupervisor->m_fMAP,m_pSupervisor->m_fAFRatio,m_pSupervisor->m_iThrottlePos,
-			m_pSupervisor->m_fMATVolts,m_pSupervisor->m_fKnockRetard,m_pSupervisor->m_fBatteryVolts,m_pSupervisor->m_iEngineLoad,m_pSupervisor->m_fSparkAdvance,
-			m_pSupervisor->m_fWaterTemp,m_pSupervisor->m_fMATTemp,m_pSupervisor->m_iRunTime);
+			m_dwCSVRecord, ecuData->m_fWaterVolts, ecuData->m_fStartWaterTemp, ecuData->m_fThrottleVolts,
+			ecuData->m_iDesiredIdle, ecuData->m_iRPM, ecuData->m_iMPH, ecuData->m_iBLMCell, ecuData->m_iBLM, ecuData->m_iBLMRight, ecuData->m_fO2VoltsLeft, ecuData->m_fO2VoltsRight, ecuData->m_iIntegratorL, ecuData->m_iIntegratorR,
+			ecuData->m_iIACPosition, ecuData->m_fBaro, ecuData->m_fMAP, ecuData->m_fAFRatio, ecuData->m_iThrottlePos,
+			ecuData->m_fMATVolts, ecuData->m_fKnockRetard, ecuData->m_fBatteryVolts, ecuData->m_iEngineLoad, ecuData->m_fSparkAdvance,
+			ecuData->m_fWaterTemp, ecuData->m_fMATTemp, ecuData->m_iRunTime);
 		m_dwCSVRecord++;
 	}
 	csBuf = csBuf + "\n"; // Line Feed because we're logging to disk
@@ -219,7 +220,7 @@ int CLotusCarltonParser::Parse(unsigned char* buffer, int iLength)
 // Translates the incomming data stream as ADC Values
 void CLotusCarltonParser::ParseADC(unsigned char* buffer, int len)
 {
-	int iIndex;
+	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
 
 	if (len==0) // remember half duplex. We read our commands as well
 		WriteStatus("Received our TX command echo for mode 1.");
@@ -228,53 +229,48 @@ void CLotusCarltonParser::ParseADC(unsigned char* buffer, int len)
 		WriteStatus("Warning: F005 larger than expected, packet truncated.");
 		len = 10;
 	}
-	else
-	{// we have data to process
-		// copy buffer into raw data array
-		for(iIndex=0; iIndex<len; iIndex++)
-			m_pSupervisor->m_ucF005[iIndex]=buffer[iIndex];
-	}
+	
+	memcpy(ecuData->m_ucF005, buffer, len);
 
 	// Work out real world data from the packet.
 
 //	if (buffer[0] & 0x80)
-//		m_pSupervisor->m_bEngineOffIdle = TRUE;  // bit 7
+//		ecuData->m_bEngineOffIdle = TRUE;  // bit 7
 //	else
-//		m_pSupervisor->m_bEngineOffIdle = FALSE; // bit 7
+//		ecuData->m_bEngineOffIdle = FALSE; // bit 7
 //
 //	if (buffer[0] & 0x40)
-//		m_pSupervisor->m_bEngineStalled = TRUE;  // bit 6
+//		ecuData->m_bEngineStalled = TRUE;  // bit 6
 //	else
-//		m_pSupervisor->m_bEngineStalled = FALSE; // bit 6
+//		ecuData->m_bEngineStalled = FALSE; // bit 6
 
-//	m_pSupervisor->m_iMPH = (int)buffer[2]; // Count is in MPH
-//	m_pSupervisor->m_fBatteryVolts = (float)buffer[4] / (float)10.0;
-//	m_pSupervisor->m_fWaterTemp = ((float)buffer[9] * (float)0.75) - (float)40.0; // in °C
+//	ecuData->m_iMPH = (int)buffer[2]; // Count is in MPH
+//	ecuData->m_fBatteryVolts = (float)buffer[4] / (float)10.0;
+//	ecuData->m_fWaterTemp = ((float)buffer[9] * (float)0.75) - (float)40.0; // in °C
 }
 
 // Translates the incoming data stream as Analogue Values
 void CLotusCarltonParser::ParseAnalogues(unsigned char* buffer, int len)
 {
-	int iIndex;
+	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
 
 	if (len>3)
 	{
 		WriteStatus("Warning: F00A larger than expected, packet truncated.");
 		len = 3;
 	}
-		// copy buffer into raw data array
-		for(iIndex=0; iIndex<len; iIndex++)
-			m_pSupervisor->m_ucF00A[iIndex]=buffer[iIndex];
+	
+	memcpy(ecuData->m_ucF00A, buffer, len);
 
 	// Work out real world data from the packet.
 
-//	m_pSupervisor->m_iRPM = ((int)buffer[1] * 256) + (int)buffer[2];
+//	ecuData->m_iRPM = ((int)buffer[1] * 256) + (int)buffer[2];
 }
 
 // Translates the incoming data stream as Mode 1
 void CLotusCarltonParser::ParseMode1_0(unsigned char* buffer, int len)
 {
-	int iIndex;
+	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
 
 	if (len<10) // remember half duplex. We read our commands as well
 	{
@@ -286,61 +282,60 @@ void CLotusCarltonParser::ParseMode1_0(unsigned char* buffer, int len)
 		WriteStatus("Warning: F001 larger than expected, packet truncated.");
 		len = 65;
 	}
-	// copy buffer into raw data array
-	for(iIndex=0; iIndex<len; iIndex++)
-		m_pSupervisor->m_ucF001[iIndex]=buffer[iIndex];
+	
+	memcpy(ecuData->m_ucF001, buffer, len);
 
 	// Work out real-world data from the packet.
 	// Status Word 1
 //	if (buffer[7] & 0x01)
-//		m_pSupervisor->m_bACRequest = TRUE;  // mode 1, byte 10, bit 0
+//		ecuData->m_bACRequest = TRUE;  // mode 1, byte 10, bit 0
 //	else
-//		m_pSupervisor->m_bACRequest = FALSE; // mode 1, byte 10, bit 0
+//		ecuData->m_bACRequest = FALSE; // mode 1, byte 10, bit 0
 //
 //	if (buffer[7] & 0x04)
-//		m_pSupervisor->m_bACClutch = TRUE;  // mode 1, byte 10, bit 2
+//		ecuData->m_bACClutch = TRUE;  // mode 1, byte 10, bit 2
 //	else
-//		m_pSupervisor->m_bACClutch = FALSE; // mode 1, byte 10, bit 2
+//		ecuData->m_bACClutch = FALSE; // mode 1, byte 10, bit 2
 
 	// Analogues
-	m_pSupervisor->m_iEpromID = (int)buffer[2] + ((int)buffer[1] * 256);
+	ecuData->m_iEpromID = (int)buffer[2] + ((int)buffer[1] * 256);
 	m_ucDTC[0] = buffer[3]; // Fault code byte 1
 	m_ucDTC[1] = buffer[4]; // Fault code byte 2
 	m_ucDTC[2] = buffer[5]; // Fault code byte 3
 	m_ucDTC[2] = buffer[6]; // Fault code byte 4
 	m_ucDTC[2] = buffer[7]; // Fault code byte 5
-	m_pSupervisor->m_fWaterTemp = ((float)buffer[22] * (float)0.75) - (float)40.0; // in °C
-	m_pSupervisor->m_fMAPVolts = ((float)buffer[23] / (float) 255.0) * (float) 5.0; // in Volts
-	m_pSupervisor->m_fMAP = (((float)buffer[23] - (float)128.0)/ (float)100) + (float) 1.0; // in Bar Absolute
-	m_pSupervisor->m_fThrottleVolts = (float)(((float)buffer[24] / (float)255.0) * (float) 5.0);
-	m_pSupervisor->m_fBatteryVolts = (float)buffer[25] / (float)10.0;
-	m_pSupervisor->m_fBaro = (((float)buffer[26] - (float)128.0)/ (float)100) + (float) 1.0; // in Bar Absolute
-	m_pSupervisor->m_fBaroVolts = ((float)buffer[26] / (float) 255.0) * (float) 5.0; // in Volts
-	m_pSupervisor->m_fMATVolts = ((float)buffer[28] / (float)255.0) * (float)5.0; // in Volts
-	m_pSupervisor->m_fMATTemp = ReturnTemp(buffer[28]); // in °C
-	m_pSupervisor->m_fO2VoltsLeft = (float) buffer[29] * (float) 0.00442;
-	m_pSupervisor->m_fO2VoltsRight = (float) buffer[30] * (float) 0.00442;
-	m_pSupervisor->m_iBLM = (int)buffer[31];
-	m_pSupervisor->m_iBLMRight = (int)buffer[32];
-	m_pSupervisor->m_iBLMCell = (int)buffer[33];
-	m_pSupervisor->m_iIntegratorL = (int)buffer[36];
-	m_pSupervisor->m_iIntegratorR = (int)buffer[37];
-	m_pSupervisor->m_iBoostPW = (int) ((float)buffer[38] / (float)2.55); // Boost Solenoid
-	m_pSupervisor->m_iIACPosition = (int)buffer[40];
-	m_pSupervisor->m_iDesiredIdle = (int)((float)buffer[41] * (float) 12.5);
-	m_pSupervisor->m_iRPM = (int) 13107720 / ((int)buffer[42] * 256) + (int)buffer[43];
-	m_pSupervisor->m_fSparkAdvance = ((float)((buffer[44] * 256) + buffer[45]) * (float)90.0) / (float)256.0; // in °
-	m_pSupervisor->m_iRunTime = (buffer[47] * 256) + buffer[48]; // Total running time
-	m_pSupervisor->m_fKnockRetard = ((float)buffer[49] * (float)45.0) / (float)256.0; // in °
-	m_pSupervisor->m_iKnockCount = (int)(buffer[50] * 256) + buffer[51];
-	m_pSupervisor->m_iMPH = (int)buffer[52]; // Count is in MPH
-	m_pSupervisor->m_iThrottlePos = (int)((float)buffer[53] / (float)2.55);
+	ecuData->m_fWaterTemp = ((float)buffer[22] * (float)0.75) - (float)40.0; // in °C
+	ecuData->m_fMAPVolts = ((float)buffer[23] / (float) 255.0) * (float) 5.0; // in Volts
+	ecuData->m_fMAP = (((float)buffer[23] - (float)128.0)/ (float)100) + (float) 1.0; // in Bar Absolute
+	ecuData->m_fThrottleVolts = (float)(((float)buffer[24] / (float)255.0) * (float) 5.0);
+	ecuData->m_fBatteryVolts = (float)buffer[25] / (float)10.0;
+	ecuData->m_fBaro = (((float)buffer[26] - (float)128.0)/ (float)100) + (float) 1.0; // in Bar Absolute
+	ecuData->m_fBaroVolts = ((float)buffer[26] / (float) 255.0) * (float) 5.0; // in Volts
+	ecuData->m_fMATVolts = ((float)buffer[28] / (float)255.0) * (float)5.0; // in Volts
+	ecuData->m_fMATTemp = ReturnTemp(buffer[28]); // in °C
+	ecuData->m_fO2VoltsLeft = (float) buffer[29] * (float) 0.00442;
+	ecuData->m_fO2VoltsRight = (float) buffer[30] * (float) 0.00442;
+	ecuData->m_iBLM = (int)buffer[31];
+	ecuData->m_iBLMRight = (int)buffer[32];
+	ecuData->m_iBLMCell = (int)buffer[33];
+	ecuData->m_iIntegratorL = (int)buffer[36];
+	ecuData->m_iIntegratorR = (int)buffer[37];
+	ecuData->m_iBoostPW = (int) ((float)buffer[38] / (float)2.55); // Boost Solenoid
+	ecuData->m_iIACPosition = (int)buffer[40];
+	ecuData->m_iDesiredIdle = (int)((float)buffer[41] * (float) 12.5);
+	ecuData->m_iRPM = (int) 13107720 / ((int)buffer[42] * 256) + (int)buffer[43];
+	ecuData->m_fSparkAdvance = ((float)((buffer[44] * 256) + buffer[45]) * (float)90.0) / (float)256.0; // in °
+	ecuData->m_iRunTime = (buffer[47] * 256) + buffer[48]; // Total running time
+	ecuData->m_fKnockRetard = ((float)buffer[49] * (float)45.0) / (float)256.0; // in °
+	ecuData->m_iKnockCount = (int)(buffer[50] * 256) + buffer[51];
+	ecuData->m_iMPH = (int)buffer[52]; // Count is in MPH
+	ecuData->m_iThrottlePos = (int)((float)buffer[53] / (float)2.55);
 
-//	m_pSupervisor->m_fStartWaterTemp = ((float)buffer[7] * (float)0.75) - (float)40.0; // in °C
-//	m_pSupervisor->m_fAFRatio = (float)buffer[33] / (float)10.0; // Air Fuel Ratio
-//	m_pSupervisor->m_fWaterVolts = (float)(((float)buffer[8] / (float)255.0) * (float) 5.0);
-//	m_pSupervisor->m_iCrankSensors = buffer[15];
-//	m_pSupervisor->m_iEngineLoad = (int)((float)buffer[36] / (float) 2.55);
+//	ecuData->m_fStartWaterTemp = ((float)buffer[7] * (float)0.75) - (float)40.0; // in °C
+//	ecuData->m_fAFRatio = (float)buffer[33] / (float)10.0; // Air Fuel Ratio
+//	ecuData->m_fWaterVolts = (float)(((float)buffer[8] / (float)255.0) * (float) 5.0);
+//	ecuData->m_iCrankSensors = buffer[15];
+//	ecuData->m_iEngineLoad = (int)((float)buffer[36] / (float) 2.55);
 
 	ParseDTCs(); // Process the DTCs into text
 }
@@ -348,7 +343,7 @@ void CLotusCarltonParser::ParseMode1_0(unsigned char* buffer, int len)
 // Translates the incoming data stream as Mode 2
 void CLotusCarltonParser::ParseMode2(unsigned char* buffer, int len)
 {
-	int iIndex;
+	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
 
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -365,9 +360,8 @@ void CLotusCarltonParser::ParseMode2(unsigned char* buffer, int len)
 		WriteStatus("Warning: F002 larger than expected, packet truncated.");
 		len = 65;
 	}
-	// copy buffer into raw data array
-	for(iIndex=0; iIndex<len; iIndex++)
-		m_pSupervisor->m_ucF002[iIndex]=buffer[iIndex];
+	
+	memcpy(ecuData->m_ucF002, buffer, len);
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
@@ -376,7 +370,7 @@ void CLotusCarltonParser::ParseMode2(unsigned char* buffer, int len)
 // Translates the incoming data stream as Mode 3
 void CLotusCarltonParser::ParseMode3(unsigned char* buffer, int len)
 {
-	int iIndex;
+	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
 
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -393,9 +387,8 @@ void CLotusCarltonParser::ParseMode3(unsigned char* buffer, int len)
 		WriteStatus("Warning: F003 larger than expected, packet truncated.");
 		len = 11;
 	}
-	// copy buffer into raw data array
-	for(iIndex=0; iIndex<len; iIndex++)
-		m_pSupervisor->m_ucF003[iIndex]=buffer[iIndex];
+	
+	memcpy(ecuData->m_ucF003, buffer, len);
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
@@ -408,7 +401,7 @@ void CLotusCarltonParser::ParseMode3(unsigned char* buffer, int len)
 // Translates the incoming data stream as Mode 4
 void CLotusCarltonParser::ParseMode4(unsigned char* buffer, int len)
 {
-	int iIndex;
+	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
 
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -425,9 +418,8 @@ void CLotusCarltonParser::ParseMode4(unsigned char* buffer, int len)
 		WriteStatus("Warning: F004 larger than expected, packet truncated.");
 		len = 11;
 	}
-	// copy buffer into raw data array
-	for(iIndex=0; iIndex<len; iIndex++)
-		m_pSupervisor->m_ucF004[iIndex]=buffer[iIndex];
+	
+	memcpy(ecuData->m_ucF004, buffer, len);
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
@@ -436,223 +428,223 @@ void CLotusCarltonParser::ParseMode4(unsigned char* buffer, int len)
 // Translates the DTC Codes
 void CLotusCarltonParser::ParseDTCs(void)
 {
-	CString buf; // Temporary Buffer
+	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
 
-	m_pSupervisor->m_csDTC.Empty();
+	ecuData->m_csDTC.Empty();
 
 	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0) && (m_ucDTC[3] == 0) && (m_ucDTC[4] == 0))
-		m_pSupervisor->m_csDTC = "No reported faults.";
+		ecuData->m_csDTC = "No reported faults.";
 	else
 	{
-		m_pSupervisor->m_csDTC = "The following faults are reported:\n";
+		ecuData->m_csDTC = "The following faults are reported:\n";
 		
 		// Now print the fault-codes
 		if (m_ucDTC[0] & 0x80) // This will never happen
 		{ // 12 - Diagnostic Mode Enabled
-			m_pSupervisor->m_csDTC += "12 - No Reference Pulses";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "12 - No Reference Pulses";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[0] & 0x40)
 		{ // 13 - Oxygen Sensor; Open Circuit
-			m_pSupervisor->m_csDTC += "TC13 Front O2 Open Circuit";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC13 Front O2 Open Circuit";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[0] & 0x20)
 		{ // 14 - Coolant Temperature Sensor Circuit; High Temperature Indicated
-			m_pSupervisor->m_csDTC += "14 - Coolant Temperature Sensor Circuit; High Temperature Indicated";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "14 - Coolant Temperature Sensor Circuit; High Temperature Indicated";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[0] & 0x10)
 		{ // 15 - Coolant Temperature Sensor Circuit; Low Temperature Indicated
-			m_pSupervisor->m_csDTC += "15 - Coolant Temperature Sensor Circuit; Low Temperature Indicated";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "15 - Coolant Temperature Sensor Circuit; Low Temperature Indicated";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[0] & 0x08)
 		{ 
-			m_pSupervisor->m_csDTC += "TC16 Wastegate Overboost";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC16 Wastegate Overboost";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[0] & 0x04)
 		{ // 
-			m_pSupervisor->m_csDTC += "21 - Throttle Position Sensor (TPS) Circuit; Signal Voltage High";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "21 - Throttle Position Sensor (TPS) Circuit; Signal Voltage High";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[0] & 0x02)
 		{ 
-			m_pSupervisor->m_csDTC += "22 - Throttle Position Sensor (TPS) Circuit; Signal Voltage Low";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "22 - Throttle Position Sensor (TPS) Circuit; Signal Voltage Low";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[0] & 0x01)
 		{
-			m_pSupervisor->m_csDTC += "23 - Mass Air Temperature (MAT) Sensor Circuit; Low Temperature Indicated";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "23 - Mass Air Temperature (MAT) Sensor Circuit; Low Temperature Indicated";
+			ecuData->m_csDTC += "\n";
 		}
 
 		if (m_ucDTC[1] & 0x80)
 		{ 
-			m_pSupervisor->m_csDTC += "24 - Vehicle Speed Sensor (VSS) Circuit";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "24 - Vehicle Speed Sensor (VSS) Circuit";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[1] & 0x40)
 		{ // 
-			m_pSupervisor->m_csDTC += "25 - Mass Air Temperature (MAT) Sensor Circuit; High Temperature Indicated";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "25 - Mass Air Temperature (MAT) Sensor Circuit; High Temperature Indicated";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[1] & 0x20)
 		{ 
-			m_pSupervisor->m_csDTC += "26 - Quad-Driver (QDM) Circuit, Secondary Injectors";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "26 - Quad-Driver (QDM) Circuit, Secondary Injectors";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[1] & 0x10)
 		{ 
-			m_pSupervisor->m_csDTC += "TC27 Unused";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC27 Unused";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[1] & 0x08)
 		{ 
-			m_pSupervisor->m_csDTC += "TC31 Camshaft Speed Error";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC31 Camshaft Speed Error";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[1] & 0x04)
 		{
-			m_pSupervisor->m_csDTC += "TC32 Unused";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC32 Unused";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[1] & 0x02)
 		{ 
-			m_pSupervisor->m_csDTC += "33 - Manifold Absolute Pressure (MAP) Sensor Circuit; Signal Voltage High";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "33 - Manifold Absolute Pressure (MAP) Sensor Circuit; Signal Voltage High";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[1] & 0x01)
 		{
-			m_pSupervisor->m_csDTC += "34 - Manifold Absolute Pressure (MAP) Sensor Circuit; Signal Voltage Low";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "34 - Manifold Absolute Pressure (MAP) Sensor Circuit; Signal Voltage Low";
+			ecuData->m_csDTC += "\n";
 		}
 
 		if (m_ucDTC[2] & 0x80)
 		{ 
-			m_pSupervisor->m_csDTC += "TC36 Unused";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC36 Unused";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[2] & 0x40)
 		{ 
-			m_pSupervisor->m_csDTC += "TC41 CYL Select Error";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC41 CYL Select Error";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[2] & 0x20)
 		{ 
-			m_pSupervisor->m_csDTC += "TC42 Bypass/EST Fail";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC42 Bypass/EST Fail";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[2] & 0x10)
 		{ 
-			m_pSupervisor->m_csDTC += "TC43 Knock Sensor Error";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC43 Knock Sensor Error";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[2] & 0x08)
 		{ 
-			m_pSupervisor->m_csDTC += "TC44 Front O2 Lean";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC44 Front O2 Lean";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[2] & 0x04)
 		{ 
-			m_pSupervisor->m_csDTC += "TC45 Front O2 Rich";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC45 Front O2 Rich";
+			ecuData->m_csDTC += "\n";
 		}
 
 		if (m_ucDTC[2] & 0x02)
 		{
-			m_pSupervisor->m_csDTC += "TC46 Unused";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC46 Unused";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[2] & 0x01)
 		{
-			m_pSupervisor->m_csDTC += "51 - Mem-Cal Error";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "51 - Mem-Cal Error";
+			ecuData->m_csDTC += "\n";
 		}
 
 		if (m_ucDTC[3] & 0x80)
 		{ 
-			m_pSupervisor->m_csDTC += "TC52 Unused";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC52 Unused";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[3] & 0x40)
 		{ 
-			m_pSupervisor->m_csDTC += "TC53 Battery Voltage High";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC53 Battery Voltage High";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[3] & 0x20)
 		{ //
-			m_pSupervisor->m_csDTC += "TC54 Unused";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC54 Unused";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[3] & 0x10)
 		{
-			m_pSupervisor->m_csDTC += "TC55 Unused";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC55 Unused";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[3] & 0x08)
 		{ 
-			m_pSupervisor->m_csDTC += "TC56 Unused";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC56 Unused";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[3] & 0x04)
 		{ 
-			m_pSupervisor->m_csDTC += "TC61 Unused";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC61 Unused";
+			ecuData->m_csDTC += "\n";
 		}
 
 		if (m_ucDTC[3] & 0x02)
 		{
-			m_pSupervisor->m_csDTC += "TC62 Unused";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC62 Unused";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[3] & 0x01)
 		{
-			m_pSupervisor->m_csDTC += "TC63 Rear O2 Open Circuit";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC63 Rear O2 Open Circuit";
+			ecuData->m_csDTC += "\n";
 		}
 
 		if (m_ucDTC[4] & 0x80)
 		{ //
-			m_pSupervisor->m_csDTC += "TC64 Rear O2 Lean";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC64 Rear O2 Lean";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[4] & 0x40)
 		{ // 
-			m_pSupervisor->m_csDTC += "TC65 Rear O2 Rich";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC65 Rear O2 Rich";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[4] & 0x20)
 		{ // 
-			m_pSupervisor->m_csDTC += "TC66 Boost System Error";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC66 Boost System Error";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[4] & 0x10)
 		{ 
-			m_pSupervisor->m_csDTC += "TC67 Unused";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC67 Unused";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[4] & 0x08)
 		{
-			m_pSupervisor->m_csDTC += "TC68 Unused";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC68 Unused";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[4] & 0x04)
 		{
-			m_pSupervisor->m_csDTC += "TC69 Unused";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC69 Unused";
+			ecuData->m_csDTC += "\n";
 		}
 
 		if (m_ucDTC[4] & 0x02)
 		{
-			m_pSupervisor->m_csDTC += "TC71 Unused";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC71 Unused";
+			ecuData->m_csDTC += "\n";
 		}
 		if (m_ucDTC[4] & 0x01)
 		{
-			m_pSupervisor->m_csDTC += "TC72 Unused";
-			m_pSupervisor->m_csDTC += "\n";
+			ecuData->m_csDTC += "TC72 Unused";
+			ecuData->m_csDTC += "\n";
 		}
 	}
 }

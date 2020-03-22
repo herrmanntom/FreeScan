@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClCompile Include="font.cpp" />
     <ClCompile Include="picture.cpp" />
+    <ClCompile Include="Protocols\EcuData.cpp" />
     <ClCompile Include="Protocols\ELM327Parser.cpp" />
     <ClCompile Include="Protocols\ELM327Protocol.cpp" />
     <ClCompile Include="DesIdleDlg.cpp" />
@@ -192,6 +193,7 @@
   <ItemGroup>
     <ClInclude Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.24.28314\include\vcruntime.h" />
     <ClInclude Include="picture.h" />
+    <ClInclude Include="Protocols\EcuData.h" />
     <ClInclude Include="Protocols\ELM327Parser.h" />
     <ClInclude Include="Protocols\ELM327Protocol.h" />
     <ClInclude Include="DesIdleDlg.h" />
