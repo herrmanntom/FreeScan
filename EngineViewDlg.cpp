@@ -235,6 +235,10 @@ void CEngineViewDlg::Refresh(const CEcuData* const ecuData)
 	Client.TextOut(COLD3, 10 * HS, buf); // Rich/Lean R
 }
 
+void CEngineViewDlg::RegisterMainDialog(CFreeScanDlg* const mainDialog) {
+	m_pMainDlg = mainDialog;
+}
+
 BEGIN_MESSAGE_MAP(CEngineViewDlg, CTTPropertyPage)
 	//{{AFX_MSG_MAP(CEngineViewDlg)
 	ON_WM_PAINT()

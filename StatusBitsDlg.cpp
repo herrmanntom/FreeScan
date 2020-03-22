@@ -84,5 +84,9 @@ void CStatusBitsDlg::Refresh(const CEcuData* const ecuData)
 //	m_led1.SetLed(CLed::LED_COLOR_RED,CLed::LED_DISABLED,CLed::LED_ROUND);
 }
 
+void CStatusBitsDlg::RegisterMainDialog(CFreeScanDlg* const mainDialog) {
+	m_pMainDlg = mainDialog;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // CStatusBitsDlg message handlers

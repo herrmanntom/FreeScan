@@ -98,6 +98,10 @@ void CTCodesDlg::Refresh(const CEcuData* const ecuData)
 	}
 }
 
+void CTCodesDlg::RegisterMainDialog(CFreeScanDlg* const mainDialog) {
+	m_pMainDlg = mainDialog;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // CTCodesDlg message handlers
 

@@ -27,8 +27,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // CFreeScanDlg dialog
 
-class CSupervisor;
-class CStatusDlg;
 class CFreeScanDlg : public CPropertySheet
 {
 	DECLARE_DYNAMIC(CFreeScanDlg);

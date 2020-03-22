@@ -8,11 +8,11 @@
 //
 
 #include "Protocols/EcuData.h"
+#include "MainDlg.h"
+#include "Supervisor.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CTCodesDlg dialog
-class CFreeScanDlg;
-class CSupervisor;
 
 class CTCodesDlg : public CPropertyPage
 {
@@ -24,6 +24,7 @@ public:
 	~CTCodesDlg();
 
 // Dialog Data
+private:
 	//{{AFX_DATA(CTCodesDlg)
 	enum { IDD = IDD_TCODES };
 	CButton	m_ResetDTC;
@@ -32,20 +33,23 @@ public:
 
 	CFreeScanDlg*	m_pMainDlg; // Base Dialog Pointer.
 
-	void Refresh(const CEcuData* const ecuData);
-protected:
-	BOOL GetInteract(void);// Returns if the ECU is interactive
-
 // Overrides
 	// ClassWizard generate virtual function overrides
 	//{{AFX_VIRTUAL(CTCodesDlg)
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//}}AFX_VIRTUAL
 
+public:
+	void Refresh(const CEcuData* const ecuData);
+	void RegisterMainDialog(CFreeScanDlg* const mainDialog);
+
 // Implementation
-protected:
+private:
+	BOOL GetInteract(void);// Returns if the ECU is interactive
+
 	CSupervisor* GetSupervisor(void); // returns a pointer to the Supervisor
+
 	void FillListBox(CListBox& lbT, const CString& csT);// Populates a ListBox with a CString
 	// Generated message map functions
 	//{{AFX_MSG(CTCodesDlg)

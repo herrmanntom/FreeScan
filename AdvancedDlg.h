@@ -9,11 +9,11 @@
 
 #include "TTPropertyPage.h" // Our Tooltip Class
 #include "Protocols/EcuData.h"
+#include "MainDlg.h"
+#include "Supervisor.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CAdvancedDlg dialog
-class CFreeScanDlg;
-class CSupervisor;
 
 class CAdvancedDlg : public CTTPropertyPage
 {
@@ -24,6 +24,7 @@ public:
 	CAdvancedDlg();
 	~CAdvancedDlg();
 
+private:
 // Dialog Data
 	//{{AFX_DATA(CAdvancedDlg)
 	enum { IDD = IDD_ADVANCED };
@@ -38,14 +39,16 @@ public:
 // Overrides
 	// ClassWizard generate virtual function overrides
 	//{{AFX_VIRTUAL(CAdvancedDlg)
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//}}AFX_VIRTUAL
 
 // Implementation
 public:
 	void Refresh(const CEcuData* const ecuData); // Updates all of our controls
-protected:
+	void RegisterMainDialog(CFreeScanDlg* const mainDialog);
+
+private:
 	CSupervisor* GetSupervisor(void); // returns a pointer to the Supervisor
 	BOOL GetInteract(void);
 	DWORD GetCurrentMode(void); // Returns the current ECU Mode
@@ -58,7 +61,6 @@ protected:
 	afx_msg void OnResetIAC();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
-
 };
 
 //{{AFX_INSERT_LOCATION}}

@@ -11,11 +11,11 @@
 #include "TTPropertyPage.h" // Our Tooltip Class
 #include "EnumSer.h"
 #include "Protocols/EcuData.h"
-class CSupervisor;
+#include "MainDlg.h"
+#include "Supervisor.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CDetailDlg dialog
-class CFreeScanDlg;
 
 class CDetailDlg : public CTTPropertyPage
 {
@@ -27,6 +27,7 @@ public:
 	~CDetailDlg();
 
 // Dialog Data
+private:
 	//{{AFX_DATA(CDetailDlg)
 	enum { IDD = IDD_DETAIL };
 	CComboBox	m_WriteDelay;
@@ -49,8 +50,8 @@ public:
 	CButton	m_Interact;
 	//}}AFX_DATA
 
-	CFreeScanDlg*	m_pMainDlg; // Base Dialog Pointer.
-protected:
+	CFreeScanDlg* m_pMainDlg; // Base Dialog Pointer.
+private:
 //	CUIntArray m_cuPorts; // Stores the enumerated COM Port numbers
 	CEnumerateSerial::CPortsArray m_cuPorts; // Stores the enumerated COM Port numbers
 	CEnumerateSerial m_EnumSerial;//ARW 15/01/2005 New EnumSerial Class
@@ -61,19 +62,20 @@ protected:
 // Overrides
 	// ClassWizard generate virtual function overrides
 	//{{AFX_VIRTUAL(CDetailDlg)
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//}}AFX_VIRTUAL
 
 // Implementation
-protected:
+private:
 	void WriteStatus(CString csText);
 	void WriteASCII(unsigned char * buffer, int ilength);
 public:
 	void Refresh(const CEcuData* const ecuData);
 	void Init(void);
+	void RegisterMainDialog(CFreeScanDlg* const mainDialog);
 
-protected:
+private:
 	CSupervisor* GetSupervisor(void); // returns a pointer to the Supervisor
 	CSupervisor* GetData(void); // return a pointer to the Data
 	BOOL GetInteract(void);// Returns if the ECU is interactive

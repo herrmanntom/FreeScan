@@ -9,11 +9,11 @@
 
 #include "TTPropertyPage.h" // Our Tooltip Class
 #include "Protocols/EcuData.h"
+#include "MainDlg.h"
+#include "Supervisor.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CSensorDlg dialog
-class CFreeScanDlg;
-class CSupervisor;
 
 class CSensorDlg : public CTTPropertyPage
 {
@@ -25,6 +25,7 @@ public:
 	~CSensorDlg();
 
 // Dialog Data
+private:
 	//{{AFX_DATA(CSensorDlg)
 	enum { IDD = IDD_SENSORS };
 	CEdit	m_ThrottleADC;
@@ -49,14 +50,16 @@ public:
 // Overrides
 	// ClassWizard generate virtual function overrides
 	//{{AFX_VIRTUAL(CSensorDlg)
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//}}AFX_VIRTUAL
 
 // Implementation
 public:
 	void Refresh(const CEcuData* const ecuData); // Updates all of our controls
-protected:
+	void RegisterMainDialog(CFreeScanDlg* const mainDialog);
+
+private:
 	CSupervisor* GetSupervisor(void); // returns a pointer to the Supervisor
 	BOOL GetInteract(void);
 	DWORD GetCurrentMode(void); // Returns the current ECU Mode

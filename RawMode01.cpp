@@ -160,3 +160,7 @@ void CRawMode01::Refresh(const CEcuData* const ecuData)
 		ecuData->m_ucF001[64]);
 	m_db07.SetWindowText(buf);
 }
+
+void CRawMode01::RegisterMainDialog(CFreeScanDlg* const mainDialog) {
+	m_pMainDlg = mainDialog;
+}

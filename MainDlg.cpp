@@ -83,13 +83,13 @@ void CFreeScanDlg::AllocateAndAddPages(void)
 	m_pStatusDlg = new CStatusDlg;
 
 	// Pass pointers to the called dialogs
-	m_pDetailDlg->m_pMainDlg = this;
-	m_pEngineViewDlg->m_pMainDlg = this; // new view
-	m_pStatusBitsDlg->m_pMainDlg = this; // Status Bits
-	m_pDashBoardDlg->m_pMainDlg = this;
-	m_pTCodesDlg->m_pMainDlg = this;
-	m_pSensorDlg->m_pMainDlg = this;
-	m_pAdvancedDlg->m_pMainDlg = this;
+	m_pDetailDlg->RegisterMainDialog(this);
+	m_pEngineViewDlg->RegisterMainDialog(this); // new view
+	m_pStatusBitsDlg->RegisterMainDialog(this); // Status Bits
+	m_pDashBoardDlg->RegisterMainDialog(this);
+	m_pTCodesDlg->RegisterMainDialog(this);
+	m_pSensorDlg->RegisterMainDialog(this);
+	m_pAdvancedDlg->RegisterMainDialog(this);
 
 	// Now Add the pages to the Dialog
 	AddPage(m_pDetailDlg);
@@ -103,9 +103,9 @@ void CFreeScanDlg::AllocateAndAddPages(void)
 		m_pEngineDlg = new	CEngineDlg; // Old Engine Data View
 		m_pRawMode00Dlg = new CRawMode00;
 		m_pRawMode01Dlg = new CRawMode01;
-		m_pEngineDlg->m_pMainDlg = this; // Old Engine Data View
-		m_pRawMode00Dlg->m_pMainDlg = this;
-		m_pRawMode01Dlg->m_pMainDlg = this;
+		m_pEngineDlg->RegisterMainDialog(this); // Old Engine Data View
+		m_pRawMode00Dlg->RegisterMainDialog(this);
+		m_pRawMode01Dlg->RegisterMainDialog(this);
 		AddPage(m_pEngineDlg); // Old Engine Data View
 		AddPage(m_pRawMode00Dlg);
 		AddPage(m_pRawMode01Dlg);

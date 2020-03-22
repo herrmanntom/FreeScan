@@ -10,11 +10,12 @@
 
 #include "TTPropertyPage.h" // Our Tooltip Class
 #include "Protocols/EcuData.h"
+#include "MainDlg.h"
+#include "Supervisor.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CDashBoardDlg dialog
 class CFreeScanDlg;
-class CSupervisor;
 
 class CDashBoardDlg : public CTTPropertyPage
 {
@@ -26,6 +27,7 @@ public:
 	~CDashBoardDlg();
 
 // Dialog Data
+private:
 	//{{AFX_DATA(CDashBoardDlg)
 	enum { IDD = IDD_DASHBOARD };
 	CProgressCtrl	m_Throttle;
@@ -49,9 +51,10 @@ public:
 	CEdit			m_SparkText;
 	//}}AFX_DATA
 
+	CBrush m_brush; // For our background colour
+
 	CFreeScanDlg*	m_pMainDlg; // Base Dialog Pointer.
 
-protected:
 	// Variables store to reduce unnecessary updates
 	float	m_fOilTemp;
 	float	m_fWaterTemp;
@@ -61,16 +64,16 @@ protected:
 // Overrides
 	// ClassWizard generate virtual function overrides
 	//{{AFX_VIRTUAL(CDashBoardDlg)
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//}}AFX_VIRTUAL
-
-	CBrush m_brush; // For our background colour
 
 // Implementation
 public:
 	void Refresh(const CEcuData* const ecuData); // Updates all of our controls
-protected:
+	void RegisterMainDialog(CFreeScanDlg* const mainDialog);
+
+private:
 	CSupervisor* GetSupervisor(void); // returns a pointer to the Supervisor
 	BOOL GetInteract(void);
 	DWORD GetCurrentMode(void); // Returns the current ECU Mode
@@ -81,9 +84,6 @@ protected:
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
-
-public:
-	afx_msg void OnNMCustomdrawThrot(NMHDR *pNMHDR, LRESULT *pResult);
 };
 
 //{{AFX_INSERT_LOCATION}}

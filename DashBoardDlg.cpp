@@ -202,11 +202,14 @@ void CDashBoardDlg::Refresh(const CEcuData* const ecuData)
 	m_EngineLoad.SetPos(ecuData->m_iEngineLoad);
 }
 
+void CDashBoardDlg::RegisterMainDialog(CFreeScanDlg* const mainDialog) {
+	m_pMainDlg = mainDialog;
+}
+
 BEGIN_MESSAGE_MAP(CDashBoardDlg, CTTPropertyPage)
 	//{{AFX_MSG_MAP(CDashBoardDlg)
 	ON_WM_CTLCOLOR()
 	//}}AFX_MSG_MAP
-	ON_NOTIFY(NM_CUSTOMDRAW, IDC_THROT, &CDashBoardDlg::OnNMCustomdrawThrot)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -293,11 +296,4 @@ HBRUSH CDashBoardDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 
 	// TODO: Return a different brush if the default is not desired
 	return hbr;
-}
-
-void CDashBoardDlg::OnNMCustomdrawThrot(NMHDR *pNMHDR, LRESULT *pResult)
-{
-	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
-	// TODO: Add your control notification handler code here
-	*pResult = 0;
 }

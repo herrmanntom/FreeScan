@@ -176,6 +176,10 @@ void CSensorDlg::Refresh(const CEcuData* const ecuData)
 	m_MapADC.SetWindowText(buf);
 }
 
+void CSensorDlg::RegisterMainDialog(CFreeScanDlg* const mainDialog) {
+	m_pMainDlg = mainDialog;
+}
+
 BEGIN_MESSAGE_MAP(CSensorDlg, CTTPropertyPage)
 	//{{AFX_MSG_MAP(CSensorDlg)
 	//}}AFX_MSG_MAP

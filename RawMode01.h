@@ -8,11 +8,11 @@
 //
 
 #include "Protocols/EcuData.h"
+#include "MainDlg.h"
+#include "Supervisor.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CRawMode01 dialog
-class CFreeScanDlg;
-class CSupervisor;
 
 class CRawMode01 : public CPropertyPage
 {
@@ -24,6 +24,7 @@ public:
 	~CRawMode01();
 
 // Dialog Data
+private:
 	//{{AFX_DATA(CRawMode01)
 	enum { IDD = IDD_RAWHEX_1 };
 	CEdit	m_db07;
@@ -41,15 +42,16 @@ public:
 // Overrides
 	// ClassWizard generate virtual function overrides
 	//{{AFX_VIRTUAL(CRawMode01)
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//}}AFX_VIRTUAL
 
 // Implementation
 public:
-		void Refresh(const CEcuData* const ecuData);
+	void Refresh(const CEcuData* const ecuData);
+	void RegisterMainDialog(CFreeScanDlg* const mainDialog);
 
-protected:
+private:
 	CSupervisor* GetSupervisor(void); // returns a pointer to the Supervisor
 	// Generated message map functions
 	//{{AFX_MSG(CRawMode01)

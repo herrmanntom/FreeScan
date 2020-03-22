@@ -8,11 +8,11 @@
 //
 #include "TTPropertyPage.h" // Our Tooltip Class
 #include "Protocols/EcuData.h"
+#include "MainDlg.h"
+#include "Supervisor.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CEngineDlg dialog
-class CFreeScanDlg;
-class CSupervisor;
 
 class CEngineDlg : public CTTPropertyPage
 {
@@ -24,6 +24,7 @@ public:
 	~CEngineDlg();
 
 // Dialog Data
+private:
 	//{{AFX_DATA(CEngineDlg)
 	enum { IDD = IDD_ENGINEDATA };
 	CEdit	m_Knock_Count;
@@ -66,15 +67,16 @@ public:
 // Overrides
 	// ClassWizard generate virtual function overrides
 	//{{AFX_VIRTUAL(CEngineDlg)
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//}}AFX_VIRTUAL
 
 // Implementation
 public:
 	void Refresh(const CEcuData* const ecuData);
+	void RegisterMainDialog(CFreeScanDlg* const mainDialog);
 
-protected:
+private:
 	CSupervisor* GetSupervisor(void); // returns a pointer to the Supervisor
 	DWORD GetCurrentMode(void);
 

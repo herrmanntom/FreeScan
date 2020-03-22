@@ -338,6 +338,10 @@ void CEngineDlg::Refresh(const CEcuData* const ecuData)
 	m_AirFlow.SetWindowText(buf);
 }
 
+void CEngineDlg::RegisterMainDialog(CFreeScanDlg* const mainDialog) {
+	m_pMainDlg = mainDialog;
+}
+
 BEGIN_MESSAGE_MAP(CEngineDlg, CTTPropertyPage)
 	//{{AFX_MSG_MAP(CEngineDlg)
 	//}}AFX_MSG_MAP

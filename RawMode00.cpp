@@ -106,5 +106,9 @@ void CRawMode00::Refresh(const CEcuData* const ecuData)
 
 }
 
+void CRawMode00::RegisterMainDialog(CFreeScanDlg* const mainDialog) {
+	m_pMainDlg = mainDialog;
+}
+
 	/////////////////////////////////////////////////////////////////////////////
 // CRawMode00 message handlers

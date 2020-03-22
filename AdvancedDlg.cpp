@@ -95,6 +95,10 @@ void CAdvancedDlg::Refresh(const CEcuData* const ecuData)
 
 }
 
+void CAdvancedDlg::RegisterMainDialog(CFreeScanDlg* const mainDialog) {
+	m_pMainDlg = mainDialog;
+}
+
 BEGIN_MESSAGE_MAP(CAdvancedDlg, CTTPropertyPage)
 	//{{AFX_MSG_MAP(CAdvancedDlg)
 	ON_BN_CLICKED(IDC_SETDESIDLE, OnSetdesidle)

@@ -8,11 +8,11 @@
 //
 
 #include "Protocols/EcuData.h"
+#include "MainDlg.h"
+#include "Supervisor.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CStatusBitsDlg dialog
-class CFreeScanDlg;
-class CSupervisor;
 
 #include "Led.h"
 
@@ -26,6 +26,7 @@ public:
 	~CStatusBitsDlg();
 
 // Dialog Data
+private:
 	//{{AFX_DATA(CStatusBitsDlg)
 	enum { IDD = IDD_STATUSBITS };
 	CLed	m_led3;
@@ -35,19 +36,21 @@ public:
 
 	CFreeScanDlg*	m_pMainDlg; // Base Dialog Pointer.
 
-	void Refresh(const CEcuData* const ecuData);
-protected:
-	BOOL GetInteract(void);// Returns if the ECU is interactive
-
 // Overrides
 	// ClassWizard generate virtual function overrides
 	//{{AFX_VIRTUAL(CStatusBitsDlg)
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//}}AFX_VIRTUAL
 
+public:
+	void Refresh(const CEcuData* const ecuData);
+	void RegisterMainDialog(CFreeScanDlg* const mainDialog);
+
 // Implementation
-protected:
+private:
+	BOOL GetInteract(void);// Returns if the ECU is interactive
+
 	CSupervisor* GetSupervisor(void); // returns a pointer to the Supervisor
 	// Generated message map functions
 	//{{AFX_MSG(CStatusBitsDlg)
