@@ -283,6 +283,8 @@ BOOL CDetailDlg::OnInitDialog()
 
 	m_Stop.EnableWindow(FALSE); // disable the stop monitoring button
 
+	m_Start.EnableWindow(m_cuPorts.size() > 1 ? TRUE : FALSE);
+
 	m_ComSelect.ResetContent();
 	// Fill up the COMBOBOX with our serial ports
 	for (UINT i=0; i<m_cuPorts.size(); i++)

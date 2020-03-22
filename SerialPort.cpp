@@ -20,6 +20,7 @@
 
 #include "stdafx.h"
 #include "SerialPort.h"
+#include "EnumSer.h"
 #include <assert.h>
  
 #ifdef _DEBUG
@@ -141,15 +142,14 @@ CSerialPort::~CSerialPort()
 		do
 	    {
 	       dwSuspendCount = m_Thread->ResumeThread();
-	    }
-		while((dwSuspendCount != 0) && (dwSuspendCount != 0xffffffff) );
+		}
+		while ((dwSuspendCount != 0) && (dwSuspendCount != 0xffffffff));
 
 		do
-	    {
-	       SetEvent(m_hShutdownEvent);
-	    } 
-		while (m_bThreadAlive);
-	    TRACE(_T("Thread ended\n"));
+		{
+			SetEvent(m_hShutdownEvent);
+		} while (m_bThreadAlive);
+		TRACE(_T("Thread ended\n"));
 	}
 
 	// close handles to avoid memory leaks
@@ -162,7 +162,7 @@ CSerialPort::~CSerialPort()
 	m_hShutdownEvent = NULL;
 
 	if (m_szWriteBuffer != NULL)
-		delete [] m_szWriteBuffer;
+		delete[] m_szWriteBuffer;
 
 	DeleteCriticalSection(&m_csCommunicationSync);
 }
@@ -181,13 +181,13 @@ void CSerialPort::Dump(CDumpContext& dc) const
 //
 // Initialize the port. This can be any Com Port.
 BOOL CSerialPort::InitPort(CWnd* pPortOwner,	// the owner (CWnd) of the port (receives message)
-						   UINT  portnr,		// portnumber (e.g. 1..4)
-						   UINT  baud,			// baudrate
-						   char  parity,		// parity 
-						   UINT  databits,		// databits 
-						   UINT  stopbits,		// stopbits 
-						   DWORD dwCommEvents,	// EV_RXCHAR, EV_CTS etc
-						   UINT  writebuffersize)	// size to the writebuffer
+	UINT  portnr,		// portnumber (e.g. 1..4)
+	UINT  baud,			// baudrate
+	char  parity,		// parity 
+	UINT  databits,		// databits 
+	UINT  stopbits,		// stopbits 
+	DWORD dwCommEvents,	// EV_RXCHAR, EV_CTS etc
+	UINT  writebuffersize)	// size to the writebuffer
 {
 	ASSERT(portnr >= 0 && portnr < 15);
 
@@ -201,19 +201,19 @@ BOOL CSerialPort::InitPort(CWnd* pPortOwner,	// the owner (CWnd) of the port (re
 		m_nPortNr = portnr;
 
 	// Call the 2nd override function
-	return InitPort(pPortOwner,baud,parity,databits,stopbits,dwCommEvents,writebuffersize);
+	return InitPort(pPortOwner, baud, parity, databits, stopbits, dwCommEvents, writebuffersize);
 }
 
 // 2nd over-ride - uses the previous Com port number
 BOOL CSerialPort::InitPort(CWnd* pPortOwner,	// the owner (CWnd) of the port (receives message)
-						   UINT  baud,			// baudrate
-						   char  parity,		// parity 
-						   UINT  databits,		// databits 
-						   UINT  stopbits,		// stopbits 
-						   DWORD dwCommEvents,	// EV_RXCHAR, EV_CTS etc
-						   UINT  writebuffersize)	// size to the writebuffer
+	UINT  baud,			// baudrate
+	char  parity,		// parity 
+	UINT  databits,		// databits 
+	UINT  stopbits,		// stopbits 
+	DWORD dwCommEvents,	// EV_RXCHAR, EV_CTS etc
+	UINT  writebuffersize)	// size to the writebuffer
 {
-	BOOL bResult = FALSE;
+	m_bInitDone = FALSE;
 
 	ASSERT(pPortOwner != NULL);
 
@@ -223,14 +223,34 @@ BOOL CSerialPort::InitPort(CWnd* pPortOwner,	// the owner (CWnd) of the port (re
 
 	if (m_nPortNr < 1)
 	{// This should never happen, however a mistake could have been made in the registry.
-		TRACE(_T("CSerialPort::InitPort - Com Port cannot be 0"));
+		TRACE(_T("CSerialPort::InitPort - Com Port cannot be 0\n"));
 		return FALSE;
 	}
 
 	if (m_nPortNr > 255)
 	{// This should never happen, however a mistake could have been made in the registry.
-		TRACE(_T("CSerialPort::InitPort - Com Port cannot be greater than 255"));
+		TRACE(_T("CSerialPort::InitPort - Com Port cannot be greater than 255\n"));
 		return FALSE;
+	}
+
+	CEnumerateSerial::CPortsArray m_cuPorts;
+	CEnumerateSerial::UsingCreateFile(m_cuPorts);
+	if (m_cuPorts.size() == 0) {
+		TRACE(_T("CSerialPort::InitPort - No Com Ports found\n"));
+		return FALSE;
+	}
+	else {
+		BOOL foundPort = FALSE;
+		for (UINT i = 0; i < m_cuPorts.size(); ++i) {
+			if (m_nPortNr == m_cuPorts[i]) {
+				foundPort = TRUE;
+				break;
+			}
+		}
+		if (foundPort == FALSE) {
+			TRACE(_T("CSerialPort::InitPort - Selected Com Port not found\n"));
+			return FALSE;
+		}
 	}
 
 	// if the thread is alive: Kill
@@ -372,6 +392,8 @@ BOOL CSerialPort::InitPort(CWnd* pPortOwner,	// the owner (CWnd) of the port (re
 
 	TRACE(_T("Initialisation for Com Port %d completed.\n"),
 		m_nPortNr);
+
+	m_bInitDone = TRUE;
 
 	return TRUE;
 }
@@ -546,6 +568,10 @@ UINT CSerialPort::CommThread(LPVOID pParam)
 // Start comm watching
 BOOL CSerialPort::StartMonitoring()
 {
+	if (m_bInitDone == false) {
+		TRACE(_T("Com Port %d cannot be started. Init did not complete.\n"), m_nPortNr);
+		return FALSE;
+	}
 	TRACE(_T("Com Port %d starting monitoring.\n"), m_nPortNr);
 	if (!(m_Thread = AfxBeginThread(CommThread, this, THREAD_PRIORITY_NORMAL)))
 		return FALSE;
@@ -559,6 +585,11 @@ BOOL CSerialPort::StartMonitoring()
 // Restart the comm thread
 BOOL CSerialPort::RestartMonitoring()
 {
+	if (m_bInitDone == false) {
+		TRACE(_T("Com Port %d cannot be restarted. Init did not complete.\n"), m_nPortNr);
+		return FALSE;
+	}
+
 	TRACE(_T("Com Port %d re-starting monitoring.\n"), m_nPortNr);
 	// Clear buffer
 	PurgeComm(m_hComm, PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
