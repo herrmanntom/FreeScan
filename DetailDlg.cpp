@@ -282,8 +282,13 @@ BOOL CDetailDlg::OnInitDialog()
 	m_Hide.SetCheck(m_pMainDlg->m_pStatusDlg->HideStatus());
 
 	m_Stop.EnableWindow(FALSE); // disable the stop monitoring button
-
-	m_Start.EnableWindow(m_cuPorts.size() > 1 ? TRUE : FALSE);
+	
+	if (m_cuPorts.size() > 0) {
+		m_Start.EnableWindow(TRUE);
+	} else {
+		m_Start.EnableWindow(FALSE);
+		WriteStatus("No COM ports detected - cannot start");
+	}
 
 	m_ComSelect.ResetContent();
 	// Fill up the COMBOBOX with our serial ports
@@ -336,7 +341,13 @@ void CDetailDlg::OnKillfocusComselect()
 void CDetailDlg::OnSelendokModel()
 {
 	m_iModel = m_Model.GetCurSel();
-	m_Start.EnableWindow(TRUE); // enable the start monitoring button
+	
+	if (m_cuPorts.size() > 0) {
+		m_Start.EnableWindow(TRUE);
+	} else {
+		m_Start.EnableWindow(FALSE);
+		WriteStatus("No COM ports detected - cannot start");
+	}
 	m_Stop.EnableWindow(FALSE); // disable the stop monitoring button
 	Init();
 }
