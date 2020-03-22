@@ -58,7 +58,7 @@ static char BASED_CODE THIS_FILE[] = __FILE__;
 // 
 // Array count. Make sure this keeps up with how many lines there are
 // in the array!
-#define ARRAYCOUNT		68
+#define ARRAYCOUNT		63
 char *pArrCredit[] = { 	"LOGO\b",
 						"look into your Engine Management System with your PC \f",
 						"",
