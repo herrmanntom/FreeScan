@@ -41,8 +41,8 @@ private:
 	CEdit			m_SpeedoKphText;
 	CProgressCtrl	m_Tacho;
 	CEdit			m_TachoText;
-	CProgressCtrl	m_OilTemp;
-	CEdit			m_OilTempText;
+	CProgressCtrl	m_AirFuelRatio;
+	CEdit			m_AirFuelRatioText;
 	CProgressCtrl	m_Water;
 	CEdit			m_WaterText;
 	CProgressCtrl	m_Volt;
@@ -54,12 +54,6 @@ private:
 	CBrush m_brush; // For our background colour
 
 	CFreeScanDlg*	m_pMainDlg; // Base Dialog Pointer.
-
-	// Variables store to reduce unnecessary updates
-	float	m_fOilTemp;
-	float	m_fWaterTemp;
-	float	m_fMATTemp;
-	float	m_fBatteryVolts;
 
 // Overrides
 	// ClassWizard generate virtual function overrides

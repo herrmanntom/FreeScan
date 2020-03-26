@@ -27,11 +27,6 @@ CDashBoardDlg::CDashBoardDlg() : CTTPropertyPage(CDashBoardDlg::IDD)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
 	m_pMainDlg = NULL;
-	
-	m_fOilTemp = -1.0;
-	m_fWaterTemp = -1.0;
-	m_fMATTemp = -1.0;
-	m_fBatteryVolts = -1.0;
 }
 
 CDashBoardDlg::~CDashBoardDlg()
@@ -53,8 +48,8 @@ void CDashBoardDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_SPEEDO_KPH_TEXT, m_SpeedoKphText);
 	DDX_Control(pDX, IDC_TACHO, m_Tacho);
 	DDX_Control(pDX, IDC_TACHO_TEXT, m_TachoText);	
-	DDX_Control(pDX, IDC_OILTEMP, m_OilTemp);
-	DDX_Control(pDX, IDC_OILTEMP_TEXT, m_OilTempText);	
+	DDX_Control(pDX, IDC_AIRFUEL, m_AirFuelRatio);
+	DDX_Control(pDX, IDC_AIRFUEL_TEXT, m_AirFuelRatioText);
 	DDX_Control(pDX, IDC_WATER, m_Water);
 	DDX_Control(pDX, IDC_WATER_TEXT, m_WaterText);	
 	DDX_Control(pDX, IDC_VOLT, m_Volt);
@@ -91,65 +86,49 @@ void CDashBoardDlg::Refresh(const CEcuData* const ecuData)
 	CString buf;
 	DWORD	dwCurrentMode = GetCurrentMode();
 
-	float fValue = ecuData->m_fOilTemp;
-	if (fValue != m_fOilTemp)
-	{ // check for a different value
-		buf.Format("%3.1f ", fValue);
-		m_OilTempText.SetWindowText(buf);
-		if (fValue < 50.0f) {
-			fValue = 50.0f;
-		}
-		else if (fValue > 110.0f) {
-			fValue = 110.0f;
-		}
-		m_OilTemp.SetPos((int) (fValue * 10));
-		m_fOilTemp = fValue; // store the new value
+	float fValue = ecuData->m_fAFRatio;
+	buf.Format("%3.1f ", fValue);
+	m_AirFuelRatioText.SetWindowText(buf);
+	if (fValue < 11.0f) {
+		fValue = 11.0f;
 	}
+	else if (fValue > 17.0f) {
+		fValue = 17.0f;
+	}
+	m_AirFuelRatio.SetPos((int) (fValue * 10));
 
 	fValue = ecuData->m_fWaterTemp;
-	if (fValue != m_fWaterTemp)
-	{ // check for a different value
-		buf.Format("%3.1f ", fValue);
-		m_WaterText.SetWindowText(buf);
-		if (fValue < 50.0f) {
-			fValue = 50.0f;
-		}
-		else if (fValue > 110.0f) {
-			fValue = 110.0f;
-		}
-		m_Water.SetPos((int) (fValue * 10));
-		m_fWaterTemp = fValue; // store the new value
+	buf.Format("%3.1f ", fValue);
+	m_WaterText.SetWindowText(buf);
+	if (fValue < 50.0f) {
+		fValue = 50.0f;
 	}
+	else if (fValue > 110.0f) {
+		fValue = 110.0f;
+	}
+	m_Water.SetPos((int) (fValue * 10));
 
 	fValue = ecuData->m_fMATTemp;
-	if (fValue != m_fMATTemp)
-	{ // check for a different value
-		buf.Format("%3.1f ", fValue);
-		m_MATText.SetWindowText(buf);
-		if (fValue < 20.0f) {
-			fValue = 20.0f;
-		}
-		else if (fValue > 80.0f) {
-			fValue = 80.0f;
-		}
-		m_MAT.SetPos((int) (fValue * 10));
-		m_fMATTemp = fValue; // store the new value
+	buf.Format("%3.1f ", fValue);
+	m_MATText.SetWindowText(buf);
+	if (fValue < 20.0f) {
+		fValue = 20.0f;
 	}
+	else if (fValue > 80.0f) {
+		fValue = 80.0f;
+	}
+	m_MAT.SetPos((int) (fValue * 10));
 
 	fValue = ecuData->m_fBatteryVolts;
-	if (fValue != m_fBatteryVolts)
-	{ // check for a different value
-		buf.Format("%3.1f ", fValue);
-		m_VoltText.SetWindowText(buf);
-		if (fValue < 8.0f) {
-			fValue = 8.0f;
-		}
-		else if (fValue > 16.0f) {
-			fValue = 16.0f;
-		}
-		m_Volt.SetPos((int) (fValue * 10));
-		m_fBatteryVolts = fValue; // store the new value
+	buf.Format("%3.1f ", fValue);
+	m_VoltText.SetWindowText(buf);
+	if (fValue < 8.0f) {
+		fValue = 8.0f;
 	}
+	else if (fValue > 16.0f) {
+		fValue = 16.0f;
+	}
+	m_Volt.SetPos((int) (fValue * 10));
 
 	fValue = ecuData->m_fMAP;
 	buf.Format("%3.2f ", fValue);
@@ -240,8 +219,8 @@ BOOL CDashBoardDlg::OnInitDialog()
 	m_Tacho.SetRange32(0, 8000);
 	m_Tacho.SetStep(5);
 
-	m_OilTemp.SetRange32(500, 1100);
-	m_OilTemp.SetStep(5);
+	m_AirFuelRatio.SetRange32(110, 170);
+	m_AirFuelRatio.SetStep(1);
 
 	m_Water.SetRange32(500, 1100);
 	m_Water.SetStep(5);
