@@ -180,7 +180,7 @@ void CAbout::OnPaint()
 	//*********************************************************************
 	//	FONT SELECTION
     	CFont m_fntArial;
-	CFont* pOldFont;
+	CFont* pOldFont = NULL;
 	BOOL bSuccess;
 	
 	BOOL bUnderline;

@@ -68,9 +68,6 @@
     <Filter Include="Source Files\Led">
       <UniqueIdentifier>{7ba10e64-11ad-4977-8f4e-a922d354bed9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\StringEx">
-      <UniqueIdentifier>{32da4727-49a4-4b98-894c-bd2d200f0ce8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{f3b320c7-da56-4bf9-8d35-fda7b8b6e23b}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl</Extensions>
@@ -186,9 +183,6 @@
     </ClCompile>
     <ClCompile Include="Led.cpp">
       <Filter>Source Files\Led</Filter>
-    </ClCompile>
-    <ClCompile Include="MABString.cpp">
-      <Filter>Source Files\StringEx</Filter>
     </ClCompile>
     <ClCompile Include="AdvancedDlg.cpp">
       <Filter>Source Files</Filter>
@@ -335,9 +329,6 @@
     </ClInclude>
     <ClInclude Include="Led.h">
       <Filter>Source Files\Led</Filter>
-    </ClInclude>
-    <ClInclude Include="MABString.h">
-      <Filter>Source Files\StringEx</Filter>
     </ClInclude>
     <ClInclude Include="AdvancedDlg.h">
       <Filter>Header Files</Filter>
