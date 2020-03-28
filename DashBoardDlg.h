@@ -70,7 +70,6 @@ public:
 private:
 	CSupervisor* GetSupervisor(void); // returns a pointer to the Supervisor
 	BOOL GetInteract(void);
-	DWORD GetCurrentMode(void); // Returns the current ECU Mode
 
 	// Generated message map functions
 	//{{AFX_MSG(CDashBoardDlg)

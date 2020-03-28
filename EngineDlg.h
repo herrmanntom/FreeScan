@@ -78,7 +78,6 @@ public:
 
 private:
 	CSupervisor* GetSupervisor(void); // returns a pointer to the Supervisor
-	DWORD GetCurrentMode(void);
 
 	// Generated message map functions
 	//{{AFX_MSG(CEngineDlg)

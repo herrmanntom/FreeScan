@@ -434,9 +434,14 @@ void CDetailDlg::OnMph()
 // Handles the delay combobox
 void CDetailDlg::OnSelendokDelay() 
 {
-	CStringEx	csText;
-	m_WriteDelay.GetLBText(m_WriteDelay.GetCurSel(),csText);
-	GetSupervisor()->SetWriteDelay(csText.GetInt());
-	csText = "Write Delay Set to " + csText + "mS";
+	CString	csText;
+	int delay;
+
+	m_WriteDelay.GetLBText(m_WriteDelay.GetCurSel(), csText);
+	
+	delay = atoi(csText);
+	GetSupervisor()->SetWriteDelay(delay);
+
+	csText.Format("Write Delay Set to %dmS", delay);
 	WriteStatus(csText);
 }

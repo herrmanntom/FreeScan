@@ -73,7 +73,7 @@ void CAdvancedDlg::Refresh(const CEcuData* const ecuData)
 	CString buf;
 	DWORD	dwCurrentMode = GetCurrentMode();
 
-	if (dwCurrentMode != 1)
+	if (dwCurrentMode != 1 || ecuData->m_iDesiredIdle == CEcuData::c_iUNSUPPORTED)
 		buf.Format("N/A");
 	else
 		buf.Format("%d", ecuData->m_iDesiredIdle);
@@ -126,7 +126,7 @@ void CAdvancedDlg::OnSetdesidle()
 	CDesIdleDlg		dlg;
 
 	dlg.m_Value = GetSupervisor()->GetEcuData()->m_iDesiredIdle;
-	if (dlg.m_Value == 0)
+	if (dlg.m_Value == CEcuData::c_iUNSUPPORTED)
 		dlg.m_Value = 850;
 	if (dlg.DoModal() == IDOK)
 	{

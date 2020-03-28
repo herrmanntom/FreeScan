@@ -1,6 +1,10 @@
 #pragma once
 class CEcuData
 {
+public:
+	
+	static const int   c_iUNSUPPORTED;
+	static const float c_fUNSUPPORTED;
 
 public:
 	CEcuData();

@@ -16,6 +16,36 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+static const int THROTTLE_MIN = 0;
+static const int THROTTLE_MAX = 100;
+
+static const int LOAD_MIN = 0;
+static const int LOAD_MAX = 100;
+
+static const int BOOST_MIN = 0;
+static const int BOOST_MAX = 200;
+
+static const int MAT_MIN = 200;
+static const int MAT_MAX = 800;
+
+static const int SPEEDO_MIN = 0;
+static const int SPEEDO_MAX = 170;
+
+static const int TACHO_MIN = 0;
+static const int TACHO_MAX = 8000;
+
+static const int AIR_FUEL_RATIO_MIN = 110;
+static const int AIR_FUEL_RATIO_MAX = 170;
+
+static const int WATER_MIN = 500;
+static const int WATER_MAX = 1100;
+
+static const int BAT_VOLT_MIN = 80;
+static const int BAT_VOLT_MAX = 160;
+
+static const int SPARK_MIN = 0;
+static const int SPARK_MAX = 600;
+
 /////////////////////////////////////////////////////////////////////////////
 // CDashBoardDlg property page
 
@@ -74,111 +104,75 @@ BOOL CDashBoardDlg::GetInteract(void)
 	return GetSupervisor()->GetInteract();
 }
 
-// Returns the current ECU Mode
-DWORD CDashBoardDlg::GetCurrentMode(void)
-{
-	return GetSupervisor()->GetCurrentMode();
+static inline void updateField(CProgressCtrl *const progressMeter, CEdit * const textBox, const char *const textFormat, const float fValue, const int progressMeterScaleFactor, const int progressMeterMin, const int progressMeterMax) {
+	if (fValue != CEcuData::c_fUNSUPPORTED) {
+		if (textBox != NULL && textFormat != NULL) {
+			CString buf;
+			buf.Format(textFormat, fValue);
+			textBox->SetWindowText(buf);
+		}
+
+		if (progressMeter != NULL) {
+			int progressMeterValue = (int)(fValue * progressMeterScaleFactor);
+			if (progressMeterValue < progressMeterMin) {
+				progressMeterValue = progressMeterMin;
+			}
+			else if (progressMeterValue > progressMeterMax) {
+				progressMeterValue = progressMeterMax;
+			}
+			progressMeter->SetPos(progressMeterValue);
+		}
+	}
+	else if (textBox != NULL) {
+		textBox->SetWindowText("N/A ");
+	}
+}
+
+static inline void updateField(CProgressCtrl *const progressMeter, CEdit * const textBox, const char *const textFormat, const int iValue, const int progressMeterScaleFactor, const int progressMeterMin, const int progressMeterMax) {
+	if (iValue != CEcuData::c_iUNSUPPORTED) {
+		if (textBox != NULL) {
+			CString buf;
+			buf.Format(textFormat, iValue);
+			textBox->SetWindowText(buf);
+		}
+
+		int progressMeterValue = iValue * progressMeterScaleFactor;
+		if (progressMeterValue < progressMeterMin) {
+			progressMeterValue = progressMeterMin;
+		}
+		else if (progressMeterValue > progressMeterMax) {
+			progressMeterValue = progressMeterMax;
+		}
+		progressMeter->SetPos(progressMeterValue);
+	}
+	else if (textBox != NULL) {
+		textBox->SetWindowText("N/A ");
+	}
 }
 
 // Updates all of our controls
 void CDashBoardDlg::Refresh(const CEcuData* const ecuData)
 {
-	CString buf;
-	DWORD	dwCurrentMode = GetCurrentMode();
+	updateField(&m_AirFuelRatio, &m_AirFuelRatioText, "%3.1f ", ecuData->m_fAFRatio, AIR_FUEL_RATIO_MIN, AIR_FUEL_RATIO_MAX, 10);
 
-	float fValue = ecuData->m_fAFRatio;
-	buf.Format("%3.1f ", fValue);
-	m_AirFuelRatioText.SetWindowText(buf);
-	if (fValue < 11.0f) {
-		fValue = 11.0f;
-	}
-	else if (fValue > 17.0f) {
-		fValue = 17.0f;
-	}
-	m_AirFuelRatio.SetPos((int) (fValue * 10));
+	updateField(&m_Water, &m_WaterText, "%3.1f ", ecuData->m_fWaterTemp, WATER_MIN, WATER_MAX, 10);
+	
+	updateField(&m_MAT, &m_MATText, "%3.1f ", ecuData->m_fMATTemp, MAT_MIN, MAT_MAX, 10);
+	
+	updateField(&m_Volt, &m_VoltText, "%3.1f ", ecuData->m_fBatteryVolts, BAT_VOLT_MIN, BAT_VOLT_MAX, 10);
+	
+	updateField(&m_Boost, &m_BoostText, "%3.2f ", ecuData->m_fMAP, BOOST_MIN, BOOST_MAX, 100);
+	
+	updateField(&m_Spark, &m_SparkText, "%3.1f ", ecuData->m_fSparkAdvance, SPARK_MIN, SPARK_MAX, 10);
 
-	fValue = ecuData->m_fWaterTemp;
-	buf.Format("%3.1f ", fValue);
-	m_WaterText.SetWindowText(buf);
-	if (fValue < 50.0f) {
-		fValue = 50.0f;
-	}
-	else if (fValue > 110.0f) {
-		fValue = 110.0f;
-	}
-	m_Water.SetPos((int) (fValue * 10));
+	updateField(&m_Tacho, &m_TachoText, "%4d ", ecuData->m_iRPM, TACHO_MIN, TACHO_MAX, 1);
 
-	fValue = ecuData->m_fMATTemp;
-	buf.Format("%3.1f ", fValue);
-	m_MATText.SetWindowText(buf);
-	if (fValue < 20.0f) {
-		fValue = 20.0f;
-	}
-	else if (fValue > 80.0f) {
-		fValue = 80.0f;
-	}
-	m_MAT.SetPos((int) (fValue * 10));
+	updateField(&m_Speedo, &m_SpeedoMphText, "%3d ", ecuData->m_iMPH,       SPEEDO_MIN, SPEEDO_MAX, 1);
+	updateField(NULL,      &m_SpeedoKphText, "%3d ", ecuData->m_iMPH_inKPH, 0,   0, 1);
 
-	fValue = ecuData->m_fBatteryVolts;
-	buf.Format("%3.1f ", fValue);
-	m_VoltText.SetWindowText(buf);
-	if (fValue < 8.0f) {
-		fValue = 8.0f;
-	}
-	else if (fValue > 16.0f) {
-		fValue = 16.0f;
-	}
-	m_Volt.SetPos((int) (fValue * 10));
+	updateField(&m_Throttle, NULL, NULL, ecuData->m_iThrottlePos, THROTTLE_MIN, THROTTLE_MAX, 1);
 
-	fValue = ecuData->m_fMAP;
-	buf.Format("%3.2f ", fValue);
-	m_BoostText.SetWindowText(buf);
-	if (fValue < 0.0f) {
-		fValue = 0.0f;
-	}
-	else if (fValue > 2.0f) {
-		fValue = 2.0f;
-	}
-	m_Boost.SetPos((int) (fValue * 100));
-
-	fValue = ecuData->m_fSparkAdvance;
-	buf.Format("%3.1f ", fValue);
-	m_SparkText.SetWindowText(buf);
-	if (fValue < 0.0f) {
-		fValue = 0.0f;
-	}
-	else if (fValue > 60.0f) {
-		fValue = 60.0f;
-	}
-	m_Spark.SetPos((int) (fValue * 10));
-
-	int iValue = ecuData->m_iRPM;
-	buf.Format("%4d ", iValue);
-	m_TachoText.SetWindowText(buf);
-	if (iValue < 0) {
-		iValue = 0;
-	}
-	else if (iValue > 8000) {
-		iValue = 8000;
-	}
-	m_Tacho.SetPos(iValue);
-
-	iValue = ecuData->m_iMPH;
-	buf.Format("%3d ", iValue);
-	m_SpeedoMphText.SetWindowText(buf);
-	buf.Format("%3d ", ecuData->m_iMPH_inKPH);
-	m_SpeedoKphText.SetWindowText(buf);
-	if (iValue < 0) {
-		iValue = 0;
-	}
-	else if (iValue > 170) {
-		iValue = 170;
-	}
-	m_Speedo.SetPos(iValue);
-
-	m_Throttle.SetPos(ecuData->m_iThrottlePos);
-
-	m_EngineLoad.SetPos(ecuData->m_iEngineLoad);
+	updateField(&m_EngineLoad, NULL, NULL, ecuData->m_iEngineLoad, LOAD_MIN, LOAD_MAX, 1);
 }
 
 void CDashBoardDlg::RegisterMainDialog(CFreeScanDlg* const mainDialog) {
@@ -191,6 +185,11 @@ BEGIN_MESSAGE_MAP(CDashBoardDlg, CTTPropertyPage)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
+static inline void setProgressMeterBounds(CProgressCtrl *const progressMeter, const int progressMeterMin, const int progressMeterMax) {
+	progressMeter->SetRange(progressMeterMin, progressMeterMax);
+	progressMeter->SetStep(min(1, (progressMeterMax - progressMeterMin) / 100));
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // CDashBoardDlg message handlers
 
@@ -201,38 +200,25 @@ BOOL CDashBoardDlg::OnInitDialog()
 
 	CTTPropertyPage::OnInitDialog();
 
-	m_Throttle.SetRange(0, 100);
-	m_Throttle.SetStep(1);
+	setProgressMeterBounds(&m_Throttle, THROTTLE_MIN, THROTTLE_MAX);
 
-	m_EngineLoad.SetRange(0, 100);
-	m_EngineLoad.SetStep(1);
+	setProgressMeterBounds(&m_EngineLoad, LOAD_MIN, LOAD_MAX);
 
-	m_Boost.SetRange32(0, 200);
-	m_Boost.SetStep(5);
+	setProgressMeterBounds(&m_Boost, BOOST_MIN, BOOST_MAX);
 
-	m_MAT.SetRange32(200, 800);
-	m_MAT.SetStep(5);
+	setProgressMeterBounds(&m_MAT, MAT_MIN, MAT_MAX);
 
-	m_Speedo.SetRange32(0, 120);
-	m_Speedo.SetStep(1);
+	setProgressMeterBounds(&m_Speedo, SPEEDO_MIN, SPEEDO_MAX);
 
-	m_Tacho.SetRange32(0, 8000);
-	m_Tacho.SetStep(5);
+	setProgressMeterBounds(&m_Tacho, TACHO_MIN, TACHO_MAX);
 
-	m_AirFuelRatio.SetRange32(110, 170);
-	m_AirFuelRatio.SetStep(1);
+	setProgressMeterBounds(&m_AirFuelRatio, AIR_FUEL_RATIO_MIN, AIR_FUEL_RATIO_MAX);
 
-	m_Water.SetRange32(500, 1100);
-	m_Water.SetStep(5);
+	setProgressMeterBounds(&m_Water, WATER_MIN, WATER_MAX);
 
-	m_Volt.SetRange32(80, 160);
-	m_Volt.SetStep(1);
+	setProgressMeterBounds(&m_Volt, BAT_VOLT_MIN, BAT_VOLT_MAX);
 
-	m_Spark.SetRange32(0, 600);
-	m_Spark.SetStep(5);
-
-	// Add dialog items that want ToolTip text
-//	m_toolTip.AddTool( GetDlgItem(IDC_EPROMID), IDC_EPROMID);
+	setProgressMeterBounds(&m_Spark, SPARK_MIN, SPARK_MAX);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE

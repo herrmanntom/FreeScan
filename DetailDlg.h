@@ -1,7 +1,6 @@
 #if !defined(AFX_DETAILDLG_H__09BF9084_1326_11D2_983E_00E018900F2A__INCLUDED_)
 #define AFX_DETAILDLG_H__09BF9084_1326_11D2_983E_00E018900F2A__INCLUDED_
 
-#include "MABString.h"	// Added by ClassView
 #if _MSC_VER >= 1000
 #pragma once
 #endif // _MSC_VER >= 1000
