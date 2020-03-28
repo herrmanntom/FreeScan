@@ -95,7 +95,7 @@ HWND CEspritProtocol::Init(CSupervisor* pSupervisor, CSerialPort* pcom, CWnd* pP
 }
 
 // Resets the protocol state machine
-LONG CEspritProtocol::OnResetStateMachine(WPARAM wdummy, LPARAM dummy)
+LONG CEspritProtocol::OnResetStateMachine(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	m_dwCurrentMode = 0;
 	m_dwRequestedMode = 1; // Mode we want next
@@ -118,7 +118,7 @@ LONG CEspritProtocol::OnResetStateMachine(WPARAM wdummy, LPARAM dummy)
 }
 
 // Requests whether FreeScan talks to the ECU or not
-LONG CEspritProtocol::OnInteract(WPARAM bInteract, LPARAM dummy)
+LONG CEspritProtocol::OnInteract(WPARAM bInteract, LPARAM /*dummy*/)
 {
 	if (bInteract)
 	{
@@ -143,26 +143,26 @@ LONG CEspritProtocol::OnECUMode(WPARAM dwMode, LPARAM Data)
 	return 0;
 }
 
-LONG CEspritProtocol::OnStartCSV(WPARAM bStart, LPARAM dummy)
+LONG CEspritProtocol::OnStartCSV(WPARAM bStart, LPARAM /*dummy*/)
 {
 	// call the base class function
 	return (LONG) StartCSVLog((BOOL) bStart);
 }
 
 // Gets the interact status
-LONG CEspritProtocol::OnGetInteract(WPARAM wdummy, LPARAM dummy)
+LONG CEspritProtocol::OnGetInteract(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	return (LONG) m_bInteract;
 }
 
 // Returns the current ECU Mode
-LONG CEspritProtocol::OnGetCurrentMode(WPARAM wdummy, LPARAM dummy)
+LONG CEspritProtocol::OnGetCurrentMode(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	return (LONG) m_dwCurrentMode;
 }
 
 // Forces Shut-Up to be sent.
-LONG CEspritProtocol::OnForceShutUp(WPARAM wdummy, LPARAM dummy)
+LONG CEspritProtocol::OnForceShutUp(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	return (LONG) 0;
 }
@@ -475,7 +475,7 @@ LONG CEspritProtocol::OnCharReceived(WPARAM ch, LPARAM BytesRead)
 // Receives the buffer and decides what mode commands to send
 int CEspritProtocol::HandleTX(unsigned char* buffer, int iLength)
 {
-	unsigned char	ucHeader = buffer[0];
+//	unsigned char	ucHeader = buffer[0];
 	unsigned char	ucMode = buffer[2];
 	unsigned char	ucCRC = buffer[iLength - 1]; // Index 0
 

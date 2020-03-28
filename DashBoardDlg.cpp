@@ -186,7 +186,7 @@ BEGIN_MESSAGE_MAP(CDashBoardDlg, CTTPropertyPage)
 END_MESSAGE_MAP()
 
 static inline void setProgressMeterBounds(CProgressCtrl *const progressMeter, const int progressMeterMin, const int progressMeterMax) {
-	progressMeter->SetRange(progressMeterMin, progressMeterMax);
+	progressMeter->SetRange32(progressMeterMin, progressMeterMax);
 	progressMeter->SetStep(min(1, (progressMeterMax - progressMeterMin) / 100));
 }
 
@@ -226,7 +226,7 @@ BOOL CDashBoardDlg::OnInitDialog()
 
 HBRUSH CDashBoardDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor) 
 {
-	HBRUSH hbr = CTTPropertyPage::OnCtlColor(pDC, pWnd, nCtlColor);
+	CTTPropertyPage::OnCtlColor(pDC, pWnd, nCtlColor);
 	
 	// TODO: Change any attributes of the DC here
 		switch (nCtlColor)
@@ -257,8 +257,5 @@ HBRUSH CDashBoardDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 	//JUST IN CASE, return the new brush
 	default:
 		return m_brush;
-	} 
-
-	// TODO: Return a different brush if the default is not desired
-	return hbr;
+	}
 }

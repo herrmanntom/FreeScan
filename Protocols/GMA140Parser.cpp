@@ -111,7 +111,7 @@ BOOL CGMA140Parser::StartCSVLog(BOOL bStart)
 
 		if (!m_file.Open(m_csCSVLogFile, CFile::modeCreate | CFile::modeReadWrite | CFile::typeText))
 		{
-			csBuf.Format("Cannot open %s", m_csCSVLogFile);
+			csBuf.Format("Cannot open %s", m_csCSVLogFile.GetString());
 			WriteStatus(csBuf);
 			AfxMessageBox(csBuf, MB_OK | MB_ICONSTOP );
 			return FALSE;
@@ -417,7 +417,7 @@ void CGMA140Parser::ParseMode4(unsigned char* buffer, int len)
 }
 
 // Translates the incoming data stream as Mode 7
-void CGMA140Parser::ParseMode7(unsigned char* buffer, int len)
+void CGMA140Parser::ParseMode7(unsigned char* /*buffer*/, int len)
 {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -440,7 +440,7 @@ void CGMA140Parser::ParseMode7(unsigned char* buffer, int len)
 }
 
 // Translates the incoming data stream as Mode 8
-void CGMA140Parser::ParseMode8(unsigned char* buffer, int len)
+void CGMA140Parser::ParseMode8(unsigned char* /*buffer*/, int len)
 {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -463,7 +463,7 @@ void CGMA140Parser::ParseMode8(unsigned char* buffer, int len)
 }
 
 // Translates the incoming data stream as Mode 9
-void CGMA140Parser::ParseMode9(unsigned char* buffer, int len)
+void CGMA140Parser::ParseMode9(unsigned char* /*buffer*/, int len)
 {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -486,7 +486,7 @@ void CGMA140Parser::ParseMode9(unsigned char* buffer, int len)
 }
 
 // Translates the incoming data stream as Mode 10
-void CGMA140Parser::ParseMode10(unsigned char* buffer, int len)
+void CGMA140Parser::ParseMode10(unsigned char* /*buffer*/, int len)
 {
 	if (len==0) // remember half duplex. We read our commands as well
 	{

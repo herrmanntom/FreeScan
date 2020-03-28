@@ -95,7 +95,7 @@ HWND CElanProtocol::Init(CSupervisor* pSupervisor, CSerialPort* pcom, CWnd* pPar
 }
 
 // Resets the protocol state machine
-LONG CElanProtocol::OnResetStateMachine(WPARAM wdummy, LPARAM dummy)
+LONG CElanProtocol::OnResetStateMachine(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	m_dwCurrentMode = 0;
 	m_dwRequestedMode = 1; // Mode we want next
@@ -118,7 +118,7 @@ LONG CElanProtocol::OnResetStateMachine(WPARAM wdummy, LPARAM dummy)
 }
 
 // Requests whether FreeScan talks to the ECU or not
-LONG CElanProtocol::OnInteract(WPARAM bInteract, LPARAM dummy)
+LONG CElanProtocol::OnInteract(WPARAM bInteract, LPARAM /*dummy*/)
 {
 	if (bInteract)
 	{
@@ -146,26 +146,26 @@ LONG CElanProtocol::OnECUMode(WPARAM dwMode, LPARAM Data)
 	return 0;
 }
 
-LONG CElanProtocol::OnStartCSV(WPARAM bStart, LPARAM dummy)
+LONG CElanProtocol::OnStartCSV(WPARAM bStart, LPARAM /*dummy*/)
 {
 	// call the base class function
 	return (LONG) StartCSVLog((BOOL) bStart);
 }
 
 // Gets the interact status
-LONG CElanProtocol::OnGetInteract(WPARAM wdummy, LPARAM dummy)
+LONG CElanProtocol::OnGetInteract(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	return (LONG) m_bInteract;
 }
 
 // Returns the current ECU Mode
-LONG CElanProtocol::OnGetCurrentMode(WPARAM wdummy, LPARAM dummy)
+LONG CElanProtocol::OnGetCurrentMode(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	return (LONG) m_dwCurrentMode;
 }
 
 // Forces Shut-Up to be sent.
-LONG CElanProtocol::OnForceShutUp(WPARAM wdummy, LPARAM dummy)
+LONG CElanProtocol::OnForceShutUp(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	OnResetStateMachine(NULL,NULL);
 	SendModeShutUp();
@@ -662,7 +662,7 @@ BOOL CElanProtocol::Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD 
 }
 
 // This is used to request data from the ECU.
-void CElanProtocol::OnTimer(UINT nIDEvent) 
+void CElanProtocol::OnTimer(UINT /*nIDEvent*/) 
 {
 	WriteStatus("Timer");
 	KillTimer(WM_TIMER_EVT1);
@@ -672,9 +672,9 @@ void CElanProtocol::OnTimer(UINT nIDEvent)
 	
 	return; // action blocked for now
 	
-	m_dwCurrentMode = 1;
+//	m_dwCurrentMode = 1;
 
-	SendNextCommand();
+//	SendNextCommand();
 
-	CWnd::OnTimer(nIDEvent);
+//	CWnd::OnTimer(nIDEvent);
 }

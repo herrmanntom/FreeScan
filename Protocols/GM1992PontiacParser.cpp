@@ -82,7 +82,7 @@ BOOL CGM1992PontiacParser::StartCSVLog(BOOL bStart)
 
 		if (!m_file.Open(m_csCSVLogFile, CFile::modeCreate | CFile::modeReadWrite | CFile::typeText))
 		{
-			csBuf.Format("Cannot open %s", m_csCSVLogFile);
+			csBuf.Format("Cannot open %s", m_csCSVLogFile.GetString());
 			WriteStatus(csBuf);
 			AfxMessageBox(csBuf, MB_OK | MB_ICONSTOP );
 			return FALSE;
@@ -243,17 +243,17 @@ int CGM1992PontiacParser::Parse(unsigned char* buffer, int iLength)
 }
 
 // Translates the incoming data stream from the chatter
-void CGM1992PontiacParser::ParseModeF0(unsigned char* buffer, int len)
+void CGM1992PontiacParser::ParseModeF0(unsigned char* /*buffer*/, int /*len*/)
 {
 }
 
 // Translates the incoming data stream from the chatter
-void CGM1992PontiacParser::ParseMode05(unsigned char* buffer, int len)
+void CGM1992PontiacParser::ParseMode05(unsigned char* /*buffer*/, int /*len*/)
 {
 }
 
 // Translates the incoming data stream from the chatter
-void CGM1992PontiacParser::ParseMode0A(unsigned char* buffer, int len)
+void CGM1992PontiacParser::ParseMode0A(unsigned char* /*buffer*/, int /*len*/)
 {
 }
 
@@ -425,7 +425,7 @@ void CGM1992PontiacParser::ParseMode4(unsigned char* buffer, int len)
 }
 
 // Translates the incoming data stream as Mode 7
-void CGM1992PontiacParser::ParseMode7(unsigned char* buffer, int len)
+void CGM1992PontiacParser::ParseMode7(unsigned char* /*buffer*/, int len)
 {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -448,7 +448,7 @@ void CGM1992PontiacParser::ParseMode7(unsigned char* buffer, int len)
 }
 
 // Translates the incoming data stream as Mode 8
-void CGM1992PontiacParser::ParseMode8(unsigned char* buffer, int len)
+void CGM1992PontiacParser::ParseMode8(unsigned char* /*buffer*/, int len)
 {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -471,7 +471,7 @@ void CGM1992PontiacParser::ParseMode8(unsigned char* buffer, int len)
 }
 
 // Translates the incoming data stream as Mode 9
-void CGM1992PontiacParser::ParseMode9(unsigned char* buffer, int len)
+void CGM1992PontiacParser::ParseMode9(unsigned char* /*buffer*/, int len)
 {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -494,7 +494,7 @@ void CGM1992PontiacParser::ParseMode9(unsigned char* buffer, int len)
 }
 
 // Translates the incoming data stream as Mode 10
-void CGM1992PontiacParser::ParseMode10(unsigned char* buffer, int len)
+void CGM1992PontiacParser::ParseMode10(unsigned char* /*buffer*/, int len)
 {
 	if (len==0) // remember half duplex. We read our commands as well
 	{

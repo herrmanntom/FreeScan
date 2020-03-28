@@ -125,9 +125,11 @@ void CAdvancedDlg::OnSetdesidle()
 {
 	CDesIdleDlg		dlg;
 
-	dlg.m_Value = GetSupervisor()->GetEcuData()->m_iDesiredIdle;
-	if (dlg.m_Value == CEcuData::c_iUNSUPPORTED)
-		dlg.m_Value = 850;
+	dlg.m_Value = 850;;
+	if (GetSupervisor()->GetEcuData()->m_iDesiredIdle != CEcuData::c_iUNSUPPORTED) {
+		dlg.m_Value = GetSupervisor()->GetEcuData()->m_iDesiredIdle;
+	}
+	
 	if (dlg.DoModal() == IDOK)
 	{
 		// Sends the ECU command to set the desired idle

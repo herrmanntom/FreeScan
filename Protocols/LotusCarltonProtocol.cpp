@@ -98,7 +98,7 @@ HWND CLotusCarltonProtocol::Init(CSupervisor* pSupervisor, CSerialPort* pcom, CW
 }
 
 // Resets the protocol state machine
-LONG CLotusCarltonProtocol::OnResetStateMachine(WPARAM wdummy, LPARAM dummy)
+LONG CLotusCarltonProtocol::OnResetStateMachine(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	m_dwCurrentMode = 0;
 	m_dwRequestedMode = 1; // Mode we want next
@@ -121,7 +121,7 @@ LONG CLotusCarltonProtocol::OnResetStateMachine(WPARAM wdummy, LPARAM dummy)
 }
 
 // Requests whether FreeScan talks to the ECU or not
-LONG CLotusCarltonProtocol::OnInteract(WPARAM bInteract, LPARAM dummy)
+LONG CLotusCarltonProtocol::OnInteract(WPARAM bInteract, LPARAM /*dummy*/)
 {
 	if (bInteract)
 	{
@@ -151,26 +151,26 @@ LONG CLotusCarltonProtocol::OnECUMode(WPARAM dwMode, LPARAM Data)
 	return 0;
 }
 
-LONG CLotusCarltonProtocol::OnStartCSV(WPARAM bStart, LPARAM dummy)
+LONG CLotusCarltonProtocol::OnStartCSV(WPARAM bStart, LPARAM /*dummy*/)
 {
 	// call the base class function
 	return (LONG) StartCSVLog((BOOL) bStart);
 }
 
 // Gets the interact status
-LONG CLotusCarltonProtocol::OnGetInteract(WPARAM wdummy, LPARAM dummy)
+LONG CLotusCarltonProtocol::OnGetInteract(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	return (LONG) m_bInteract;
 }
 
 // Returns the current ECU Mode
-LONG CLotusCarltonProtocol::OnGetCurrentMode(WPARAM wdummy, LPARAM dummy)
+LONG CLotusCarltonProtocol::OnGetCurrentMode(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	return (LONG) m_dwCurrentMode;
 }
 
 // Forces Shut-Up to be sent.
-LONG CLotusCarltonProtocol::OnForceShutUp(WPARAM wdummy, LPARAM dummy)
+LONG CLotusCarltonProtocol::OnForceShutUp(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	OnResetStateMachine(NULL,NULL);
 	SendMode0();
@@ -488,7 +488,7 @@ int CLotusCarltonProtocol::HandleTX(unsigned char* buffer, int iLength)
 {
 	unsigned char	ucHeader = buffer[0];
 	unsigned char	ucMode = buffer[2];
-	unsigned char	ucMsg = buffer[3];
+//	unsigned char	ucMsg = buffer[3];
 	unsigned char	ucCRC = buffer[iLength - 1]; // Index 0
 
 	// There is a minor bug with this code. If we get a checksum error,

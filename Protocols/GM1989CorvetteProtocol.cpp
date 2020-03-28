@@ -95,7 +95,7 @@ HWND CGM1989CorvetteProtocol::Init(CSupervisor* pSupervisor, CSerialPort* pcom, 
 }
 
 // Resets the protocol state machine
-LONG CGM1989CorvetteProtocol::OnResetStateMachine(WPARAM wdummy, LPARAM dummy)
+LONG CGM1989CorvetteProtocol::OnResetStateMachine(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	m_dwCurrentMode = 0;
 	m_dwRequestedMode = 1; // Mode we want next
@@ -119,7 +119,7 @@ LONG CGM1989CorvetteProtocol::OnResetStateMachine(WPARAM wdummy, LPARAM dummy)
 }
 
 // Requests whether FreeScan talks to the ECU or not
-LONG CGM1989CorvetteProtocol::OnInteract(WPARAM bInteract, LPARAM dummy)
+LONG CGM1989CorvetteProtocol::OnInteract(WPARAM bInteract, LPARAM /*dummy*/)
 {
 	if (bInteract)
 	{
@@ -144,26 +144,26 @@ LONG CGM1989CorvetteProtocol::OnECUMode(WPARAM dwMode, LPARAM Data)
 	return 0;
 }
 
-LONG CGM1989CorvetteProtocol::OnStartCSV(WPARAM bStart, LPARAM dummy)
+LONG CGM1989CorvetteProtocol::OnStartCSV(WPARAM bStart, LPARAM /*dummy*/)
 {
 	// call the base class function
 	return (LONG) StartCSVLog((BOOL) bStart);
 }
 
 // Gets the interact status
-LONG CGM1989CorvetteProtocol::OnGetInteract(WPARAM wdummy, LPARAM dummy)
+LONG CGM1989CorvetteProtocol::OnGetInteract(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	return (LONG) m_bInteract;
 }
 
 // Returns the current ECU Mode
-LONG CGM1989CorvetteProtocol::OnGetCurrentMode(WPARAM wdummy, LPARAM dummy)
+LONG CGM1989CorvetteProtocol::OnGetCurrentMode(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	return (LONG) m_dwCurrentMode;
 }
 
 // Forces Shut-Up to be sent.
-LONG CGM1989CorvetteProtocol::OnForceShutUp(WPARAM wdummy, LPARAM dummy)
+LONG CGM1989CorvetteProtocol::OnForceShutUp(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	WriteStatus("Forcing ECU with a shut-up");
 	m_bModeDone = TRUE; // This is for the SendNextCommand() function
@@ -473,7 +473,7 @@ int CGM1989CorvetteProtocol::HandleTX(unsigned char* buffer, int iLength)
 {
 	unsigned char	ucHeader = buffer[0];
 	unsigned char	ucMode = buffer[2];
-	unsigned char	ucMsg = buffer[3];
+//	unsigned char	ucMsg = buffer[3];
 	unsigned char	ucCRC = buffer[iLength - 1]; // Index 0
 
 	// There is a minor bug with this code. If we get a checksum error,

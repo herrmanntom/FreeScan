@@ -376,7 +376,7 @@ BOOL CStatusDlg::OnInitDialog()
 			ShowWindow(SW_SHOW);
 	}
 
-	return TRUE;
+	return bResult;
 }
 
 // This is called by the BaseDialog to create this Status Dialog

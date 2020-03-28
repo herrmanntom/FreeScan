@@ -412,7 +412,6 @@ UINT CSerialPort::CommThread(LPVOID pParam)
 	port->m_bThreadAlive = TRUE; 
 		
 	// Misc. variables
-	DWORD BytesTransfered = 0; 
 	DWORD Event = 0;
 	DWORD CommEvent = 0;
 	DWORD dwError = 0;
@@ -573,8 +572,10 @@ BOOL CSerialPort::StartMonitoring()
 		return FALSE;
 	}
 	TRACE(_T("Com Port %d starting monitoring.\n"), m_nPortNr);
-	if (!(m_Thread = AfxBeginThread(CommThread, this, THREAD_PRIORITY_NORMAL)))
+	m_Thread = AfxBeginThread(CommThread, this, THREAD_PRIORITY_NORMAL);
+	if (m_Thread == NULL) {
 		return FALSE;
+	}
 	// Clear buffer
 	PurgeComm(m_hComm, PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
 	TRACE(_T("Thread %ld started\n"), (DWORD)m_Thread->m_nThreadID);
@@ -711,12 +712,6 @@ void CSerialPort::WriteChar(CSerialPort* port)
 		{
 			port->ProcessErrorMessage(_T("GetOverlappedResults() in WriteFile()"));
 		    AfxThrowSerialException();
-
-			if (GetLastError() != ERROR_IO_PENDING)
-			{
-				TRACE(_T("Failed in call to GetOverlappedResult\n"));
-				AfxThrowSerialException();
-			}
 		}	
 	} // end if (!bWrite)
 

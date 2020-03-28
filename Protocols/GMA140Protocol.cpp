@@ -95,7 +95,7 @@ HWND CGMA140Protocol::Init(CSupervisor* pSupervisor, CSerialPort* pcom, CWnd* pP
 }
 
 // Resets the protocol state machine
-LONG CGMA140Protocol::OnResetStateMachine(WPARAM wdummy, LPARAM dummy)
+LONG CGMA140Protocol::OnResetStateMachine(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	m_dwCurrentMode = 0;
 	m_dwRequestedMode = 1; // Mode we want next
@@ -119,7 +119,7 @@ LONG CGMA140Protocol::OnResetStateMachine(WPARAM wdummy, LPARAM dummy)
 }
 
 // Requests whether FreeScan talks to the ECU or not
-LONG CGMA140Protocol::OnInteract(WPARAM bInteract, LPARAM dummy)
+LONG CGMA140Protocol::OnInteract(WPARAM bInteract, LPARAM /*dummy*/)
 {
 	if (bInteract)
 	{
@@ -144,26 +144,26 @@ LONG CGMA140Protocol::OnECUMode(WPARAM dwMode, LPARAM Data)
 	return 0;
 }
 
-LONG CGMA140Protocol::OnStartCSV(WPARAM bStart, LPARAM dummy)
+LONG CGMA140Protocol::OnStartCSV(WPARAM bStart, LPARAM /*dummy*/)
 {
 	// call the base class function
 	return (LONG) StartCSVLog((BOOL) bStart);
 }
 
 // Gets the interact status
-LONG CGMA140Protocol::OnGetInteract(WPARAM wdummy, LPARAM dummy)
+LONG CGMA140Protocol::OnGetInteract(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	return (LONG) m_bInteract;
 }
 
 // Returns the current ECU Mode
-LONG CGMA140Protocol::OnGetCurrentMode(WPARAM wdummy, LPARAM dummy)
+LONG CGMA140Protocol::OnGetCurrentMode(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	return (LONG) m_dwCurrentMode;
 }
 
 // Forces Shut-Up to be sent.
-LONG CGMA140Protocol::OnForceShutUp(WPARAM wdummy, LPARAM dummy)
+LONG CGMA140Protocol::OnForceShutUp(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	WriteStatus("Forcing ECU with a shut-up");
 	SendModeShutUp();

@@ -64,7 +64,7 @@ BOOL CTTPropertyPage::OnInitDialog()
 	              // EXCEPTION: OCX Property Pages should return FALSE
 }
 
-BOOL CTTPropertyPage::OnToolTipNotify(UINT /*id*/, NMHDR* pNMHDR, LRESULT* /*pResult*/)
+BOOL CTTPropertyPage::OnToolTipNotify(UINT /*id*/, NMHDR* /*pNMHDR*/, LRESULT* /*pResult*/)
 {
 //  TOOLTIPTEXT *pTTT = (TOOLTIPTEXT *)pNMHDR;    
 //	UINT uID = pNMHDR->idFrom;

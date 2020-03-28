@@ -95,7 +95,7 @@ HWND CGMA160Protocol::Init(CSupervisor* pSupervisor, CSerialPort* pcom, CWnd* pP
 }
 
 // Resets the protocol state machine
-LONG CGMA160Protocol::OnResetStateMachine(WPARAM wdummy, LPARAM dummy)
+LONG CGMA160Protocol::OnResetStateMachine(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	m_dwCurrentMode = 0;
 	m_dwRequestedMode = 1; // Mode we want next
@@ -119,7 +119,7 @@ LONG CGMA160Protocol::OnResetStateMachine(WPARAM wdummy, LPARAM dummy)
 }
 
 // Requests whether FreeScan talks to the ECU or not
-LONG CGMA160Protocol::OnInteract(WPARAM bInteract, LPARAM dummy)
+LONG CGMA160Protocol::OnInteract(WPARAM bInteract, LPARAM /*dummy*/)
 {
 	if (bInteract)
 	{
@@ -144,26 +144,26 @@ LONG CGMA160Protocol::OnECUMode(WPARAM dwMode, LPARAM Data)
 	return 0;
 }
 
-LONG CGMA160Protocol::OnStartCSV(WPARAM bStart, LPARAM dummy)
+LONG CGMA160Protocol::OnStartCSV(WPARAM bStart, LPARAM /*dummy*/)
 {
 	// call the base class function
 	return (LONG) StartCSVLog((BOOL) bStart);
 }
 
 // Gets the interact status
-LONG CGMA160Protocol::OnGetInteract(WPARAM wdummy, LPARAM dummy)
+LONG CGMA160Protocol::OnGetInteract(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	return (LONG) m_bInteract;
 }
 
 // Returns the current ECU Mode
-LONG CGMA160Protocol::OnGetCurrentMode(WPARAM wdummy, LPARAM dummy)
+LONG CGMA160Protocol::OnGetCurrentMode(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	return (LONG) m_dwCurrentMode;
 }
 
 // Forces Shut-Up to be sent.
-LONG CGMA160Protocol::OnForceShutUp(WPARAM wdummy, LPARAM dummy)
+LONG CGMA160Protocol::OnForceShutUp(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	WriteStatus("Forcing ECU with a shut-up");
 	m_bModeDone = TRUE; // This is for the SendNextCommand() function
@@ -473,7 +473,7 @@ int CGMA160Protocol::HandleTX(unsigned char* buffer, int iLength)
 {
 	unsigned char	ucHeader = buffer[0];
 	unsigned char	ucMode = buffer[2];
-	unsigned char	ucMsg = buffer[3];
+//	unsigned char	ucMsg = buffer[3];
 	unsigned char	ucCRC = buffer[iLength - 1]; // Index 0
 
 	// There is a minor bug with this code. If we get a checksum error,

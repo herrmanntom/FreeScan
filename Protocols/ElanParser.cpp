@@ -82,7 +82,7 @@ BOOL CElanParser::StartCSVLog(BOOL bStart)
 
 		if (!m_file.Open(m_csCSVLogFile, CFile::modeCreate | CFile::modeReadWrite | CFile::typeText))
 		{
-			csBuf.Format("Cannot open %s", m_csCSVLogFile);
+			csBuf.Format("Cannot open %s", m_csCSVLogFile.GetString());
 			WriteStatus(csBuf);
 			AfxMessageBox(csBuf, MB_OK | MB_ICONSTOP );
 			return FALSE;

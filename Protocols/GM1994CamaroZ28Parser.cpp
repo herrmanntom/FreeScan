@@ -82,7 +82,7 @@ BOOL CGM1994CamaroZ28Parser::StartCSVLog(BOOL bStart)
 
 		if (!m_file.Open(m_csCSVLogFile, CFile::modeCreate | CFile::modeReadWrite | CFile::typeText))
 		{
-			csBuf.Format("Cannot open %s", m_csCSVLogFile);
+			csBuf.Format("Cannot open %s", m_csCSVLogFile.GetString());
 			WriteStatus(csBuf);
 			AfxMessageBox(csBuf, MB_OK | MB_ICONSTOP );
 			return FALSE;
@@ -324,42 +324,42 @@ int CGM1994CamaroZ28Parser::Parse(unsigned char* buffer, int iLength)
 }
 
 // Translates the incoming data stream from the chatter
-void CGM1994CamaroZ28Parser::ParseMode0A(unsigned char* buffer, int len)
+void CGM1994CamaroZ28Parser::ParseMode0A(unsigned char* /*buffer*/, int /*len*/)
 {
 }
 
 // Translates the incoming data stream from the chatter
-void CGM1994CamaroZ28Parser::ParseCMode10(unsigned char* buffer, int len)
+void CGM1994CamaroZ28Parser::ParseCMode10(unsigned char* /*buffer*/, int /*len*/)
 {
 }
 
 // Translates the incoming data stream from the chatter
-void CGM1994CamaroZ28Parser::ParseMode40(unsigned char* buffer, int len)
+void CGM1994CamaroZ28Parser::ParseMode40(unsigned char* /*buffer*/, int /*len*/)
 {
 }
 
 // Translates the incoming data stream from the chatter
-void CGM1994CamaroZ28Parser::ParseMode41(unsigned char* buffer, int len)
+void CGM1994CamaroZ28Parser::ParseMode41(unsigned char* /*buffer*/, int /*len*/)
 {
 }
 
 // Translates the incoming data stream from the chatter
-void CGM1994CamaroZ28Parser::ParseMode45(unsigned char* buffer, int len)
+void CGM1994CamaroZ28Parser::ParseMode45(unsigned char* /*buffer*/, int /*len*/)
 {
 }
 
 // Translates the incoming data stream from the chatter
-void CGM1994CamaroZ28Parser::ParseMode90(unsigned char* buffer, int len)
+void CGM1994CamaroZ28Parser::ParseMode90(unsigned char* /*buffer*/, int /*len*/)
 {
 }
 
 // Translates the incoming data stream from the chatter
-void CGM1994CamaroZ28Parser::ParseMode92(unsigned char* buffer, int len)
+void CGM1994CamaroZ28Parser::ParseMode92(unsigned char* /*buffer*/, int /*len*/)
 {
 }
 
 // Translates the incoming data stream from the chatter
-void CGM1994CamaroZ28Parser::ParseMode93(unsigned char* buffer, int len)
+void CGM1994CamaroZ28Parser::ParseMode93(unsigned char* /*buffer*/, int /*len*/)
 {
 }
 
@@ -450,7 +450,7 @@ void CGM1994CamaroZ28Parser::ParseMode1_0(unsigned char* buffer, int len)
 }
 
 // Translates the incoming data stream as Mode 1 Msg 1
-void CGM1994CamaroZ28Parser::ParseMode1_1(unsigned char* buffer, int len)
+void CGM1994CamaroZ28Parser::ParseMode1_1(unsigned char* /*buffer*/, int len)
 {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -470,7 +470,7 @@ void CGM1994CamaroZ28Parser::ParseMode1_1(unsigned char* buffer, int len)
 }
 
 // Translates the incoming data stream as Mode 1 Msg 2
-void CGM1994CamaroZ28Parser::ParseMode1_2(unsigned char* buffer, int len)
+void CGM1994CamaroZ28Parser::ParseMode1_2(unsigned char* /*buffer*/, int len)
 {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -490,7 +490,7 @@ void CGM1994CamaroZ28Parser::ParseMode1_2(unsigned char* buffer, int len)
 }
 
 // Translates the incoming data stream as Mode 1 Msg 4
-void CGM1994CamaroZ28Parser::ParseMode1_4(unsigned char* buffer, int len)
+void CGM1994CamaroZ28Parser::ParseMode1_4(unsigned char* /*buffer*/, int len)
 {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -510,7 +510,7 @@ void CGM1994CamaroZ28Parser::ParseMode1_4(unsigned char* buffer, int len)
 }
 
 // Translates the incoming data stream as Mode 1 Msg 6
-void CGM1994CamaroZ28Parser::ParseMode1_6(unsigned char* buffer, int len)
+void CGM1994CamaroZ28Parser::ParseMode1_6(unsigned char* /*buffer*/, int len)
 {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -616,7 +616,7 @@ void CGM1994CamaroZ28Parser::ParseMode4(unsigned char* buffer, int len)
 }
 
 // Translates the incoming data stream as Mode 7
-void CGM1994CamaroZ28Parser::ParseMode7(unsigned char* buffer, int len)
+void CGM1994CamaroZ28Parser::ParseMode7(unsigned char* /*buffer*/, int len)
 {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -639,7 +639,7 @@ void CGM1994CamaroZ28Parser::ParseMode7(unsigned char* buffer, int len)
 }
 
 // Translates the incoming data stream as Mode 8
-void CGM1994CamaroZ28Parser::ParseMode8(unsigned char* buffer, int len)
+void CGM1994CamaroZ28Parser::ParseMode8(unsigned char* /*buffer*/, int len)
 {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -662,7 +662,7 @@ void CGM1994CamaroZ28Parser::ParseMode8(unsigned char* buffer, int len)
 }
 
 // Translates the incoming data stream as Mode 9
-void CGM1994CamaroZ28Parser::ParseMode9(unsigned char* buffer, int len)
+void CGM1994CamaroZ28Parser::ParseMode9(unsigned char* /*buffer*/, int len)
 {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -685,7 +685,7 @@ void CGM1994CamaroZ28Parser::ParseMode9(unsigned char* buffer, int len)
 }
 
 // Translates the incoming data stream as Mode 10
-void CGM1994CamaroZ28Parser::ParseMode10(unsigned char* buffer, int len)
+void CGM1994CamaroZ28Parser::ParseMode10(unsigned char* /*buffer*/, int len)
 {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
