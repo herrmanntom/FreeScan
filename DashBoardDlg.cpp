@@ -23,28 +23,28 @@ static const int LOAD_MIN = 0;
 static const int LOAD_MAX = 100;
 
 static const int BOOST_MIN = 0;
-static const int BOOST_MAX = 200;
+static const int BOOST_MAX = 220; // 2.20 Bar
 
-static const int MAT_MIN = 200;
-static const int MAT_MAX = 800;
+static const int MAT_MIN = 0;
+static const int MAT_MAX = 800; // 80°C
 
 static const int SPEEDO_MIN = 0;
-static const int SPEEDO_MAX = 170;
+static const int SPEEDO_MAX = 170; // 170 MPH
 
 static const int TACHO_MIN = 0;
-static const int TACHO_MAX = 8000;
+static const int TACHO_MAX = 8000; // 8000 RPM
 
-static const int AIR_FUEL_RATIO_MIN = 110;
-static const int AIR_FUEL_RATIO_MAX = 170;
+static const int AIR_FUEL_RATIO_MIN = 100; // 10.0
+static const int AIR_FUEL_RATIO_MAX = 170; // 17.0
 
-static const int WATER_MIN = 500;
-static const int WATER_MAX = 1100;
+static const int WATER_MIN = 500; // 50°C
+static const int WATER_MAX = 1100; // 110°C
 
-static const int BAT_VOLT_MIN = 80;
-static const int BAT_VOLT_MAX = 160;
+static const int BAT_VOLT_MIN = 100; // 10.0V
+static const int BAT_VOLT_MAX = 170; // 17.0V
 
 static const int SPARK_MIN = 0;
-static const int SPARK_MAX = 600;
+static const int SPARK_MAX = 600; // 60.0°
 
 /////////////////////////////////////////////////////////////////////////////
 // CDashBoardDlg property page
@@ -185,9 +185,9 @@ BEGIN_MESSAGE_MAP(CDashBoardDlg, CTTPropertyPage)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
-static inline void setProgressMeterBounds(CProgressCtrl *const progressMeter, const int progressMeterMin, const int progressMeterMax) {
+static inline void setProgressMeterBounds(CProgressCtrl *const progressMeter, const int progressMeterMin, const int progressMeterMax, const int pixesWidth) {
 	progressMeter->SetRange32(progressMeterMin, progressMeterMax);
-	progressMeter->SetStep(min(1, (progressMeterMax - progressMeterMin) / 100));
+	progressMeter->SetStep(min(1, (progressMeterMax - progressMeterMin) / pixesWidth));
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -200,25 +200,25 @@ BOOL CDashBoardDlg::OnInitDialog()
 
 	CTTPropertyPage::OnInitDialog();
 
-	setProgressMeterBounds(&m_Throttle, THROTTLE_MIN, THROTTLE_MAX);
+	setProgressMeterBounds(&m_Throttle, THROTTLE_MIN, THROTTLE_MAX, 80);
 
-	setProgressMeterBounds(&m_EngineLoad, LOAD_MIN, LOAD_MAX);
+	setProgressMeterBounds(&m_EngineLoad, LOAD_MIN, LOAD_MAX, 80);
 
-	setProgressMeterBounds(&m_Boost, BOOST_MIN, BOOST_MAX);
+	setProgressMeterBounds(&m_Boost, BOOST_MIN, BOOST_MAX, 80);
 
-	setProgressMeterBounds(&m_MAT, MAT_MIN, MAT_MAX);
+	setProgressMeterBounds(&m_MAT, MAT_MIN, MAT_MAX, 80);
 
-	setProgressMeterBounds(&m_Speedo, SPEEDO_MIN, SPEEDO_MAX);
+	setProgressMeterBounds(&m_Speedo, SPEEDO_MIN, SPEEDO_MAX, 240);
 
-	setProgressMeterBounds(&m_Tacho, TACHO_MIN, TACHO_MAX);
+	setProgressMeterBounds(&m_Tacho, TACHO_MIN, TACHO_MAX, 240);
 
-	setProgressMeterBounds(&m_AirFuelRatio, AIR_FUEL_RATIO_MIN, AIR_FUEL_RATIO_MAX);
+	setProgressMeterBounds(&m_AirFuelRatio, AIR_FUEL_RATIO_MIN, AIR_FUEL_RATIO_MAX, 80);
 
-	setProgressMeterBounds(&m_Water, WATER_MIN, WATER_MAX);
+	setProgressMeterBounds(&m_Water, WATER_MIN, WATER_MAX, 80);
 
-	setProgressMeterBounds(&m_Volt, BAT_VOLT_MIN, BAT_VOLT_MAX);
+	setProgressMeterBounds(&m_Volt, BAT_VOLT_MIN, BAT_VOLT_MAX, 80);
 
-	setProgressMeterBounds(&m_Spark, SPARK_MIN, SPARK_MAX);
+	setProgressMeterBounds(&m_Spark, SPARK_MIN, SPARK_MAX, 80);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE
