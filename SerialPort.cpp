@@ -8,7 +8,7 @@
 **						NOTE: Writing is now not on thread *** ARW ***
 **
 **	CREATION DATE		15-09-1997
-**	LAST MODIFICATION	21-03-2020
+**	LAST MODIFICATION	05-04-2020
 **
 **	AUTHOR				Remon Spekreijse
 **	MODIFIED BY			Brian Koh Sze Hsian - Andy Whittaker - Tom Herrmann
@@ -125,6 +125,9 @@ CSerialPort::CSerialPort()
 	CWinApp* pApp = AfxGetApp();
 	m_nPortNr = pApp->GetProfileInt(_T("Communications"), _T("Port"), 1);
 	m_nWriteDelay = pApp->GetProfileInt(_T("Communications"), _T("WriteDelay"), 100);
+
+	m_timeLastWrittenToPort = { 0 };
+	m_bInitDone = FALSE;
 }
 
 // Delete dynamic memory
@@ -392,6 +395,8 @@ BOOL CSerialPort::InitPort(CWnd* pPortOwner,	// the owner (CWnd) of the port (re
 
 	TRACE(_T("Initialisation for Com Port %d completed.\n"),
 		m_nPortNr);
+	
+	ftime(&m_timeLastWrittenToPort); // init this to senseble value
 
 	m_bInitDone = TRUE;
 
@@ -839,6 +844,7 @@ void CSerialPort::ReceiveChar(CSerialPort* port, COMSTAT comstat)
 void CSerialPort::WriteToPort(unsigned char* string, int stringlength, BOOL bDelay)
 {	
 	DWORD messageLength = max(stringlength, 0);
+	DWORD halfDelay = m_nWriteDelay / 2;
 
 	assert(m_hComm != 0);
 
@@ -856,24 +862,23 @@ void CSerialPort::WriteToPort(unsigned char* string, int stringlength, BOOL bDel
 
 	::LeaveCriticalSection(&m_csCommunicationSync);
 
-	if (bDelay)
-		Sleep(min(10, m_nWriteDelay)); // reduces stress on ECU serial port.
+	if (bDelay) { // sleep to reduce stress on ECU serial port.
+		struct timeb currentTime = { 0 };
+		ftime(&currentTime);
+	
+		time_t timeSinceLastWrite = ((currentTime.time - m_timeLastWrittenToPort.time) * 1000) + (currentTime.millitm - m_timeLastWrittenToPort.millitm);
+		if (timeSinceLastWrite < 0) {
+			// overflow...
+			Sleep(min(1, halfDelay));
+		} else if (timeSinceLastWrite < halfDelay) {
+			Sleep(min(1, (DWORD) (halfDelay - timeSinceLastWrite)));
+		}
+	}
 	WriteChar(this); // Write to port immediately
-	if (bDelay && m_nWriteDelay > 10)
-		Sleep(m_nWriteDelay - 10); // reduces stress on ECU serial port.
-}
-
-// Write a string to the port ** Caution - May be broken
-void CSerialPort::WriteToPort(unsigned char* string)
-{		
-	assert(m_hComm != 0);
-
-	memset(m_szWriteBuffer, 0, sizeof(m_szWriteBuffer));
-	strcpy_s((char *) m_szWriteBuffer, sizeof(m_szWriteBuffer), (char *)string);
-
-	m_nActualWriteBufferSize=strlen((char*)m_szWriteBuffer) ? strlen((char*)m_szWriteBuffer) : 1;
-		
-	WriteChar(this); // Write to port immediately
+	ftime(&m_timeLastWrittenToPort);
+	if (bDelay) { // sleep to reduce stress on ECU serial port.
+		Sleep(min(1, halfDelay));
+	}
 }
 
 // Returns the device control block

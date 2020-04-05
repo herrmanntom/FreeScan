@@ -7,7 +7,7 @@
 **						program is not blocked.
 **
 **	CREATION DATE		15-09-1997
-**	LAST MODIFICATION	21-03-2020
+**	LAST MODIFICATION	05-04-2020
 **
 **	AUTHOR				Remon Spekreijse
 **	MODIFIED BY			Brian Koh Sze Hsian - Tom Herrmann
@@ -16,6 +16,8 @@
 
 #ifndef __SERIALPORT_H__
 #define __SERIALPORT_H__
+
+#include <sys/timeb.h>
 
 #define WM_COMM_BREAK_DETECTED		WM_USER+1	// A break was detected on input.
 #define WM_COMM_CTS_DETECTED		WM_USER+2	// The CTS (clear-to-send) signal changed state. 
@@ -85,7 +87,6 @@ public:
 	void		SetWriteDelay(DWORD nDelay);//Sets the write delay
 
 	void		WriteToPort(unsigned char* string,int stringlength, BOOL bDelay = TRUE);
-	void		WriteToPort(unsigned char* string);
 #ifdef _DEBUG
   void CSerialPort::Dump(CDumpContext& dc) const;
 #endif
@@ -131,6 +132,7 @@ static	OVERLAPPED		m_ov;
 	DWORD				m_nWriteBufferSize;
 static int				m_nActualWriteBufferSize;
 	DWORD				m_nWriteDelay; // milliseconds that write waits before write
+	struct timeb        m_timeLastWrittenToPort;
 	BOOL                m_bInitDone;
 
 	DECLARE_DYNAMIC(CSerialPort)
