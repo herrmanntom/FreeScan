@@ -29,7 +29,7 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-//Staic members must be globally defined
+//Static members must be globally defined
 CRITICAL_SECTION	CSerialPort::m_csCommunicationSync;
 OVERLAPPED			CSerialPort::m_ov;
 int					CSerialPort::m_nActualWriteBufferSize = 0;
@@ -415,7 +415,7 @@ UINT CSerialPort::CommThread(LPVOID pParam)
 	DWORD Event = 0;
 	DWORD CommEvent = 0;
 	DWORD dwError = 0;
-	COMSTAT comstat = {0};
+	COMSTAT comstat = { 0 };
 	BOOL  bResult = TRUE;
 		
 	// Clear comm buffers at startup
@@ -461,7 +461,7 @@ UINT CSerialPort::CommThread(LPVOID pParam)
 			default:
 				{
 					// All other error codes indicate a serious error has
-					// occured.  Process this error.
+					// occurred.  Process this error.
 					port->ProcessErrorMessage("WaitCommEvent()");
 				    AfxThrowSerialException();
 					break;
@@ -477,7 +477,7 @@ UINT CSerialPort::CommThread(LPVOID pParam)
 			// (which this program does not do) you will have the situation occur 
 			// where the first byte to arrive will cause the WaitForMultipleObjects() 
 			// function to stop waiting.  The WaitForMultipleObjects() function 
-			// resets the event handle in m_OverlappedStruct.hEvent to the non-signelead state
+			// resets the event handle in m_OverlappedStruct.hEvent to the non-signaled state
 			// as it returns.  
 			//
 			// If in the time between the reset of this event and the call to 
@@ -519,7 +519,7 @@ UINT CSerialPort::CommThread(LPVOID pParam)
 		case 0:
 			{
 				// Shutdown event.  This is event zero so it will be
-				// the higest priority and be serviced first.
+				// the highest priority and be serviced first.
 
 				// Tell the rest of the code that the thread is dying.
 				port->m_bThreadAlive = FALSE;
@@ -721,6 +721,7 @@ void CSerialPort::WriteChar(CSerialPort* port)
 		TRACE(_T("WARNING: WriteFile() error.. Bytes Sent: %d; Message Length: %d\n"),
 			BytesSent, port->m_nActualWriteBufferSize);
 	}
+
 }
 
 // Character received. Inform the owner

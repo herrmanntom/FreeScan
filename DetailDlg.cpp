@@ -281,6 +281,8 @@ BOOL CDetailDlg::OnInitDialog()
 	// Set the button state to the state of the messages window
 	m_Hide.SetCheck(m_pMainDlg->m_pStatusDlg->HideStatus());
 
+	m_Start.EnableWindow(m_cuPorts.size() > 1 ? TRUE : FALSE);
+
 	m_Stop.EnableWindow(FALSE); // disable the stop monitoring button
 	
 	if (m_cuPorts.size() > 0) {
