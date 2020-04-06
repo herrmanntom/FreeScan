@@ -73,7 +73,7 @@ CSupervisor* CEngineViewDlg::GetSupervisor(void)
 
 static inline void renderField(CClientDC * const client, const int column, const int row, const char *const textFormat, const float fValue) {
 	if (fValue == CEcuData::c_fUNSUPPORTED) {
-		client->TextOut(column, row  * HS, "N/A");
+		client->TextOut(column, row  * HS, " N/A");
 	}
 	else {
 		CString buf;
@@ -84,7 +84,7 @@ static inline void renderField(CClientDC * const client, const int column, const
 
 static inline void renderField(CClientDC * const client, const int column, const int row, const char *const textFormat, const int iValue) {
 	if (iValue == CEcuData::c_iUNSUPPORTED) {
-		client->TextOut(column, row  * HS, "N/A");
+		client->TextOut(column, row  * HS, " N/A");
 	}
 	else {
 		CString buf;
@@ -100,25 +100,34 @@ void CEngineViewDlg::Refresh(const CEcuData* const ecuData)
 	CClientDC	Client(&m_view);
 	Client.SetBkColor(RGB(0,0,180)); // sets the background colour
 	Client.SetTextColor(RGB(255,255,255));
+
+	LOGFONT lf;
+	Client.GetCurrentFont()->GetLogFont(&lf);
+
+	lf.lfWeight = FW_NORMAL;
+	lf.lfPitchAndFamily = FIXED_PITCH | FF_MODERN;
+	CFont font;
+	font.CreateFontIndirect(&lf);
+	Client.SelectObject(font);
 	
-	renderField(&Client, COLD1, 0, "%04X", ecuData->m_iEpromID);
+	renderField(&Client, COLD1, 0, " %04X", ecuData->m_iEpromID);
 
-	renderField(&Client, COLD1, 1, "%d", ecuData->m_iRPM);
+	renderField(&Client, COLD1, 1, "%5d", ecuData->m_iRPM);
 
-	renderField(&Client, COLD1, 2, "%d", ecuData->m_iIACPosition);
+	renderField(&Client, COLD1, 2, "%5d", ecuData->m_iIACPosition);
 
-	renderField(&Client, COLD1, 3, "%d", ecuData->m_iDesiredIdle);
+	renderField(&Client, COLD1, 3, "%5d", ecuData->m_iDesiredIdle);
 
 	if (GetSupervisor()->m_bMiles == TRUE) {
-		renderField(&Client, COLD1, 4, "%d", ecuData->m_iMPH);
+		renderField(&Client, COLD1, 4, "%5d", ecuData->m_iMPH);
 	}
 	else {
-		renderField(&Client, COLD1, 4, "%d", ecuData->m_iMPH_inKPH);
+		renderField(&Client, COLD1, 4, "%5d", ecuData->m_iMPH_inKPH);
 	}
 
-	renderField(&Client, COLD1, 5, "%d", ecuData->m_iThrottlePos);
+	renderField(&Client, COLD1, 5, "%5d", ecuData->m_iThrottlePos);
 
-	renderField(&Client, COLD1, 6, "%d", ecuData->m_iEngineLoad);
+	renderField(&Client, COLD1, 6, "%5d", ecuData->m_iEngineLoad);
 
 	renderField(&Client, COLD1, 7, "%5.3f", ecuData->m_fMAP);
 
@@ -130,64 +139,66 @@ void CEngineViewDlg::Refresh(const CEcuData* const ecuData)
 		renderField(&Client, COLD1, 10, "%5.3f", ecuData->m_fO2VoltsRight);
 	}
 	else {
-		renderField(&Client, COLD1, 10, " ", 0);
+		renderField(&Client, COLD1, 10, "     ", 0);
 	}
 
-	renderField(&Client, COLD1, 11, "%d", ecuData->m_iRunTime);
+	renderField(&Client, COLD1, 11, "%5d", ecuData->m_iRunTime);
 
 	// Draw second column
 	if (GetSupervisor()->m_bCentigrade == TRUE) {
-		renderField(&Client, COLD2, 0, "%3.1f", ecuData->m_fStartWaterTemp);
-		renderField(&Client, COLD2, 1, "%3.1f", ecuData->m_fWaterTemp);
-		renderField(&Client, COLD2, 2, "%3.1f", ecuData->m_fMATTemp);
+		renderField(&Client, COLD2, 0, "%3.0f", ecuData->m_fStartWaterTemp);
+		renderField(&Client, COLD2, 1, "%3.0f", ecuData->m_fWaterTemp);
+		renderField(&Client, COLD2, 2, "%3.0f", ecuData->m_fMATTemp);
 		if ( ecuData->m_fOilTemp != CEcuData::c_fUNSUPPORTED ) {
-			renderField(&Client, COLD2, 3, "%3.1f", ecuData->m_fOilTemp);
+			renderField(&Client, COLD2, 3, "%3.0f", ecuData->m_fOilTemp);
 		}
 	}
 	else {
-		renderField(&Client, COLD2, 0, "%3.1f", ecuData->m_fStartWaterTemp_inF);
-		renderField(&Client, COLD2, 1, "%3.1f", ecuData->m_fWaterTemp_inF);
-		renderField(&Client, COLD2, 2, "%3.1f", ecuData->m_fMATTemp_inF);
+		renderField(&Client, COLD2, 0, "%3.0f", ecuData->m_fStartWaterTemp_inF);
+		renderField(&Client, COLD2, 1, "%3.0f", ecuData->m_fWaterTemp_inF);
+		renderField(&Client, COLD2, 2, "%3.0f", ecuData->m_fMATTemp_inF);
 		if ( ecuData->m_fOilTemp != CEcuData::c_fUNSUPPORTED ) {
-			renderField(&Client, COLD2, 3, "%3.1f", ecuData->m_fOilTemp_inF);
+			renderField(&Client, COLD2, 3, "%3.0f", ecuData->m_fOilTemp_inF);
 		}
 	}
 	
-	renderField(&Client, COLD2, 4, "%3.1f", ecuData->m_fSparkAdvance);
+	renderField(&Client, COLD2, 4, "%5.1f", ecuData->m_fSparkAdvance);
 	
-	renderField(&Client, COLD2, 5, "%3.0f", ecuData->m_fKnockRetard);
+	renderField(&Client, COLD2, 5, "%5.0f", ecuData->m_fKnockRetard);
 	
-	renderField(&Client, COLD2, 6, "%d", ecuData->m_iKnockCount);
+	renderField(&Client, COLD2, 6, "%5d", ecuData->m_iKnockCount);
 	
-	renderField(&Client, COLD2, 7, "%4.0f", ecuData->m_fAirFlow);
+	if (ecuData->m_fAirFlow != CEcuData::c_fUNSUPPORTED) {
+		renderField(&Client, COLD2, 7, "%5.0f", ecuData->m_fAirFlow);
+	}
 	
-	renderField(&Client, COLD2, 8, "%3.1f", ecuData->m_fBatteryVolts);
+	renderField(&Client, COLD2, 8, "%5.1f", ecuData->m_fBatteryVolts);
 	
-	renderField(&Client, COLD2, 9, "%d", ecuData->m_iIntegratorL);
+	renderField(&Client, COLD2, 9, "%5d", ecuData->m_iIntegratorL);
 
 	if (m_bOneO2 == FALSE) {
-		renderField(&Client, COLD2, 10, "%d", ecuData->m_iIntegratorR);
+		renderField(&Client, COLD2, 10, "%5d", ecuData->m_iIntegratorR);
 	}
 	else {
-		renderField(&Client, COLD2, 10, " ", 0);
+		renderField(&Client, COLD2, 10, "     ", 0);
 	}
 
 	// Draw third column.
-	renderField(&Client, COLD3, 0, "%d", ecuData->m_iCrankSensors);
+	renderField(&Client, COLD3, 0, "%5d", ecuData->m_iCrankSensors);
 
-	renderField(&Client, COLD3, 1, "%3.1f", ecuData->m_fAFRatio);
+	renderField(&Client, COLD3, 1, "%5.1f", ecuData->m_fAFRatio);
 
-	renderField(&Client, COLD3, 2, "%d", ecuData->m_iBLM);
+	renderField(&Client, COLD3, 2, "%5d", ecuData->m_iBLM);
 
-	renderField(&Client, COLD3, 3, "%d", ecuData->m_iBLMCell);
+	renderField(&Client, COLD3, 3, "%5d", ecuData->m_iBLMCell);
 
-	renderField(&Client, COLD3, 9, "%d", ecuData->m_iRichLeanCounterL);
+	renderField(&Client, COLD3, 9, "%5d", ecuData->m_iRichLeanCounterL);
 
 	if (m_bOneO2 == FALSE) {
-		renderField(&Client, COLD2, 10, "%d", ecuData->m_iRichLeanCounterR);
+		renderField(&Client, COLD2, 10, "%5d", ecuData->m_iRichLeanCounterR);
 	}
 	else {
-		renderField(&Client, COLD2, 10, " ", 0);
+		renderField(&Client, COLD2, 10, "     ", 0);
 	}
 }
 
@@ -244,8 +255,7 @@ void CEngineViewDlg::OnPaint()
 	Client.TextOut(COLT1, 6  * HS,"Engine Load");
 	Client.TextOut(COLT1, 7  * HS,"MAP");
 	Client.TextOut(COLT1, 8  * HS,"Barometer");
-	if (m_bOneO2 == FALSE)
-	{
+	if (m_bOneO2 == FALSE) {
 		Client.TextOut(COLT1, 9  * HS,"O2 Volts L");
 		Client.TextOut(COLT1, 10 * HS,"O2 Volts R");
 	}
@@ -264,17 +274,18 @@ void CEngineViewDlg::OnPaint()
 	Client.TextOut(COLT2, 0  * HS,"Start Temp");
 	Client.TextOut(COLT2, 1  * HS,"Coolant Temp");
 	Client.TextOut(COLT2, 2  * HS,"Mass Air Temp");
-	if ( ecuData->m_fOilTemp != CEcuData::c_fUNSUPPORTED )
-	{
+	if ( ecuData->m_fOilTemp != CEcuData::c_fUNSUPPORTED ) {
 		Client.TextOut(COLT2, 3  * HS,"Oil Temp");
 	}
 	Client.TextOut(COLT2, 4  * HS,"Spark Advance");
 	Client.TextOut(COLT2, 5  * HS,"Knock Retard");
 	Client.TextOut(COLT2, 6  * HS,"Knock Count");
-	Client.TextOut(COLT2, 7  * HS,"Air Flow");
+	
+	if (ecuData->m_fAirFlow != CEcuData::c_fUNSUPPORTED) {
+		Client.TextOut(COLT2, 7 * HS, "Air Flow");
+	}
 	Client.TextOut(COLT2, 8  * HS,"Battery Volts");
-	if (m_bOneO2 == FALSE)
-	{
+	if (m_bOneO2 == FALSE) {
 		Client.TextOut(COLT2, 9  * HS,"Integrator L");
 		Client.TextOut(COLT2, 10 * HS,"Integrator R");
 	}
@@ -282,22 +293,20 @@ void CEngineViewDlg::OnPaint()
 		Client.TextOut(COLT2, 9  * HS,"Integrator  ");
 	}
 
-	if (GetSupervisor()->m_bCentigrade == TRUE)
-	{
-		Client.TextOut(COLT2 + 137, 0  * HS,"°C");
-		Client.TextOut(COLT2 + 137, 1  * HS,"°C");
-		Client.TextOut(COLT2 + 137, 2  * HS,"°C");
+	if (GetSupervisor()->m_bCentigrade == TRUE)	{
+		Client.TextOut(COLT2 + 130, 0  * HS,"°C");
+		Client.TextOut(COLT2 + 130, 1  * HS,"°C");
+		Client.TextOut(COLT2 + 130, 2  * HS,"°C");
 		if (ecuData->m_fOilTemp != CEcuData::c_fUNSUPPORTED) {
-			Client.TextOut(COLT2 + 137, 3 * HS, "°C");
+			Client.TextOut(COLT2 + 130, 3 * HS, "°C");
 		}
 	}
-	else
-	{
-		Client.TextOut(COLT2 + 137, 0  * HS,"°F");
-		Client.TextOut(COLT2 + 137, 1  * HS,"°F");
-		Client.TextOut(COLT2 + 137, 2  * HS,"°F");
+	else {
+		Client.TextOut(COLT2 + 130, 0  * HS,"°F");
+		Client.TextOut(COLT2 + 130, 1  * HS,"°F");
+		Client.TextOut(COLT2 + 130, 2  * HS,"°F");
 		if (ecuData->m_fOilTemp_inF != CEcuData::c_fUNSUPPORTED) {
-			Client.TextOut(COLT2 + 137, 3 * HS, "°F");
+			Client.TextOut(COLT2 + 130, 3 * HS, "°F");
 		}
 	}
 
@@ -311,8 +320,7 @@ void CEngineViewDlg::OnPaint()
 	Client.TextOut(COLT3, 1  * HS,"A/F Ratio");
 	Client.TextOut(COLT3, 2  * HS,"BLM Contents");
 	Client.TextOut(COLT3, 3  * HS,"BLM Cell #");
-	if (m_bOneO2 == FALSE)
-	{
+	if (m_bOneO2 == FALSE) {
 		Client.TextOut(COLT3, 9  * HS,"Rich/Lean L");
 		Client.TextOut(COLT3, 10 * HS,"Rich/Lean R");
 	}

@@ -17,6 +17,7 @@ CEcuData::CEcuData()
 	m_ucF004 = new unsigned char[100]; // Mode 4 data buffer
 
 	ResetVariables();
+	//ResetVariablesForGuiTest();
 }
 
 CEcuData::CEcuData(const CEcuData& other): m_csProtocolComment(other.m_csProtocolComment), m_csDTC(other.m_csDTC)
@@ -172,4 +173,75 @@ void CEcuData::ResetVariables(void)
 	m_iBLM = c_iUNSUPPORTED;	// Contents of the current BLM Cell
 	m_iBLMRight = c_iUNSUPPORTED;	// Contents of the current BLM Cell
 	m_iBLMCell = c_iUNSUPPORTED; // Current BLM Cell
+}
+
+// Reset variables for GUI test
+void CEcuData::ResetVariablesForGuiTest(void)
+{
+	m_csProtocolComment = "";
+
+	memset(m_ucF005, 0, 100);
+	memset(m_ucF00A, 0, 100);
+	memset(m_ucF001, 0, 90);
+	memset(m_ucF002, 0, 90);
+	memset(m_ucF003, 0, 25);
+	memset(m_ucF004, 0, 25);
+
+	m_csDTC = "23 - Mass Air Temperature (MAT) Sensor Circuit; Low Temperature Indicated\n"; // Reset Fault Codes
+
+	// Reset normal engine parameters
+	m_bEngineClosedLoop = TRUE; //
+	m_bEngineStalled = FALSE;  // bit 6
+	m_bACRequest = FALSE; // mode 1,  bit 0
+	m_bACClutch = FALSE; // mode 1, bit 2
+	m_fBatteryVolts = 13.1f;
+	m_iRPM = 4321;
+	m_iIACPosition = 48;
+	m_iDesiredIdle = 987;
+	m_iMPH = 133;
+	m_iMPH_inKPH = 214;
+	m_fStartWaterTemp = 16.3f;
+	m_fStartWaterTemp_inF = 61.34f;
+	m_fWaterTemp = 89.8f;
+	m_fWaterTemp_inF = 193.64f;
+	m_iWaterTempADC = 115;
+	m_fOilTemp = c_fUNSUPPORTED;
+	m_fOilTemp_inF = c_fUNSUPPORTED;
+	m_fWaterVolts = 2.25f;
+	m_fMATTemp = -38.0f;
+	m_fMATTemp_inF = -36.4f;
+	m_fMATVolts = 5.0f;
+	m_iMATADC = 0;
+	m_iEpromID = 2475;
+	m_iRunTime = 758;
+	m_iCrankSensors = 3;
+	m_iThrottlePos = 72;
+	m_fThrottleVolts = 3.08f;
+	m_iThrottleADC = 157;
+	m_iEngineLoad = 92;
+	m_fBaro = 0.79f;
+	m_fBaroVolts = 2.14f;
+	m_iBaroADC = 109;
+	m_fMAP = 1.98f;
+	m_fMAPVolts = 4.47f;
+	m_iMAPADC = 228;
+	m_iBoostPW = 58; // Pulse-width of the turbo boost controller
+	m_iCanisterDC = c_iUNSUPPORTED; // Duty Cycle of Charcoal Cansister controller
+	m_iSecondaryInjPW = 0; // Pulse-width of secondary injectors
+	m_iInjectorBasePWMsL = 10; // Injector Opening Time in Ms Left
+	m_iInjectorBasePWMsR = c_iUNSUPPORTED; // Injector Opening Time in Ms Right
+	m_fAFRatio = 12.7f; // Air Fuel Ratio
+	m_fAirFlow = c_fUNSUPPORTED; // Air Flow
+	m_fSparkAdvance = 15.1f;
+	m_fKnockRetard = 0;
+	m_iKnockCount = 3;
+	m_fO2VoltsLeft = 0.897f;
+	m_fO2VoltsRight = c_fUNSUPPORTED;
+	m_iIntegratorL = 128; // Integrator Value Left
+	m_iIntegratorR = c_iUNSUPPORTED; // Integrator Value Right
+	m_iRichLeanCounterL = 99; // Rich/Lean Counter Left
+	m_iRichLeanCounterR = c_iUNSUPPORTED; // Rich/Lean Counter Right
+	m_iBLM = 150;	// Contents of the current BLM Cell
+	m_iBLMRight = c_iUNSUPPORTED;	// Contents of the current BLM Cell
+	m_iBLMCell = 15; // Current BLM Cell
 }

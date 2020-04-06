@@ -86,5 +86,6 @@ public:
 
 private:
 	void ResetVariables(void);
+	void ResetVariablesForGuiTest(void);
 };
 
