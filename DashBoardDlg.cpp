@@ -104,7 +104,7 @@ BOOL CDashBoardDlg::GetInteract(void)
 	return GetSupervisor()->GetInteract();
 }
 
-static inline void updateField(CProgressCtrl *const progressMeter, CEdit * const textBox, const char *const textFormat, const float fValue, const int progressMeterScaleFactor, const int progressMeterMin, const int progressMeterMax) {
+static inline void updateField(CProgressCtrl *const progressMeter, CEdit * const textBox, const char *const textFormat, const float fValue, const float progressMeterScaleFactor, const int progressMeterMin, const int progressMeterMax) {
 	if (fValue != CEcuData::c_fUNSUPPORTED) {
 		if (textBox != NULL && textFormat != NULL) {
 			CString buf;
@@ -136,14 +136,16 @@ static inline void updateField(CProgressCtrl *const progressMeter, CEdit * const
 			textBox->SetWindowText(buf);
 		}
 
-		int progressMeterValue = iValue * progressMeterScaleFactor;
-		if (progressMeterValue < progressMeterMin) {
-			progressMeterValue = progressMeterMin;
+		if (progressMeter != NULL) {
+			int progressMeterValue = iValue * progressMeterScaleFactor;
+			if (progressMeterValue < progressMeterMin) {
+				progressMeterValue = progressMeterMin;
+			}
+			else if (progressMeterValue > progressMeterMax) {
+				progressMeterValue = progressMeterMax;
+			}
+			progressMeter->SetPos(progressMeterValue);
 		}
-		else if (progressMeterValue > progressMeterMax) {
-			progressMeterValue = progressMeterMax;
-		}
-		progressMeter->SetPos(progressMeterValue);
 	}
 	else if (textBox != NULL) {
 		textBox->SetWindowText("N/A ");
@@ -153,26 +155,26 @@ static inline void updateField(CProgressCtrl *const progressMeter, CEdit * const
 // Updates all of our controls
 void CDashBoardDlg::Refresh(const CEcuData* const ecuData)
 {
-	updateField(&m_AirFuelRatio, &m_AirFuelRatioText, "%3.1f ", ecuData->m_fAFRatio, AIR_FUEL_RATIO_MIN, AIR_FUEL_RATIO_MAX, 10);
+	updateField(&m_AirFuelRatio, &m_AirFuelRatioText, "%3.1f ", ecuData->m_fAFRatio, 10.0f, AIR_FUEL_RATIO_MIN, AIR_FUEL_RATIO_MAX);
 
-	updateField(&m_Water, &m_WaterText, "%3.1f ", ecuData->m_fWaterTemp, WATER_MIN, WATER_MAX, 10);
+	updateField(&m_Water, &m_WaterText, "%3.1f ", ecuData->m_fWaterTemp, 10.0f, WATER_MIN, WATER_MAX);
 	
-	updateField(&m_MAT, &m_MATText, "%3.1f ", ecuData->m_fMATTemp, MAT_MIN, MAT_MAX, 10);
+	updateField(&m_MAT, &m_MATText, "%3.1f ", ecuData->m_fMATTemp, 10.0f, MAT_MIN, MAT_MAX);
 	
-	updateField(&m_Volt, &m_VoltText, "%3.1f ", ecuData->m_fBatteryVolts, BAT_VOLT_MIN, BAT_VOLT_MAX, 10);
+	updateField(&m_Volt, &m_VoltText, "%3.1f ", ecuData->m_fBatteryVolts, 10.0f, BAT_VOLT_MIN, BAT_VOLT_MAX);
 	
-	updateField(&m_Boost, &m_BoostText, "%3.2f ", ecuData->m_fMAP, BOOST_MIN, BOOST_MAX, 100);
+	updateField(&m_Boost, &m_BoostText, "%3.2f ", ecuData->m_fMAP, 100.0f, BOOST_MIN, BOOST_MAX);
 	
-	updateField(&m_Spark, &m_SparkText, "%3.1f ", ecuData->m_fSparkAdvance, SPARK_MIN, SPARK_MAX, 10);
+	updateField(&m_Spark, &m_SparkText, "%3.1f ", ecuData->m_fSparkAdvance, 10.0f, SPARK_MIN, SPARK_MAX);
 
-	updateField(&m_Tacho, &m_TachoText, "%4d ", ecuData->m_iRPM, TACHO_MIN, TACHO_MAX, 1);
+	updateField(&m_Tacho, &m_TachoText, "%4d ", ecuData->m_iRPM, 1, TACHO_MIN, TACHO_MAX);
 
-	updateField(&m_Speedo, &m_SpeedoMphText, "%3d ", ecuData->m_iMPH,       SPEEDO_MIN, SPEEDO_MAX, 1);
-	updateField(NULL,      &m_SpeedoKphText, "%3d ", ecuData->m_iMPH_inKPH, 0,   0, 1);
+	updateField(&m_Speedo, &m_SpeedoMphText, "%3d ", ecuData->m_iMPH,       1, SPEEDO_MIN, SPEEDO_MAX);
+	updateField(NULL,      &m_SpeedoKphText, "%3d ", ecuData->m_iMPH_inKPH, 1,          0,          0);
 
-	updateField(&m_Throttle, NULL, NULL, ecuData->m_iThrottlePos, THROTTLE_MIN, THROTTLE_MAX, 1);
+	updateField(&m_Throttle, NULL, NULL, ecuData->m_iThrottlePos, 1, THROTTLE_MIN, THROTTLE_MAX);
 
-	updateField(&m_EngineLoad, NULL, NULL, ecuData->m_iEngineLoad, LOAD_MIN, LOAD_MAX, 1);
+	updateField(&m_EngineLoad, NULL, NULL, ecuData->m_iEngineLoad, 1, LOAD_MIN, LOAD_MAX);
 }
 
 void CDashBoardDlg::RegisterMainDialog(CFreeScanDlg* const mainDialog) {
