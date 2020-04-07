@@ -31,7 +31,7 @@ CGM1992PontiacParser::CGM1992PontiacParser()
 	m_csCSVLogFile = pApp->GetProfileString("GM1992PontiacParser", "CSV Log Filename", "");
 
 	m_dwCSVRecord = 0; // Initialise the CSV record number
-	memset(m_ucDTC, 0, 3);// Reset DTC buffer
+	memset(m_ucDTC, 0, 4);// Reset DTC buffer
 }
 
 CGM1992PontiacParser::~CGM1992PontiacParser()

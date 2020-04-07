@@ -368,7 +368,7 @@ LONG CGM1992PontiacProtocol::OnCharReceived(WPARAM ch, LPARAM BytesRead)
 			// Find the header byte in the chatter, i.e. F0 for an GM 1994 Camaro Z28.
 			if (m_bFirstRead)
 			{
-				if ((ucRX != ECU_HEADER_GM1992Pontiac) & (ucRX != ECU_CHATTER_HEADER_GM1992Pontiac))
+				if ((ucRX != ECU_HEADER_GM1992Pontiac) && (ucRX != ECU_CHATTER_HEADER_GM1992Pontiac))
 				{
 					buf.Format("%02x - Finding start header", ucRX);
 					WriteStatus(buf);
@@ -381,7 +381,7 @@ LONG CGM1992PontiacProtocol::OnCharReceived(WPARAM ch, LPARAM BytesRead)
 			}
 			else
 			{
-				if((ucRX != ECU_HEADER_GM1992Pontiac) & (ucRX != ECU_CHATTER_HEADER_GM1992Pontiac) & (ucRX != 0x05) & (ucRX != 0x0a))
+				if((ucRX != ECU_HEADER_GM1992Pontiac) && (ucRX != ECU_CHATTER_HEADER_GM1992Pontiac) && (ucRX != 0x05) && (ucRX != 0x0a))
 				{// These headers must coincide with what the Parser(..) understands;
 					buf.Format("%02x - Unrecognised header", ucRX);
 					WriteStatus(buf);
@@ -447,8 +447,9 @@ LONG CGM1992PontiacProtocol::OnCharReceived(WPARAM ch, LPARAM BytesRead)
 			HandleTX(m_ucBuffer, m_iLen + 3);
 
 			// Now Parse it if checksum OK
-			if (CheckChecksum(m_ucBuffer, m_iLen + 3))
+			if (CheckChecksum(m_ucBuffer, m_iLen + 3)) {
 				Parse(m_ucBuffer, m_iLen + 3);
+			}
 			else
 			{// may have lost our way, so reset to find header
 				m_bFirstRead = TRUE;
@@ -537,7 +538,8 @@ void CGM1992PontiacProtocol::OnIdle(void)
 	else
 	{
 		WriteStatus("From OnIdle - Idle Header Detected");
-		SendModeShutUp(); // Stop communications
+		//SendModeShutUp(); // Stop communications   <--- TH: this seems strange... why should we stop communicating
+		SendNextCommand();
 	}
 
 	//	TRACE("From OnIdle - Idle Header Detected\n");
