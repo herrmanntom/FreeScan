@@ -107,9 +107,10 @@ CEcuData::~CEcuData()
 
 static inline void copyAndSet(unsigned char* const target, const int targetLength, const unsigned char* const source, const int sourceLength) {
 	if (targetLength >= 0 && sourceLength >= 0) {
-		memcpy(target, source, min(sourceLength, targetLength));
-		if ((targetLength - sourceLength) > 0) {
-			memset(target, 0, targetLength - sourceLength);
+		const int copyLength = min(sourceLength, targetLength);
+		memcpy(target, source, copyLength);
+		if ((targetLength - copyLength) > 0) {
+			memset(target + copyLength, 0, targetLength - copyLength);
 		}
 	}
 }

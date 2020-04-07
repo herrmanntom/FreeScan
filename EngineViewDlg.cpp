@@ -73,7 +73,7 @@ CSupervisor* CEngineViewDlg::GetSupervisor(void)
 
 static inline void renderField(CClientDC * const client, const int column, const int row, const char *const textFormat, const float fValue) {
 	if (fValue == CEcuData::c_fUNSUPPORTED) {
-		client->TextOut(column, row  * HS, " N/A");
+		client->TextOut(column, row  * HS, "N/A");
 	}
 	else {
 		CString buf;
@@ -84,7 +84,7 @@ static inline void renderField(CClientDC * const client, const int column, const
 
 static inline void renderField(CClientDC * const client, const int column, const int row, const char *const textFormat, const int iValue) {
 	if (iValue == CEcuData::c_iUNSUPPORTED) {
-		client->TextOut(column, row  * HS, " N/A");
+		client->TextOut(column, row  * HS, "N/A");
 	}
 	else {
 		CString buf;
