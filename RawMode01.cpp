@@ -72,92 +72,96 @@ void CRawMode01::Refresh(const CEcuData* const ecuData)
 {
 	CString buf;
 
+	unsigned char ucF001[65] = { 0 };
+
+	ecuData->copyFromF001(ucF001, sizeof(ucF001));
+
 	buf.Format("%02X       %02X       %02X       %02X       %02X       %02X       %02X       %02X",
-		ecuData->m_ucF001[1],
-		ecuData->m_ucF001[2],
-		ecuData->m_ucF001[3],
-		ecuData->m_ucF001[4],
-		ecuData->m_ucF001[5],
-		ecuData->m_ucF001[6],
-		ecuData->m_ucF001[7],
-		ecuData->m_ucF001[8]);
+		ucF001[1],
+		ucF001[2],
+		ucF001[3],
+		ucF001[4],
+		ucF001[5],
+		ucF001[6],
+		ucF001[7],
+		ucF001[8]);
 	m_db00.SetWindowText(buf);
 
 	buf.Format("%02X       %02X       %02X       %02X       %02X       %02X       %02X       %02X",
-		ecuData->m_ucF001[9],
-		ecuData->m_ucF001[10],
-		ecuData->m_ucF001[11],
-		ecuData->m_ucF001[12],
-		ecuData->m_ucF001[13],
-		ecuData->m_ucF001[14],
-		ecuData->m_ucF001[15],
-		ecuData->m_ucF001[16]);
+		ucF001[9],
+		ucF001[10],
+		ucF001[11],
+		ucF001[12],
+		ucF001[13],
+		ucF001[14],
+		ucF001[15],
+		ucF001[16]);
 	m_db01.SetWindowText(buf);
 
 	buf.Format("%02X       %02X       %02X       %02X       %02X       %02X       %02X       %02X",
-		ecuData->m_ucF001[17],
-		ecuData->m_ucF001[18],
-		ecuData->m_ucF001[19],
-		ecuData->m_ucF001[20],
-		ecuData->m_ucF001[21],
-		ecuData->m_ucF001[22],
-		ecuData->m_ucF001[23],
-		ecuData->m_ucF001[24]);
+		ucF001[17],
+		ucF001[18],
+		ucF001[19],
+		ucF001[20],
+		ucF001[21],
+		ucF001[22],
+		ucF001[23],
+		ucF001[24]);
 	m_db02.SetWindowText(buf);
 
 	buf.Format("%02X       %02X       %02X       %02X       %02X       %02X       %02X       %02X",
-		ecuData->m_ucF001[25],
-		ecuData->m_ucF001[26],
-		ecuData->m_ucF001[27],
-		ecuData->m_ucF001[28],
-		ecuData->m_ucF001[29],
-		ecuData->m_ucF001[30],
-		ecuData->m_ucF001[31],
-		ecuData->m_ucF001[32]);
+		ucF001[25],
+		ucF001[26],
+		ucF001[27],
+		ucF001[28],
+		ucF001[29],
+		ucF001[30],
+		ucF001[31],
+		ucF001[32]);
 	m_db03.SetWindowText(buf);
 
 	buf.Format("%02X       %02X       %02X       %02X       %02X       %02X       %02X       %02X",
-		ecuData->m_ucF001[33],
-		ecuData->m_ucF001[34],
-		ecuData->m_ucF001[35],
-		ecuData->m_ucF001[36],
-		ecuData->m_ucF001[37],
-		ecuData->m_ucF001[38],
-		ecuData->m_ucF001[39],
-		ecuData->m_ucF001[40]);
+		ucF001[33],
+		ucF001[34],
+		ucF001[35],
+		ucF001[36],
+		ucF001[37],
+		ucF001[38],
+		ucF001[39],
+		ucF001[40]);
 	m_db04.SetWindowText(buf);
 
 	buf.Format("%02X       %02X       %02X       %02X       %02X       %02X       %02X       %02X",
-		ecuData->m_ucF001[41],
-		ecuData->m_ucF001[42],
-		ecuData->m_ucF001[43],
-		ecuData->m_ucF001[44],
-		ecuData->m_ucF001[45],
-		ecuData->m_ucF001[46],
-		ecuData->m_ucF001[47],
-		ecuData->m_ucF001[48]);
+		ucF001[41],
+		ucF001[42],
+		ucF001[43],
+		ucF001[44],
+		ucF001[45],
+		ucF001[46],
+		ucF001[47],
+		ucF001[48]);
 	m_db05.SetWindowText(buf);
 
 	buf.Format("%02X       %02X       %02X       %02X       %02X       %02X       %02X       %02X",
-		ecuData->m_ucF001[49],
-		ecuData->m_ucF001[50],
-		ecuData->m_ucF001[51],
-		ecuData->m_ucF001[52],
-		ecuData->m_ucF001[53],
-		ecuData->m_ucF001[54],
-		ecuData->m_ucF001[55],
-		ecuData->m_ucF001[56]);
+		ucF001[49],
+		ucF001[50],
+		ucF001[51],
+		ucF001[52],
+		ucF001[53],
+		ucF001[54],
+		ucF001[55],
+		ucF001[56]);
 	m_db06.SetWindowText(buf);
 
 	buf.Format("%02X       %02X       %02X       %02X       %02X       %02X       %02X       %02X",
-		ecuData->m_ucF001[57],
-		ecuData->m_ucF001[58],
-		ecuData->m_ucF001[59],
-		ecuData->m_ucF001[60],
-		ecuData->m_ucF001[61],
-		ecuData->m_ucF001[62],
-		ecuData->m_ucF001[63],
-		ecuData->m_ucF001[64]);
+		ucF001[57],
+		ucF001[58],
+		ucF001[59],
+		ucF001[60],
+		ucF001[61],
+		ucF001[62],
+		ucF001[63],
+		ucF001[64]);
 	m_db07.SetWindowText(buf);
 }
 

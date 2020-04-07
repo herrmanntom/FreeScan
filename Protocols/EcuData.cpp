@@ -3,18 +3,19 @@
 
 const int   CEcuData::c_iUNSUPPORTED = -4240;
 const float CEcuData::c_fUNSUPPORTED = -424.2f;
+const int MAX_RAW_DATA_SIZE = 100;
 
 CEcuData::CEcuData()
 {
 	m_dwBytesSent = 0;
 	m_dwBytesReceived = 0;
 
-	m_ucF005 = new unsigned char[100]; // never should get this big
-	m_ucF00A = new unsigned char[100]; // never should get this big
-	m_ucF001 = new unsigned char[100]; // Mode 1 data buffer
-	m_ucF002 = new unsigned char[100]; // Mode 2 data buffer
-	m_ucF003 = new unsigned char[100]; // Mode 3 data buffer
-	m_ucF004 = new unsigned char[100]; // Mode 4 data buffer
+	m_ucF005 = new unsigned char[MAX_RAW_DATA_SIZE]; // never should get this big
+	m_ucF00A = new unsigned char[MAX_RAW_DATA_SIZE]; // never should get this big
+	m_ucF001 = new unsigned char[MAX_RAW_DATA_SIZE]; // Mode 1 data buffer
+	m_ucF002 = new unsigned char[MAX_RAW_DATA_SIZE]; // Mode 2 data buffer
+	m_ucF003 = new unsigned char[MAX_RAW_DATA_SIZE]; // Mode 3 data buffer
+	m_ucF004 = new unsigned char[MAX_RAW_DATA_SIZE]; // Mode 4 data buffer
 
 	ResetVariables();
 	//ResetVariablesForGuiTest();
@@ -29,17 +30,17 @@ CEcuData::CEcuData(const CEcuData& other): m_csProtocolComment(other.m_csProtoco
 	m_bACRequest = other.m_bACRequest;
 	m_bACClutch = other.m_bACClutch;
 
-	m_ucF005 = new unsigned char[100];
+	m_ucF005 = new unsigned char[MAX_RAW_DATA_SIZE];
 	memcpy(m_ucF005, other.m_ucF005, sizeof(m_ucF005));
-	m_ucF00A = new unsigned char[100];
+	m_ucF00A = new unsigned char[MAX_RAW_DATA_SIZE];
 	memcpy(m_ucF00A, other.m_ucF00A, sizeof(m_ucF00A));
-	m_ucF001 = new unsigned char[100];
+	m_ucF001 = new unsigned char[MAX_RAW_DATA_SIZE];
 	memcpy(m_ucF001, other.m_ucF001, sizeof(m_ucF001));
-	m_ucF002 = new unsigned char[100];
+	m_ucF002 = new unsigned char[MAX_RAW_DATA_SIZE];
 	memcpy(m_ucF002, other.m_ucF002, sizeof(m_ucF002));
-	m_ucF003 = new unsigned char[100];
+	m_ucF003 = new unsigned char[MAX_RAW_DATA_SIZE];
 	memcpy(m_ucF003, other.m_ucF003, sizeof(m_ucF003));
-	m_ucF004 = new unsigned char[100];
+	m_ucF004 = new unsigned char[MAX_RAW_DATA_SIZE];
 	memcpy(m_ucF004, other.m_ucF004, sizeof(m_ucF004));
 	
 	m_fBatteryVolts = other.m_fBatteryVolts;
@@ -104,17 +105,64 @@ CEcuData::~CEcuData()
 	delete m_ucF004; // Delete Mode 4 data buffer
 }
 
+static inline void copyAndSet(unsigned char* const target, const int targetLength, const unsigned char* const source, const int sourceLength) {
+	if (targetLength >= 0 && sourceLength >= 0) {
+		memcpy(target, source, min(sourceLength, targetLength));
+		if ((targetLength - sourceLength) > 0) {
+			memset(target, 0, targetLength - sourceLength);
+		}
+	}
+}
+
+void CEcuData::copyToF005(const unsigned char* const sourceBuffer, const int sourceLength) {
+	copyAndSet(m_ucF005, MAX_RAW_DATA_SIZE, sourceBuffer, sourceLength);
+}
+void CEcuData::copyToF00A(const unsigned char* const sourceBuffer, const int sourceLength) {
+	copyAndSet(m_ucF00A, MAX_RAW_DATA_SIZE, sourceBuffer, sourceLength);
+}
+void CEcuData::copyToF001(const unsigned char* const sourceBuffer, const int sourceLength) {
+	copyAndSet(m_ucF001, MAX_RAW_DATA_SIZE, sourceBuffer, sourceLength);
+}
+void CEcuData::copyToF002(const unsigned char* const sourceBuffer, const int sourceLength) {
+	copyAndSet(m_ucF002, MAX_RAW_DATA_SIZE, sourceBuffer, sourceLength);
+}
+void CEcuData::copyToF003(const unsigned char* const sourceBuffer, const int sourceLength) {
+	copyAndSet(m_ucF003, MAX_RAW_DATA_SIZE, sourceBuffer, sourceLength);
+}
+void CEcuData::copyToF004(const unsigned char* const sourceBuffer, const int sourceLength) {
+	copyAndSet(m_ucF004, MAX_RAW_DATA_SIZE, sourceBuffer, sourceLength);
+}
+
+void CEcuData::copyFromF005(unsigned char* const targetBuffer, int targetBufferLen) const {
+	copyAndSet(targetBuffer, targetBufferLen, m_ucF005, MAX_RAW_DATA_SIZE);
+}
+void CEcuData::copyFromF00A(unsigned char* const targetBuffer, int targetBufferLen) const {
+	copyAndSet(targetBuffer, targetBufferLen, m_ucF00A, MAX_RAW_DATA_SIZE);
+}
+void CEcuData::copyFromF001(unsigned char* const targetBuffer, int targetBufferLen) const {
+	copyAndSet(targetBuffer, targetBufferLen, m_ucF001, MAX_RAW_DATA_SIZE);
+}
+void CEcuData::copyFromF002(unsigned char* const targetBuffer, int targetBufferLen) const {
+	copyAndSet(targetBuffer, targetBufferLen, m_ucF002, MAX_RAW_DATA_SIZE);
+}
+void CEcuData::copyFromF003(unsigned char* const targetBuffer, int targetBufferLen) const {
+	copyAndSet(targetBuffer, targetBufferLen, m_ucF003, MAX_RAW_DATA_SIZE);
+}
+void CEcuData::copyFromF004(unsigned char* const targetBuffer, int targetBufferLen) const {
+	copyAndSet(targetBuffer, targetBufferLen, m_ucF004, MAX_RAW_DATA_SIZE);
+}
+
 // Reset variables.
 void CEcuData::ResetVariables(void)
 {
 	m_csProtocolComment = "";
 
-	memset(m_ucF005, 0, 100);
-	memset(m_ucF00A, 0, 100);
-	memset(m_ucF001, 0, 90);
-	memset(m_ucF002, 0, 90);
-	memset(m_ucF003, 0, 25);
-	memset(m_ucF004, 0, 25);
+	memset(m_ucF005, 0, MAX_RAW_DATA_SIZE);
+	memset(m_ucF00A, 0, MAX_RAW_DATA_SIZE);
+	memset(m_ucF001, 0, MAX_RAW_DATA_SIZE);
+	memset(m_ucF002, 0, MAX_RAW_DATA_SIZE);
+	memset(m_ucF003, 0, MAX_RAW_DATA_SIZE);
+	memset(m_ucF004, 0, MAX_RAW_DATA_SIZE);
 
 	m_csDTC = "No reported faults."; // Reset Fault Codes
 
@@ -180,12 +228,12 @@ void CEcuData::ResetVariablesForGuiTest(void)
 {
 	m_csProtocolComment = "";
 
-	memset(m_ucF005, 0, 100);
-	memset(m_ucF00A, 0, 100);
-	memset(m_ucF001, 0, 90);
-	memset(m_ucF002, 0, 90);
-	memset(m_ucF003, 0, 25);
-	memset(m_ucF004, 0, 25);
+	memset(m_ucF005, 0, MAX_RAW_DATA_SIZE);
+	memset(m_ucF00A, 0, MAX_RAW_DATA_SIZE);
+	memset(m_ucF001, 0, MAX_RAW_DATA_SIZE);
+	memset(m_ucF002, 0, MAX_RAW_DATA_SIZE);
+	memset(m_ucF003, 0, MAX_RAW_DATA_SIZE);
+	memset(m_ucF004, 0, MAX_RAW_DATA_SIZE);
 
 	m_csDTC = "23 - Mass Air Temperature (MAT) Sensor Circuit; Low Temperature Indicated\n"; // Reset Fault Codes
 

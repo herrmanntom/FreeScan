@@ -57,12 +57,18 @@ void CGMA140Parser::WriteCSV(BOOL bTitle)
 	if (bTitle)
 	{
 		m_dwCSVRecord = 0;
-		csBuf = "Sample,Start Water Temp,AirFlow,Desired Idle,RPM,Road Speed,O2,Rich/Lean Count,Integrator,BLM,BLM Cell,Injector Base PW,IAC,MAP,Air:Fuel Ratio,TPS,Knock Retard,Knock Count,Battery Volts,Engine Load,Spark Timing,Coolant Temp,Engine Running Time";
+		csBuf = _T("PC - Timestamp,Sample,Start Water Temp,AirFlow,Desired Idle,RPM,Road Speed,O2,Rich/Lean Count,Integrator,BLM,BLM Cell,Injector Base PW,IAC,MAP,Air:Fuel Ratio,TPS,Knock Retard,Knock Count,Battery Volts,Engine Load,Spark Timing,Coolant Temp,Engine Running Time");
 	}
 	else
 	{
-		const CEcuData *const ecuData = m_pSupervisor->GetEcuData();
-		csBuf.Format("%ld,%3.1f,%8.1f,%d,%d,%d,%5.3f,%d,%d,%d,%d,%d,%d,%4.2f,%3.1f,%d,%3.1f,%d,%3.1f,%d,%3.1f,%3.1f,%d",
+		SYSTEMTIME localTime;
+
+		const CEcuData* const ecuData = m_pSupervisor->GetEcuData();
+
+		GetLocalTime(&localTime);
+
+		csBuf.Format(_T("%04d-%02d-%02d %02d:%02d:%02d.%03d,%ld,%3.1f,%8.1f,%d,%d,%d,%5.3f,%d,%d,%d,%d,%d,%d,%4.2f,%3.1f,%d,%3.1f,%d,%3.1f,%d,%3.1f,%3.1f,%d"),
+			localTime.wYear, localTime.wMonth, localTime.wDay, localTime.wHour, localTime.wMinute, localTime.wSecond, localTime.wMilliseconds,
 			m_dwCSVRecord, ecuData->m_fStartWaterTemp, ecuData->m_fAirFlow,
 			ecuData->m_iDesiredIdle, ecuData->m_iRPM, ecuData->m_iMPH, ecuData->m_fO2VoltsLeft, ecuData->m_iRichLeanCounterL, ecuData->m_iIntegratorL,
 			ecuData->m_iBLM, ecuData->m_iBLMCell, ecuData->m_iInjectorBasePWMsL,
@@ -235,7 +241,7 @@ void CGMA140Parser::ParseADC(unsigned char* buffer, int len)
 		len = 10;
 	}
 
-	memcpy(ecuData->m_ucF005, buffer, len);
+	ecuData->copyToF005(buffer, len);
 
 	// Work out real world data from the packet.
 	ecuData->m_iMPH = (int)buffer[2]; // Count is in MPH
@@ -254,7 +260,7 @@ void CGMA140Parser::ParseAnalogues(unsigned char* buffer, int len)
 		len = 3;
 	}
 
-	memcpy(ecuData->m_ucF00A, buffer, len);
+	ecuData->copyToF00A(buffer, len);
 
 	// Work out real world data from the packet.
 	ecuData->m_iRPM = ((int)buffer[1] * 256) + (int)buffer[2];
@@ -276,7 +282,7 @@ void CGMA140Parser::ParseMode1(unsigned char* buffer, int len)
 		len = 64;
 	}
 
-	memcpy(ecuData->m_ucF001, buffer, len);
+	ecuData->copyToF001(buffer, len);
 
 	// Work out real-world data from the packet.
 	// Mode number is in index 0
@@ -358,7 +364,7 @@ void CGMA140Parser::ParseMode2(unsigned char* buffer, int len)
 		len = 65;
 	}
 
-	memcpy(ecuData->m_ucF002, buffer, len);
+	ecuData->copyToF002(buffer, len);
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
@@ -385,7 +391,7 @@ void CGMA140Parser::ParseMode3(unsigned char* buffer, int len)
 		len = 11;
 	}
 
-	memcpy(ecuData->m_ucF003, buffer, len);
+	ecuData->copyToF003(buffer, len);
 
 }
 
@@ -410,7 +416,7 @@ void CGMA140Parser::ParseMode4(unsigned char* buffer, int len)
 		len = 11;
 	}
 
-	memcpy(ecuData->m_ucF004, buffer, len);
+	ecuData->copyToF004(buffer, len);
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.

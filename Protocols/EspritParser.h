@@ -28,12 +28,12 @@ protected:
 	unsigned char	m_ucDTC[3]; // Fault codes buffer
 
 protected:
-	void ParseADC(unsigned char* buffer, int len);
-	void ParseAnalogues(unsigned char* buffer, int len);
-	void ParseMode1(unsigned char* buffer, int len);
-	void ParseMode2(unsigned char* buffer, int len);
-	void ParseMode3(unsigned char* buffer, int len);
-	void ParseMode4(unsigned char* buffer, int len);
+	BOOL ParseADC(unsigned char* buffer, int len);
+	BOOL ParseAnalogues(unsigned char* buffer, int len);
+	BOOL ParseMode1(unsigned char* buffer, int len);
+	BOOL ParseMode2(unsigned char* buffer, int len);
+	BOOL ParseMode3(unsigned char* buffer, int len);
+	BOOL ParseMode4(unsigned char* buffer, int len);
 	void ParseDTCs(unsigned char* buffer);// Parse the DTCs
 
 	// CSV Logging

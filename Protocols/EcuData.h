@@ -11,6 +11,20 @@ public:
 	CEcuData(const CEcuData& other);
 	~CEcuData();
 
+	void copyToF005(const unsigned char* const sourceBuffer, const int sourceLength);
+	void copyToF00A(const unsigned char* const sourceBuffer, const int sourceLength);
+	void copyToF001(const unsigned char* const sourceBuffer, const int sourceLength);
+	void copyToF002(const unsigned char* const sourceBuffer, const int sourceLength);
+	void copyToF003(const unsigned char* const sourceBuffer, const int sourceLength);
+	void copyToF004(const unsigned char* const sourceBuffer, const int sourceLength);
+
+	void copyFromF005(unsigned char* const targetBuffer, const int targetBufferLen) const;
+	void copyFromF00A(unsigned char* const targetBuffer, const int targetBufferLen) const;
+	void copyFromF001(unsigned char* const targetBuffer, const int targetBufferLen) const;
+	void copyFromF002(unsigned char* const targetBuffer, const int targetBufferLen) const;
+	void copyFromF003(unsigned char* const targetBuffer, const int targetBufferLen) const;
+	void copyFromF004(unsigned char* const targetBuffer, const int targetBufferLen) const;
+
 	DWORD		m_dwBytesSent;
 	DWORD		m_dwBytesReceived;
 	CString		m_csProtocolComment; // public copy of the current protocol's comments
@@ -21,14 +35,6 @@ public:
 
 	BOOL	m_bACRequest; // bit 0
 	BOOL	m_bACClutch; // bit 2
-
-	// Raw Data : just a store so that we can debug
-	unsigned char*	m_ucF005;
-	unsigned char*	m_ucF00A;
-	unsigned char*	m_ucF001; // Mode 1 data buffer
-	unsigned char*	m_ucF002; // Mode 2 data buffer
-	unsigned char*	m_ucF003; // Mode 3 data buffer
-	unsigned char*	m_ucF004; // Mode 4 data buffer
 
 	// Parsed Data Store
 	CString			m_csDTC; // Fault Descriptions
@@ -85,6 +91,14 @@ public:
 	int		m_iKnockCount;
 
 private:
+	// Raw Data : just a store so that we can debug
+	unsigned char* m_ucF005;
+	unsigned char* m_ucF00A;
+	unsigned char* m_ucF001; // Mode 1 data buffer
+	unsigned char* m_ucF002; // Mode 2 data buffer
+	unsigned char* m_ucF003; // Mode 3 data buffer
+	unsigned char* m_ucF004; // Mode 4 data buffer
+
 	void ResetVariables(void);
 	void ResetVariablesForGuiTest(void);
 };

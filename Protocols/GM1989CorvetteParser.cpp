@@ -110,12 +110,18 @@ void CGM1989CorvetteParser::WriteCSV(BOOL bTitle)
 	if (bTitle)
 	{
 		m_dwCSVRecord = 0;
-		csBuf.Format("1989 Corvette Sample,Coolant Sensor Volts,Start Water Temp,TPS Volts,Desired Idle,RPM,Road Speed,O2 Left,O2 Right,Injector Base PW,IAC,Barometric Air Pressure,MAP,Air:Fuel Ratio,TPS,MAT Sensor Volts,Knock Retard,Battery Volts,Engine Load,Spark Timing,Coolant Temp,MAT,Engine Running Time");
+		csBuf = _T("PC - Timestamp,1989 Corvette Sample,Coolant Sensor Volts,Start Water Temp,TPS Volts,Desired Idle,RPM,Road Speed,O2 Left,O2 Right,Injector Base PW,IAC,Barometric Air Pressure,MAP,Air:Fuel Ratio,TPS,MAT Sensor Volts,Knock Retard,Battery Volts,Engine Load,Spark Timing,Coolant Temp,MAT,Engine Running Time");
 	}
 	else
 	{
-		const CEcuData *const ecuData = m_pSupervisor->GetEcuData();
-		csBuf.Format("%ld,%4.2f,%3.1f,%4.2f,%d,%d,%d,%5.3f,%5.3f,%d,%d,%4.2f,%4.2f,%3.1f,%d,%4.2f,%3.1f,%3.1f,%d,%3.1f,%3.1f,%3.1f,%d",
+		SYSTEMTIME localTime;
+
+		const CEcuData* const ecuData = m_pSupervisor->GetEcuData();
+
+		GetLocalTime(&localTime);
+
+		csBuf.Format(_T("%04d-%02d-%02d %02d:%02d:%02d.%03d,%ld,%4.2f,%3.1f,%4.2f,%d,%d,%d,%5.3f,%5.3f,%d,%d,%4.2f,%4.2f,%3.1f,%d,%4.2f,%3.1f,%3.1f,%d,%3.1f,%3.1f,%3.1f,%d"),
+			localTime.wYear, localTime.wMonth, localTime.wDay, localTime.wHour, localTime.wMinute, localTime.wSecond, localTime.wMilliseconds,
 			m_dwCSVRecord, ecuData->m_fWaterVolts, ecuData->m_fStartWaterTemp, ecuData->m_fThrottleVolts,
 			ecuData->m_iDesiredIdle, ecuData->m_iRPM, ecuData->m_iMPH, ecuData->m_fO2VoltsLeft, ecuData->m_fO2VoltsRight,
 			ecuData->m_iInjectorBasePWMsL, ecuData->m_iIACPosition,
@@ -268,7 +274,7 @@ void CGM1989CorvetteParser::ParseMode1_0(unsigned char* buffer, int len)
 		len = 67;
 	}
 
-	memcpy(ecuData->m_ucF001, buffer, len);
+	ecuData->copyToF001(buffer, len);
 
 	// Work out real-world data from the packet.
 	// Mode number is in index 0
@@ -346,7 +352,7 @@ void CGM1989CorvetteParser::ParseMode2(unsigned char* buffer, int len)
 		len = 65;
 	}
 
-	memcpy(ecuData->m_ucF002, buffer, len);
+	ecuData->copyToF002(buffer, len);
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
@@ -373,7 +379,7 @@ void CGM1989CorvetteParser::ParseMode3(unsigned char* buffer, int len)
 		len = 11;
 	}
 
-	memcpy(ecuData->m_ucF003, buffer, len);
+	ecuData->copyToF003(buffer, len);
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
@@ -406,7 +412,7 @@ void CGM1989CorvetteParser::ParseMode4(unsigned char* buffer, int len)
 		len = 11;
 	}
 
-	memcpy(ecuData->m_ucF004, buffer, len);
+	ecuData->copyToF004(buffer, len);
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.

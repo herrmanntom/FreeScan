@@ -57,12 +57,18 @@ void CELM327Parser::WriteCSV(BOOL bTitle)
 	if (bTitle)
 	{
 		m_dwCSVRecord = 0;
-		csBuf = "ELM327 Sample,Coolant Sensor V,Start Water Temp,TPS V,Des Idle,RPM,Road Speed,Crank Sensors,O2,Rich/Lean,Integrator,BLM,BLM Cell,Injector Base PW,IAC,Baro,MAP,A:F,TPS,MAT V,Knock Retard,Knock Count,BatV,Load,Spark,Coolant Temp,MAT,Wastegate DC,Secondary Injectors DC,Engine Running Time, A/C Demand, A/C Clutch, Closed Loop";
+		csBuf = _T("PC - Timestamp,ELM327 Sample,Coolant Sensor V,Start Water Temp,TPS V,Des Idle,RPM,Road Speed,Crank Sensors,O2,Rich/Lean,Integrator,BLM,BLM Cell,Injector Base PW,IAC,Baro,MAP,A:F,TPS,MAT V,Knock Retard,Knock Count,BatV,Load,Spark,Coolant Temp,MAT,Wastegate DC,Secondary Injectors DC,Engine Running Time, A/C Demand, A/C Clutch, Closed Loop");
 	}
 	else
 	{
-		const CEcuData *const ecuData = m_pSupervisor->GetEcuData();
-		csBuf.Format("%ld,%4.2f,%3.1f,%4.2f,%d,%d,%d,%d,%5.3f,%d,%d,%d,%d,%d,%d,%4.2f,%4.2f,%3.1f,%d,%4.2f,%3.1f,%d,%3.1f,%d,%3.1f,%3.1f,%3.1f,%d,%d,%d,%d,%d,%d",
+		SYSTEMTIME localTime;
+
+		const CEcuData* const ecuData = m_pSupervisor->GetEcuData();
+
+		GetLocalTime(&localTime);
+
+		csBuf.Format(_T("%04d-%02d-%02d %02d:%02d:%02d.%03d,%ld,%4.2f,%3.1f,%4.2f,%d,%d,%d,%d,%5.3f,%d,%d,%d,%d,%d,%d,%4.2f,%4.2f,%3.1f,%d,%4.2f,%3.1f,%d,%3.1f,%d,%3.1f,%3.1f,%3.1f,%d,%d,%d,%d,%d,%d"),
+			localTime.wYear, localTime.wMonth, localTime.wDay, localTime.wHour, localTime.wMinute, localTime.wSecond, localTime.wMilliseconds,
 			m_dwCSVRecord, ecuData->m_fWaterVolts, ecuData->m_fStartWaterTemp, ecuData->m_fThrottleVolts,
 			ecuData->m_iDesiredIdle, ecuData->m_iRPM, ecuData->m_iMPH, ecuData->m_iCrankSensors, ecuData->m_fO2VoltsLeft, ecuData->m_iRichLeanCounterL,
 			ecuData->m_iIntegratorL, ecuData->m_iBLM, ecuData->m_iBLMCell, ecuData->m_iInjectorBasePWMsL,
@@ -229,7 +235,7 @@ void CELM327Parser::ParseADC(unsigned char* buffer, int len)
 		len = 10;
 	}
 	
-	memcpy(ecuData->m_ucF005, buffer, len);
+	ecuData->copyToF005(buffer, len);
 
 	// Work out real world data from the packet.
 
@@ -259,7 +265,7 @@ void CELM327Parser::ParseAnalogues(unsigned char* buffer, int len)
 		len = 3;
 	}
 	
-	memcpy(ecuData->m_ucF00A, buffer, len);
+	ecuData->copyToF00A(buffer, len);
 
 	// Work out real world data from the packet.
 
@@ -282,7 +288,7 @@ void CELM327Parser::ParseMode1(unsigned char* buffer, int len)
 		len = 65;
 	}
 	
-	memcpy(ecuData->m_ucF001, buffer, len);
+	ecuData->copyToF001(buffer, len);
 
 	// Work out real-world data from the packet.
 	// Mode number is in index 0
@@ -373,7 +379,7 @@ void CELM327Parser::ParseMode2(unsigned char* buffer, int len)
 		len = 65;
 	}
 	
-	memcpy(ecuData->m_ucF002, buffer, len);
+	ecuData->copyToF002(buffer, len);
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
@@ -400,7 +406,7 @@ void CELM327Parser::ParseMode3(unsigned char* buffer, int len)
 		len = 20;
 	}
 	
-	memcpy(ecuData->m_ucF003, buffer, len);
+	ecuData->copyToF003(buffer, len);
 
 }
 
@@ -425,7 +431,7 @@ void CELM327Parser::ParseMode4(unsigned char* buffer, int len)
 		len = 11;
 	}
 	
-	memcpy(ecuData->m_ucF004, buffer, len);
+	ecuData->copyToF004(buffer, len);
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
