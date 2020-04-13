@@ -166,7 +166,7 @@ LONG CGM1992PontiacProtocol::OnGetCurrentMode(WPARAM /*wdummy*/, LPARAM /*dummy*
 LONG CGM1992PontiacProtocol::OnForceShutUp(WPARAM /*wdummy*/, LPARAM /*dummy*/)
 {
 	WriteStatus("Forcing ECU with a shut-up");
-	SendModeShutUp();
+	SendMode8_ShutUp();
 	return (LONG) 0;
 }
 
@@ -184,11 +184,11 @@ BOOL CGM1992PontiacProtocol::SendIdle(void)
 }
 
 // Sends the shut-up command to the ECU
-BOOL CGM1992PontiacProtocol::SendModeShutUp(void)
+BOOL CGM1992PontiacProtocol::SendMode8_ShutUp(void)
 { //0xf4 0x56 0x08 0xae
-	unsigned char	ucRequestMode0[] = { 0xf4, 0x56, 0x08, 0xae }; //
-	WriteStatus("*** Sending Shut-Up to ECU ***");
-	WriteToECU(ucRequestMode0, 4);
+	unsigned char	ucRequestMode8[] = { 0xf4, 0x56, 0x08, 0xae }; //
+	WriteStatus("*** Sending Mode8 (DISABLE COMMUNICATIONS/Shut-Up) to ECU ***");
+	WriteToECU(ucRequestMode8, 4);
 	return TRUE;
 }
 
@@ -285,7 +285,7 @@ void CGM1992PontiacProtocol::SendNextCommand(void)
 		switch (m_dwRequestedMode)
 		{
 		case 0:
-			SendModeShutUp();
+			SendMode8_ShutUp();
 			break;
 		case 1:
 			SendMode1_0();
@@ -498,7 +498,9 @@ int CGM1992PontiacProtocol::HandleTX(unsigned char* buffer, int iLength)
 		OnMode1Msg0();
 
 	// notify parent that a whole mode 1 Msg0 packet has been received
-	if ((iLength == 64) && (ucMode == 0x01))
+	if ((iLength == 64) && (ucMode == 0x01)) // <-- here seems to be a bug, because the length is actually 64 + 3 (3 added for CRC in OnCharReceived() )
+		OnModeD1Msg0();
+	if ((iLength == 64+3) && (ucMode == 0x01)) // <-- so here we notify on 64+3
 		OnModeD1Msg0();
 
 	// notify parent that a whole mode 3 request has been received

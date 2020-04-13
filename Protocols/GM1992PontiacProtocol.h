@@ -65,7 +65,7 @@ public:
 protected:
 	void PumpMessages(void);
 	BOOL SendIdle(void); // Sends idle message to get bus
-	BOOL SendModeShutUp(void); // Tell ECU to stop chattering packets
+	BOOL SendMode8_ShutUp(void); // Tell ECU to stop chattering packets
 	BOOL SendMode1_0(void); // Tell ECU to send Mode 1 message 0 packets
 	BOOL ReceiveDTCs(void); // Ask for the trouble codes
 	BOOL ClearDTCs(void); // Clear the trouble codes
