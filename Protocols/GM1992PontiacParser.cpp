@@ -278,7 +278,7 @@ BOOL CGM1992PontiacParser::ParseMode1_0(unsigned char* buffer, int len)
 	if (len<10) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("Received our TX command echo for mode 1 Msg 0.");
-		return;
+		return FALSE;
 	}
 	else if (len>64)
 	{
@@ -361,12 +361,12 @@ BOOL CGM1992PontiacParser::ParseMode2(unsigned char* buffer, int len)
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 2.");
-		return;
+		return FALSE;
 	}
 	else if (len==1) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("1 Received our TX command echo for mode 2.");
-		return;
+		return FALSE;
 	}
 	else if (len>65)
 	{
@@ -390,12 +390,12 @@ BOOL CGM1992PontiacParser::ParseMode3(unsigned char* buffer, int len)
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 3.");
-		return;
+		return FALSE;
 	}
 	else if (len==1) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("1 Received our TX command echo for mode 3.");
-		return;
+		return FALSE;
 	}
 	else if (len>11)
 	{
@@ -425,12 +425,12 @@ BOOL CGM1992PontiacParser::ParseMode4(unsigned char* buffer, int len)
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 4.");
-		return;
+		return FALSE;
 	}
 	else if (len==1) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("1 Received our TX command echo for mode 4.");
-		return;
+		return FALSE;
 	}
 	else if (len>11)
 	{
@@ -452,12 +452,12 @@ BOOL CGM1992PontiacParser::ParseMode7(unsigned char* /*buffer*/, int len)
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 7.");
-		return;
+		return FALSE;
 	}
 	else if (len==1) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("1 Received our TX command echo for mode 7.");
-		return;
+		return FALSE;
 	}
 	else if (len>2)
 	{
@@ -477,12 +477,12 @@ BOOL CGM1992PontiacParser::ParseMode8(unsigned char* /*buffer*/, int len)
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 8.");
-		return;
+		return FALSE;
 	}
 	else if (len==1) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("1 Received our TX command echo for mode 8.");
-		return;
+		return FALSE;
 	}
 	else if (len>1)
 	{
@@ -502,12 +502,12 @@ BOOL CGM1992PontiacParser::ParseMode9(unsigned char* /*buffer*/, int len)
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 9.");
-		return;
+		return FALSE;
 	}
 	else if (len==1) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("1 Received our TX command echo for mode 9.");
-		return;
+		return FALSE;
 	}
 	else if (len>1)
 	{
@@ -527,12 +527,12 @@ BOOL CGM1992PontiacParser::ParseMode10(unsigned char* /*buffer*/, int len)
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 10.");
-		return;
+		return FALSE;
 	}
 	else if (len==1) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("1 Received our TX command echo for mode 10.");
-		return;
+		return FALSE;
 	}
 	else if (len>1)
 	{
