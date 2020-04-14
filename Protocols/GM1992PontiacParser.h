@@ -30,17 +30,17 @@ protected:
 
 protected:
 	//Implementation
-	void ParseModeF0(unsigned char* buffer, int len);
-	void ParseMode05(unsigned char* buffer, int len);
-	void ParseMode0A(unsigned char* buffer, int len);
-	void ParseMode1_0(unsigned char* buffer, int len);
-	void ParseMode2(unsigned char* buffer, int len);
-	void ParseMode3(unsigned char* buffer, int len);
-	void ParseMode4(unsigned char* buffer, int len);
-	void ParseMode7(unsigned char* buffer, int len);
-	void ParseMode8(unsigned char* buffer, int len);
-	void ParseMode9(unsigned char* buffer, int len);
-	void ParseMode10(unsigned char* buffer, int len);
+	BOOL ParseModeF0(unsigned char* buffer, int len);
+	BOOL ParseMode05(unsigned char* buffer, int len);
+	BOOL ParseMode0A(unsigned char* buffer, int len);
+	BOOL ParseMode1_0(unsigned char* buffer, int len);
+	BOOL ParseMode2(unsigned char* buffer, int len);
+	BOOL ParseMode3(unsigned char* buffer, int len);
+	BOOL ParseMode4(unsigned char* buffer, int len);
+	BOOL ParseMode7(unsigned char* buffer, int len);
+	BOOL ParseMode8(unsigned char* buffer, int len);
+	BOOL ParseMode9(unsigned char* buffer, int len);
+	BOOL ParseMode10(unsigned char* buffer, int len);
 	void ParseDTCs(void);// Parse the DTCs
 
 	// CSV Logging

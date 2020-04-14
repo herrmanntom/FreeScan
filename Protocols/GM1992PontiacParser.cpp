@@ -110,7 +110,7 @@ void CGM1992PontiacParser::WriteCSV(BOOL bTitle)
 	if (bTitle)
 	{
 		m_dwCSVRecord = 0;
-		csBuf = _T("PC - Timestamp,1992 Pontiac Sample,Coolant Sensor Volts,Start Water Temp,TPS Volts,Desired Idle,RPM,Road Speed,O2 Left,O2 Right,Injector Base PW,IAC,Barometric Air Pressure,MAP,Air:Fuel Ratio,TPS,MAT Volts,Knock Retard,Knock Count,Battery Volts,Engine Load,Spark Timing,Coolant Temp,MAT,Engine Running Time");
+		csBuf = _T("PC - Timestamp,1992 Pontiac Sample,Coolant Sensor Volts,Start Water Temp,TPS Volts,Desired Idle,RPM,Road Speed,O2 Sensor,Rich/Lean,Integrator,BLM,BLM Cell,Injector Base PW,IAC,Barometric Air Pressure,MAP,Air:Fuel Ratio,TPS,MAT Volts,Knock Retard,Knock Count,Battery Volts,Engine Load,Spark Timing,Coolant Temp,MAT,Engine Running Time,Air Flow,Charcoal Canister Purge DC");
 	}
 	else
 	{
@@ -120,14 +120,14 @@ void CGM1992PontiacParser::WriteCSV(BOOL bTitle)
 
 		GetLocalTime(&localTime);
 
-		csBuf.Format(_T("%04d-%02d-%02d %02d:%02d:%02d.%03d,%ld,%4.2f,%3.1f,%4.2f,%d,%d,%d,%5.3f,%5.3f,%d,%d,%4.2f,%4.2f,%3.1f,%d,%4.2f,%3.1f,%d,%3.1f,%d,%3.1f,%3.1f,%3.1f,%d"),
+		csBuf.Format(_T("%04d-%02d-%02d %02d:%02d:%02d.%03d,%ld,%4.2f,%3.1f,%4.2f,%d,%d,%d,%5.3f,%d,%d,%d,%d,%d,%d,%4.2f,%4.2f,%3.1f,%d,%4.2f,%3.1f,%d,%3.1f,%3.1f,%3.1f,%3.1f,%d,%3.1f,%d"),
 			localTime.wYear, localTime.wMonth, localTime.wDay, localTime.wHour, localTime.wMinute, localTime.wSecond, localTime.wMilliseconds,
 			m_dwCSVRecord, ecuData->m_fWaterVolts, ecuData->m_fStartWaterTemp, ecuData->m_fThrottleVolts,
-			ecuData->m_iDesiredIdle, ecuData->m_iRPM, ecuData->m_iMPH, ecuData->m_fO2VoltsLeft, ecuData->m_fO2VoltsRight,
-			ecuData->m_iInjectorBasePWMsL, ecuData->m_iIACPosition,
+			ecuData->m_iDesiredIdle, ecuData->m_iRPM, ecuData->m_iMPH, ecuData->m_fO2VoltsLeft, ecuData->m_iRichLeanCounterL,
+			ecuData->m_iIntegratorL, ecuData->m_iBLM, ecuData->m_iBLMCell, ecuData->m_iInjectorBasePWMsL, ecuData->m_iIACPosition,
 			ecuData->m_fBaro, ecuData->m_fMAP, ecuData->m_fAFRatio, ecuData->m_iThrottlePos,
-			ecuData->m_fMATVolts, ecuData->m_fKnockRetard, ecuData->m_iKnockCount, ecuData->m_fBatteryVolts, ecuData->m_iEngineLoad, ecuData->m_fSparkAdvance,
-			ecuData->m_fWaterTemp, ecuData->m_fMATTemp, ecuData->m_iRunTime);
+			ecuData->m_fMATVolts, ecuData->m_fKnockRetard, ecuData->m_iKnockCount, ecuData->m_fBatteryVolts, ecuData->m_fSparkAdvance,
+			ecuData->m_fWaterTemp, ecuData->m_fMATTemp, ecuData->m_iRunTime, ecuData->m_fAirFlow, ecuData->m_iCanisterDC);
 		m_dwCSVRecord++;
 	}
 	csBuf = csBuf + "\n"; // Line Feed because we're logging to disk
@@ -149,6 +149,8 @@ int CGM1992PontiacParser::Parse(unsigned char* buffer, int iLength)
 	int	iIndex=0, iPacketLength;
 	unsigned char* pPacketStart=NULL;
 
+	BOOL dataWasUpdated = FALSE;
+
 	// Scan the whole packet for its header.
 	for(iIndex=0;iIndex<iLength;iIndex++)
 	{
@@ -167,22 +169,22 @@ int CGM1992PontiacParser::Parse(unsigned char* buffer, int iLength)
 					if(buffer[iIndex]==1) // Main data-stream
 					{
 						if(ucLenByte==0x95) // length 64 including mode byte
-							ParseMode1_0(&buffer[iIndex], iPacketLength);
+							dataWasUpdated |= ParseMode1_0(&buffer[iIndex], iPacketLength);
 					}
 					else if(buffer[iIndex]==2) // length x including mode byte
-						ParseMode2(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode2(&buffer[iIndex], iPacketLength);
 					else if(buffer[iIndex]==3) // length max x including mode byte
-						ParseMode3(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode3(&buffer[iIndex], iPacketLength);
 					else if(buffer[iIndex]==4) // length max x including mode byte
-						ParseMode4(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode4(&buffer[iIndex], iPacketLength);
 					else if(buffer[iIndex]==7) // length max 2 including mode byte
-						ParseMode7(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode7(&buffer[iIndex], iPacketLength);
 					else if(buffer[iIndex]==8) // length max 1 including mode byte
-						ParseMode8(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode8(&buffer[iIndex], iPacketLength);
 					else if(buffer[iIndex]==9) // length max 1 including mode byte
-						ParseMode9(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode9(&buffer[iIndex], iPacketLength);
 					else if(buffer[iIndex]==10) // length max 1 including mode byte
-						ParseMode10(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode10(&buffer[iIndex], iPacketLength);
 					else
 					{
 						CString	temp; // write to the spy window
@@ -202,7 +204,7 @@ int CGM1992PontiacParser::Parse(unsigned char* buffer, int iLength)
 				iPacketLength = GetLength((int)buffer[iIndex]); // Length of data
 				iIndex++; // This has the mode number
 				// No data so don't parse.
-				ParseModeF0(&buffer[iIndex], iPacketLength);
+				dataWasUpdated |= ParseModeF0(&buffer[iIndex], iPacketLength);
 				iIndex += iPacketLength; // should be 3
 				// Check CRC
 				if (!CheckChecksum(pPacketStart, 3 + iPacketLength))
@@ -214,7 +216,7 @@ int CGM1992PontiacParser::Parse(unsigned char* buffer, int iLength)
 				iIndex++; // now find the length
 				iPacketLength = GetLength((int)buffer[iIndex]); // Length of data
 				iIndex++; // This has the mode number
-				ParseMode05(&buffer[iIndex], iPacketLength);
+				dataWasUpdated |= ParseMode05(&buffer[iIndex], iPacketLength);
 				iIndex += iPacketLength; // should be 3
 				// Check CRC
 				if (!CheckChecksum(pPacketStart, 3 + iPacketLength))
@@ -226,7 +228,7 @@ int CGM1992PontiacParser::Parse(unsigned char* buffer, int iLength)
 				iIndex++; // now find the length
 				iPacketLength = GetLength((int)buffer[iIndex]); // Length of data
 				iIndex++; // This has the mode number
-				ParseMode0A(&buffer[iIndex], iPacketLength);
+				dataWasUpdated |= ParseMode0A(&buffer[iIndex], iPacketLength);
 				iIndex += iPacketLength; // should be 3
 				// Check CRC
 				if (!CheckChecksum(pPacketStart, 3 + iPacketLength))
@@ -243,28 +245,33 @@ int CGM1992PontiacParser::Parse(unsigned char* buffer, int iLength)
 	}// for()
 
 	// Force the main application to update itself
-	UpdateDialog();
+	if (dataWasUpdated) {
+		UpdateDialog();
+	}
 
 	return iLength; // Successfully parsed.
 }
 
 // Translates the incoming data stream from the chatter
-void CGM1992PontiacParser::ParseModeF0(unsigned char* /*buffer*/, int /*len*/)
+BOOL CGM1992PontiacParser::ParseModeF0(unsigned char* /*buffer*/, int /*len*/)
 {
+	return FALSE;
 }
 
 // Translates the incoming data stream from the chatter
-void CGM1992PontiacParser::ParseMode05(unsigned char* /*buffer*/, int /*len*/)
+BOOL CGM1992PontiacParser::ParseMode05(unsigned char* /*buffer*/, int /*len*/)
 {
+	return FALSE;
 }
 
 // Translates the incoming data stream from the chatter
-void CGM1992PontiacParser::ParseMode0A(unsigned char* /*buffer*/, int /*len*/)
+BOOL CGM1992PontiacParser::ParseMode0A(unsigned char* /*buffer*/, int /*len*/)
 {
+	return FALSE;
 }
 
 // Translates the incoming data stream as Mode 1 Msg 0
-void CGM1992PontiacParser::ParseMode1_0(unsigned char* buffer, int len)
+BOOL CGM1992PontiacParser::ParseMode1_0(unsigned char* buffer, int len)
 {
 	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
 
@@ -315,7 +322,7 @@ void CGM1992PontiacParser::ParseMode1_0(unsigned char* buffer, int len)
 	ecuData->m_iThrottlePos = (int)((float)buffer[10] / (float)2.55);
 	ecuData->m_iRPM = buffer[11] * 25;
 	ecuData->m_iMPH = (int)buffer[17]; // Count is in MPH
-	ecuData->m_fO2VoltsLeft = (float) buffer[19] * (float) 4.42; // 1st Bank
+	ecuData->m_fO2VoltsLeft = ((float) buffer[19]) * (4.42f/1000.0f); // 1st Bank in mV, so we divide by 1000 to get Volt
 	ecuData->m_iRichLeanCounterL = (int)buffer[20];
 	ecuData->m_iBLM = (int)buffer[22];
 	ecuData->m_iBLMCell = (int)buffer[23];
@@ -333,18 +340,21 @@ void CGM1992PontiacParser::ParseMode1_0(unsigned char* buffer, int len)
 	ecuData->m_fMATTemp = ReturnTemp(buffer[30]); // in °C
 	ecuData->m_fBatteryVolts = (float)buffer[34] / (float)10.0;
 	ecuData->m_fAirFlow = (float)buffer[37];
-	ecuData->m_fSparkAdvance = (((float)buffer[40] * (float)90.0) / (float)256.0); // in °
+	ecuData->m_fSparkAdvance = ((float)buffer[40]) * (90.0f / 256.0f); // in °
 	ecuData->m_fAFRatio = ((float)(buffer[41]) / (float)10.0); // Air Fuel Ratio
 	ecuData->m_iInjectorBasePWMsL = (int) ( (float)((buffer[42] * 256) + buffer[43]) / (float)65.536);
+	ecuData->m_iCanisterDC = (int) (((float)buffer[29]) / 2.56f); // Canister Purge
 	ecuData->m_fKnockRetard = (((float)buffer[46] * (float)45.0) / (float)256.0); // in °
 	ecuData->m_iKnockCount = (int)buffer[51];
 	ecuData->m_iRunTime = (buffer[49] * 256) + buffer[50]; // Total running time
 
 	ParseDTCs(); // Process the DTCs into text
+
+	return TRUE;
 }
 
 // Translates the incoming data stream as Mode 2
-void CGM1992PontiacParser::ParseMode2(unsigned char* buffer, int len)
+BOOL CGM1992PontiacParser::ParseMode2(unsigned char* buffer, int len)
 {
 	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
 
@@ -368,10 +378,12 @@ void CGM1992PontiacParser::ParseMode2(unsigned char* buffer, int len)
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
+
+	return TRUE;
 }
 
 // Translates the incoming data stream as Mode 3
-void CGM1992PontiacParser::ParseMode3(unsigned char* buffer, int len)
+BOOL CGM1992PontiacParser::ParseMode3(unsigned char* buffer, int len)
 {
 	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
 
@@ -401,10 +413,12 @@ void CGM1992PontiacParser::ParseMode3(unsigned char* buffer, int len)
 	m_ucDTC[3] = buffer[6]; // Fault code byte 4
 
 	ParseDTCs(); // Process the DTCs into text
+
+	return TRUE;
 }
 
 // Translates the incoming data stream as Mode 4
-void CGM1992PontiacParser::ParseMode4(unsigned char* buffer, int len)
+BOOL CGM1992PontiacParser::ParseMode4(unsigned char* buffer, int len)
 {
 	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
 
@@ -428,10 +442,12 @@ void CGM1992PontiacParser::ParseMode4(unsigned char* buffer, int len)
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
+
+	return TRUE;
 }
 
 // Translates the incoming data stream as Mode 7
-void CGM1992PontiacParser::ParseMode7(unsigned char* /*buffer*/, int len)
+BOOL CGM1992PontiacParser::ParseMode7(unsigned char* /*buffer*/, int len)
 {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -451,10 +467,12 @@ void CGM1992PontiacParser::ParseMode7(unsigned char* /*buffer*/, int len)
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
+
+	return FALSE;
 }
 
 // Translates the incoming data stream as Mode 8
-void CGM1992PontiacParser::ParseMode8(unsigned char* /*buffer*/, int len)
+BOOL CGM1992PontiacParser::ParseMode8(unsigned char* /*buffer*/, int len)
 {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -474,10 +492,12 @@ void CGM1992PontiacParser::ParseMode8(unsigned char* /*buffer*/, int len)
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
+
+	return FALSE;
 }
 
 // Translates the incoming data stream as Mode 9
-void CGM1992PontiacParser::ParseMode9(unsigned char* /*buffer*/, int len)
+BOOL CGM1992PontiacParser::ParseMode9(unsigned char* /*buffer*/, int len)
 {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -497,10 +517,12 @@ void CGM1992PontiacParser::ParseMode9(unsigned char* /*buffer*/, int len)
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
+
+	return FALSE;
 }
 
 // Translates the incoming data stream as Mode 10
-void CGM1992PontiacParser::ParseMode10(unsigned char* /*buffer*/, int len)
+BOOL CGM1992PontiacParser::ParseMode10(unsigned char* /*buffer*/, int len)
 {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -520,6 +542,8 @@ void CGM1992PontiacParser::ParseMode10(unsigned char* /*buffer*/, int len)
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
+
+	return FALSE;
 }
 
 // Translates the DTC Codes
