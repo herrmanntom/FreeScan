@@ -57,7 +57,7 @@ void CEspritParser::WriteCSV(BOOL bTitle)
 	if (bTitle)
 	{
 		m_dwCSVRecord = 0;
-		csBuf = _T("PC-Timestamp,Esprit Sample,Coolant Sensor V,Start Water Temp,TPS V,Des Idle,RPM,Road Speed,Crank Sensors,O2,Rich/Lean,Integrator,BLM,BLM Cell,Injector Base PW,IAC,Baro,MAP,A:F,TPS,MAT V,Knock Retard,Knock Count,BatV,Load,Spark,Coolant Temp,MAT,Wastegate DC,Secondary Injectors DC,Engine Running Time, A/C Demand, A/C Clutch, Closed Loop");
+		csBuf = _T("PC-Timestamp,Esprit Sample,Coolant Sensor V,Start Water Temp,TPS V,Des Idle,RPM,Road Speed,Crank Sensors,O2,Rich/Lean,Integrator,BLM,BLM Cell,Injector Base PW,IAC,Baro,MAP,A:F,TPS,MAT V,Knock Retard,Knock Count,BatV,Load,Spark,Coolant Temp,MAT,Wastegate DC,Secondary Injectors DC,Engine Running Time,A/C Demand,A/C Clutch,Closed Loop,Charcoal Canister Purge DC");
 	}
 	else
 	{
@@ -67,7 +67,7 @@ void CEspritParser::WriteCSV(BOOL bTitle)
 		
 		GetLocalTime(&localTime);
 
-		csBuf.Format(_T("%04d-%02d-%02d %02d:%02d:%02d.%03d,%ld,%4.2f,%3.1f,%4.2f,%d,%d,%d,%d,%5.3f,%d,%d,%d,%d,%d,%d,%4.2f,%4.2f,%3.1f,%d,%4.2f,%3.1f,%d,%3.1f,%d,%3.1f,%3.1f,%3.1f,%d,%d,%d,%d,%d,%d"),
+		csBuf.Format(_T("%04d-%02d-%02d %02d:%02d:%02d.%03d,%ld,%4.2f,%3.1f,%4.2f,%d,%d,%d,%d,%5.3f,%d,%d,%d,%d,%d,%d,%4.2f,%4.2f,%3.1f,%d,%4.2f,%3.1f,%d,%3.1f,%d,%3.1f,%3.1f,%3.1f,%d,%d,%d,%d,%d,%d,%d"),
 			localTime.wYear, localTime.wMonth, localTime.wDay, localTime.wHour, localTime.wMinute, localTime.wSecond, localTime.wMilliseconds,
 			m_dwCSVRecord, ecuData->m_fWaterVolts, ecuData->m_fStartWaterTemp, ecuData->m_fThrottleVolts,
 			ecuData->m_iDesiredIdle, ecuData->m_iRPM, ecuData->m_iMPH, ecuData->m_iCrankSensors, ecuData->m_fO2VoltsLeft, ecuData->m_iRichLeanCounterL,
@@ -75,7 +75,7 @@ void CEspritParser::WriteCSV(BOOL bTitle)
 			ecuData->m_iIACPosition, ecuData->m_fBaro, ecuData->m_fMAP, ecuData->m_fAFRatio, ecuData->m_iThrottlePos,
 			ecuData->m_fMATVolts, ecuData->m_fKnockRetard, ecuData->m_iKnockCount, ecuData->m_fBatteryVolts,
 			ecuData->m_iEngineLoad, ecuData->m_fSparkAdvance ,ecuData->m_fWaterTemp, ecuData->m_fMATTemp, ecuData->m_iBoostPW, ecuData->m_iSecondaryInjPW,
-			ecuData->m_iRunTime, ecuData->m_bACRequest, ecuData->m_bACClutch, ecuData->m_bEngineClosedLoop);
+			ecuData->m_iRunTime, ecuData->m_bACRequest, ecuData->m_bACClutch, ecuData->m_bEngineClosedLoop, ecuData->m_iCanisterDC);
 		m_dwCSVRecord++;
 	}
 	csBuf = csBuf + _T("\n"); // Line Feed because we're logging to disk
@@ -362,6 +362,7 @@ BOOL CEspritParser::ParseMode1(unsigned char* buffer, int len)
 	ecuData->m_iInjectorBasePWMsL = (int) ( (float)((buffer[45] * 256) + buffer[46]) / (float)65.536);
 	ecuData->m_fAFRatio = (float)buffer[47] / (float)10.0; // Air Fuel Ratio
 	ecuData->m_iRunTime = (buffer[52] * 256) + buffer[53]; // Total running time
+	ecuData->m_iCanisterDC = (int)(((float)buffer[30]) / 2.56f); // Canister Purge
 	
 	ParseDTCs(buffer); // Process the DTCs into text
 
