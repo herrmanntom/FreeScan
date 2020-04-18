@@ -7,10 +7,12 @@
 // (c) 1991-99 Andy Whittaker, Chester, England. 
 // mail@andywhittaker.com
 //
-#include "stdafx.h"
-#include "cderr.h" // for CommDlgExtendedError()
-#include "FreeScan.h"
+
 #include "StatusDlg.h"
+
+#include "cderr.h" // for CommDlgExtendedError()
+#include "strsafe.h"
+#include "FreeScan.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -119,7 +121,7 @@ void CStatusDlg::WriteStatusTimeLogged(CString csText)
 }
 
 //Writes the contents of the given buffer as a Hex-dump
-void CStatusDlg::WriteASCII(unsigned char * buffer, int ilength)
+void CStatusDlg::WriteASCII(const unsigned char* const buffer, int ilength)
 {
 	if (m_hidden) // don't write to window when hidden
 		return;
@@ -312,7 +314,7 @@ void CStatusDlg::Hide(BOOL yes)
 }
 
 // Hide status of window
-BOOL CStatusDlg::HideStatus(void)
+BOOL CStatusDlg::IsHidden(void)
 {
 	return m_hidden;
 }

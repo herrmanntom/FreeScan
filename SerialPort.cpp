@@ -18,10 +18,10 @@
 // (c) 1996-99 Andy Whittaker, Chester, England. 
 // mail@andywhittaker.com
 
-#include "stdafx.h"
 #include "SerialPort.h"
 #include "EnumSer.h"
 #include <assert.h>
+#include <afxwin.h>
  
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -869,21 +869,15 @@ void CSerialPort::WriteToPort(unsigned char* string, int stringlength, BOOL bDel
 		time_t timeSinceLastWrite = ((currentTime.time - m_timeLastWrittenToPort.time) * 1000) + (currentTime.millitm - m_timeLastWrittenToPort.millitm);
 		if (timeSinceLastWrite < 0) {
 			// overflow...
-			TRACE(_T("Sleeping %dms (if) before Write\n"), halfDelay);
 			Sleep(halfDelay);
 		}
 		else if (timeSinceLastWrite < halfDelay) {
-			TRACE(_T("Sleeping %dms (else if) before Write\n"), (DWORD) (halfDelay - timeSinceLastWrite));
 			Sleep((DWORD) (halfDelay - timeSinceLastWrite));
-		}
-		else {
-			TRACE(_T("Sleeping %dms (else) before Write\n"), 0);
 		}
 	}
 	WriteChar(this); // Write to port immediately
 	ftime(&m_timeLastWrittenToPort);
 	if (bDelay) { // sleep to reduce stress on ECU serial port.
-		TRACE(_T("Sleeping %dms after Write\n"), halfDelay);
 		Sleep(halfDelay);
 	}
 }

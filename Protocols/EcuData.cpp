@@ -1,8 +1,38 @@
-#include "stdafx.h"
+
 #include "EcuData.h"
 
-const int   CEcuData::c_iUNSUPPORTED = -4240;
-const float CEcuData::c_fUNSUPPORTED = -424.2f;
+const float CEcuData::c_fUNSUPPORTED = -4204.2f;
+const int   CEcuData::c_iUNSUPPORTED = (int) c_fUNSUPPORTED;
+const BOOL  CEcuData::c_bUNSUPPORTED = (BOOL) c_fUNSUPPORTED;
+const float CEcuData::c_fSUPPORTED_BY_PROTOCOL = c_fUNSUPPORTED + 10.01f;
+const int   CEcuData::c_iSUPPORTED_BY_PROTOCOL = (int) c_fSUPPORTED_BY_PROTOCOL;
+const BOOL  CEcuData::c_bSUPPORTED_BY_PROTOCOL = (BOOL) c_fSUPPORTED_BY_PROTOCOL;
+
+BOOL CEcuData::isValid(const float value) {
+	if (value != c_fUNSUPPORTED && value != c_fSUPPORTED_BY_PROTOCOL) {
+		return TRUE;
+	}
+	return FALSE;
+}
+BOOL CEcuData::isValid(const int value) {
+	if (value != c_iUNSUPPORTED && value != c_iSUPPORTED_BY_PROTOCOL) {
+		return TRUE;
+	}
+	return FALSE;
+}
+BOOL CEcuData::isSupported(const float value) {
+	if (value != c_fUNSUPPORTED) {
+		return TRUE;
+	}
+	return FALSE;
+}
+BOOL CEcuData::isSupported(const int value) {
+	if (value != c_iUNSUPPORTED) {
+		return TRUE;
+	}
+	return FALSE;
+}
+
 const int MAX_RAW_DATA_SIZE = 100;
 
 CEcuData::CEcuData()
@@ -153,6 +183,99 @@ void CEcuData::copyFromF004(unsigned char* const targetBuffer, int targetBufferL
 	copyAndSet(targetBuffer, targetBufferLen, m_ucF004, MAX_RAW_DATA_SIZE);
 }
 
+static CString generateCsvColumn(const float fValue, const BOOL header, const char* const title, const char* const format) {
+	CString	csBuf = _T("");
+	if (CEcuData::isSupported(fValue)) {
+		if (header == TRUE) {
+			csBuf += _T(",");
+			csBuf += _T(title);
+		}
+		else if (CEcuData::isValid(fValue)) {
+			csBuf.Format(_T(format), fValue);
+			csBuf = _T(",") + csBuf;
+		}
+		else {
+			csBuf = _T(", ");
+		}
+	}
+	return csBuf;
+}
+
+static CString generateCsvColumn(const int iValue, const BOOL header, const char* const title, const char* const format) {
+	CString	csBuf = _T("");
+	if (CEcuData::isSupported(iValue)) {
+		if (header == TRUE) {
+			csBuf += _T(",");
+			csBuf += _T(title);
+		}
+		else if (CEcuData::isValid(iValue)) {
+			csBuf.Format(_T(format), iValue);
+			csBuf = _T(",") + csBuf;
+		}
+		else {
+			csBuf = _T(", ");
+		}
+	}
+	return csBuf;
+}
+
+CString CEcuData::generateCsvLine(const BOOL header) const {
+	CString	csBuf = _T("");
+	// main engine / vehicle fields
+	csBuf += generateCsvColumn(m_iRPM, header, "Engine Speed (RPM)", "%d");
+	csBuf += generateCsvColumn(m_iDesiredIdle, header, "Desired Idle (RPM)", "%d");
+	csBuf += generateCsvColumn(m_iMPH, header, "Road Speed (MPH)", "%d");
+	csBuf += generateCsvColumn(m_iMPH_inKPH, header, "Road Speed (KPH)", "%d");
+	csBuf += generateCsvColumn(m_fOilTemp, header, "Oil Temperature (°C)", "%3.1f");
+	csBuf += generateCsvColumn(m_fWaterTemp, header, "Coolant Temperature (°C)", "%3.1f");
+	csBuf += generateCsvColumn(m_fStartWaterTemp, header, "Start Coolant Temperature (°C)", "%3.1f");
+	csBuf += generateCsvColumn(m_iThrottlePos, header, "Throttle Position (%)", "%d");
+	csBuf += generateCsvColumn(m_iEngineLoad, header, "Engine Load (%)", "%d");
+	csBuf += generateCsvColumn(m_fBaro, header, "Atmospheric Pressure (bar)", "%4.2f");
+	csBuf += generateCsvColumn(m_fMAP, header, "Manifold Air Pressure (bar)", "%4.2f");
+	csBuf += generateCsvColumn(m_fMATTemp, header, "Manifold Air Temperature (°C)", "%3.1f");
+	csBuf += generateCsvColumn(m_fAirFlow, header, "Air Flow", "%3.1f");
+	csBuf += generateCsvColumn(m_fBatteryVolts, header, "Battery (V)", "%3.1f");
+	csBuf += generateCsvColumn(m_bACRequest, header, "Air Conditioner Demand", "%d");
+	csBuf += generateCsvColumn(m_bACClutch, header, "Air Conditioner Clutch Engaged", "%d");
+	csBuf += generateCsvColumn(m_bEngineStalled, header, "Engine Stalled", "%d");
+
+	// parameters controlled by engine management 
+	csBuf += generateCsvColumn(m_fAFRatio, header, "Air:Fuel (ratio)", "%3.1f");
+	csBuf += generateCsvColumn(m_fSparkAdvance, header, "Spark Advance (°)", "%3.1f");
+	csBuf += generateCsvColumn(m_fKnockRetard, header, "Knock Retard (°)", "%3.1f");
+	csBuf += generateCsvColumn(m_iInjectorBasePWMsL, header, "Injector Base Pule Width (ms)", "%d");
+	csBuf += generateCsvColumn(m_iInjectorBasePWMsR, header, "Injector Base Pule Width [Right Bank] (ms)", "%d");
+	csBuf += generateCsvColumn(m_iSecondaryInjPW, header, "Secondary Injectors Pule Width (ms)", "%d");
+	csBuf += generateCsvColumn(m_iBoostPW, header, "Wastegate Pule Width (ms)", "%d");
+	csBuf += generateCsvColumn(m_iIACPosition, header, "IAC Position", "%d");
+	csBuf += generateCsvColumn(m_iCanisterDC, header, "Charcoal Canister Purge Duty Cycle", "%d");
+
+	// parameters used by engine management to analyze and track engine state
+	csBuf += generateCsvColumn(m_iCrankSensors, header, "Crank Sensor (Counter)", "%d");
+	csBuf += generateCsvColumn(m_iKnockCount, header, "Knock (Counter)", "%d");
+	csBuf += generateCsvColumn(m_fO2VoltsLeft, header, "O2 Sensor (V)", "%5.3f");
+	csBuf += generateCsvColumn(m_fO2VoltsRight, header, "O2 Sensor [Right Bank] (V)", "%5.3f");
+	csBuf += generateCsvColumn(m_iRichLeanCounterL, header, "Rich / Lean (Counter)", "%d");
+	csBuf += generateCsvColumn(m_iRichLeanCounterR, header, "Rich / Lean [Right Bank] (Counter)", "%d");
+	csBuf += generateCsvColumn(m_iIntegratorL, header, "Integrator", "%d");
+	csBuf += generateCsvColumn(m_iIntegratorR, header, "Integrator [Right Bank]", "%d");
+	csBuf += generateCsvColumn(m_iBLM, header, "BLM value", "%d");
+	csBuf += generateCsvColumn(m_iBLMRight, header, "BLM value [Right Bank]", "%d");
+	csBuf += generateCsvColumn(m_iBLMCell, header, "BLM Cell", "%d");
+	csBuf += generateCsvColumn(m_bEngineClosedLoop, header, "Closed Loop", "%d");
+	csBuf += generateCsvColumn(m_iRunTime, header, "Engine Running Time (s)", "%d");
+
+	// redundant "raw voltages" from sensor that are represented with interpreted values above
+	csBuf += generateCsvColumn(m_fWaterVolts, header, "Coolant Sensor (V)", "%4.2f");
+	csBuf += generateCsvColumn(m_fThrottleVolts, header, "Throttle Position Sensor (V)", "%4.2f");
+	csBuf += generateCsvColumn(m_fBaroVolts, header, "Atmospheric Pressure Sensor (V)", "%4.2f");
+	csBuf += generateCsvColumn(m_fMAPVolts, header, "Manifold Air Pressure Sensor (V)", "%4.2f");
+	csBuf += generateCsvColumn(m_fMATVolts, header, "Manifold Air Temperature Sensor (V)", "%4.2f");
+
+	return csBuf;
+}
+
 // Reset variables.
 void CEcuData::ResetVariables(void)
 {
@@ -168,10 +291,10 @@ void CEcuData::ResetVariables(void)
 	m_csDTC = "No reported faults."; // Reset Fault Codes
 
 	// Reset normal engine parameters
-	m_bEngineClosedLoop = FALSE; //
-	m_bEngineStalled = TRUE;  // bit 6
-	m_bACRequest = FALSE; // mode 1,  bit 0
-	m_bACClutch = FALSE; // mode 1, bit 2
+	m_bEngineClosedLoop = c_bUNSUPPORTED;
+	m_bEngineStalled = c_bUNSUPPORTED;
+	m_bACRequest = c_bUNSUPPORTED;
+	m_bACClutch = c_bUNSUPPORTED;
 	m_fBatteryVolts = c_fUNSUPPORTED;
 	m_iRPM = c_iUNSUPPORTED;
 	m_iIACPosition = c_iUNSUPPORTED;
@@ -225,7 +348,7 @@ void CEcuData::ResetVariables(void)
 }
 
 // Reset variables for GUI test
-void CEcuData::ResetVariablesForGuiTest(void)
+void CEcuData::SetVariablesForGuiTest(void)
 {
 	m_csProtocolComment = "";
 

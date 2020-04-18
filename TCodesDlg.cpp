@@ -3,11 +3,6 @@
 // (c) 1996-99 Andy Whittaker, Chester, England. 
 // mail@andywhittaker.com
 
-#include "stdafx.h"
-#include "FreeScan.h"
-#include "MainDlg.h"
-#include "Supervisor.h"
-
 #include "TCodesDlg.h"
 
 #ifdef _DEBUG
@@ -25,7 +20,7 @@ CTCodesDlg::CTCodesDlg() : CPropertyPage(CTCodesDlg::IDD)
 {
 	//{{AFX_DATA_INIT(CTCodesDlg)
 	//}}AFX_DATA_INIT
-	m_pMainDlg = NULL;
+	m_pSupervisor = NULL;
 }
 
 CTCodesDlg::~CTCodesDlg()
@@ -41,19 +36,9 @@ void CTCodesDlg::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 
 	//Updates the dialog.
-	Refresh(GetSupervisor()->GetEcuData());
-}
-
-// Returns a pointer to the Supervisor
-CSupervisor* CTCodesDlg::GetSupervisor(void)
-{
-	return m_pMainDlg->m_pSupervisor;
-}
-
-// Returns if the ECU is interactive
-BOOL CTCodesDlg::GetInteract(void)
-{
-	return GetSupervisor()->GetInteract();
+	if (m_pSupervisor != NULL) {
+		Refresh(m_pSupervisor->GetEcuData());
+	}
 }
 
 // Populates a ListBox with a CString
@@ -65,8 +50,7 @@ void CTCodesDlg::FillListBox(CListBox& lbT, const CString& csT)
 	csTemp = csT;
 	int		iIndex=0;
 
-	while (iIndex != -1)
-	{
+	while (iIndex != -1) {
 		iIndex = csTemp.Find('\n');
 		lbT.AddString(csTemp.SpanExcluding("\n"));
 		csTemp.Delete(0, iIndex+1);
@@ -88,7 +72,7 @@ void CTCodesDlg::Refresh(const CEcuData* const ecuData)
 	FillListBox(m_TList, ecuData->m_csDTC);
 
 	// Hide the buttons that don't work when not interactive
-	if (GetInteract())
+	if (m_pSupervisor->GetInteract())
 	{
 		m_ResetDTC.EnableWindow(TRUE);
 	}
@@ -98,8 +82,8 @@ void CTCodesDlg::Refresh(const CEcuData* const ecuData)
 	}
 }
 
-void CTCodesDlg::RegisterMainDialog(CFreeScanDlg* const mainDialog) {
-	m_pMainDlg = mainDialog;
+void CTCodesDlg::RegisterSupervisor(CSupervisorInterface* const pSupervisor) {
+	m_pSupervisor = pSupervisor;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -108,5 +92,5 @@ void CTCodesDlg::RegisterMainDialog(CFreeScanDlg* const mainDialog) {
 void CTCodesDlg::OnResetdtc() 
 {
 	// Sends the ECU command to reset the fault codes
-	GetSupervisor()->ECUMode(ECU_CLEAR_DTCS);
+	m_pSupervisor->ECUMode(ECU_CLEAR_DTCS);
 }

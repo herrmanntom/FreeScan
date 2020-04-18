@@ -6,12 +6,9 @@
 //
 // This contains all low-level parsing functions.
 
-#include "stdafx.h"
-#include "..\FreeScan.h"
-#include "..\MainDlg.h"
 #include "GMA140Parser.h"
 
-#include "..\Supervisor.h"
+#include "GMBaseFunctions.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -23,122 +20,49 @@ static char THIS_FILE[]=__FILE__;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CGMA140Parser::CGMA140Parser()
-{
-	m_pSupervisor = NULL;
-
-	memset(m_ucDTC, 0, 3);// Reset DTC buffer
-
-	CFreeScanApp* pApp = (CFreeScanApp*) AfxGetApp();
-	m_csCSVLogFile = pApp->GetProfileString("GMA140Parser", "CSV Log Filename", "");
-
-	m_dwCSVRecord = 0; // Initialise the CSV record number
+CGMA140Parser::CGMA140Parser(CBaseProtocol* const m_pProtocol) : CBaseParser(m_pProtocol) {
+	memset(m_ucDTC, 0, sizeof(m_ucDTC));// Reset DTC buffer
 }
 
-CGMA140Parser::~CGMA140Parser()
-{
-	if (m_file.m_hFile != CFile::hFileNull)
-	{ // close our log file if it's open
-		m_file.Flush();
-		m_file.Close(); // close the logging file when we exit.
-	}
-
-	CFreeScanApp* pApp = (CFreeScanApp*) AfxGetApp();
-	pApp->WriteProfileString("GMA140Parser", "CSV Log Filename", m_csCSVLogFile);
+CGMA140Parser::~CGMA140Parser() {
 }
 
-//WriteCSV(..) Writes CSV data to our log file.
-//If bTitle is true, the first title line is written, otherwise the data is written.
-void CGMA140Parser::WriteCSV(BOOL bTitle) 
-{
-	if (m_file.m_pStream == NULL) return;// i.e. no file open
-
-	CString	csBuf;
-	if (bTitle)
-	{
-		m_dwCSVRecord = 0;
-		csBuf = _T("PC - Timestamp,Sample,Start Water Temp,AirFlow,Desired Idle,RPM,Road Speed,O2,Rich/Lean Count,Integrator,BLM,BLM Cell,Injector Base PW,IAC,MAP,Air:Fuel Ratio,TPS,Knock Retard,Knock Count,Battery Volts,Engine Load,Spark Timing,Coolant Temp,Engine Running Time");
-	}
-	else
-	{
-		SYSTEMTIME localTime;
-
-		const CEcuData* const ecuData = m_pSupervisor->GetEcuData();
-
-		GetLocalTime(&localTime);
-
-		csBuf.Format(_T("%04d-%02d-%02d %02d:%02d:%02d.%03d,%ld,%3.1f,%8.1f,%d,%d,%d,%5.3f,%d,%d,%d,%d,%d,%d,%4.2f,%3.1f,%d,%3.1f,%d,%3.1f,%d,%3.1f,%3.1f,%d"),
-			localTime.wYear, localTime.wMonth, localTime.wDay, localTime.wHour, localTime.wMinute, localTime.wSecond, localTime.wMilliseconds,
-			m_dwCSVRecord, ecuData->m_fStartWaterTemp, ecuData->m_fAirFlow,
-			ecuData->m_iDesiredIdle, ecuData->m_iRPM, ecuData->m_iMPH, ecuData->m_fO2VoltsLeft, ecuData->m_iRichLeanCounterL, ecuData->m_iIntegratorL,
-			ecuData->m_iBLM, ecuData->m_iBLMCell, ecuData->m_iInjectorBasePWMsL,
-			ecuData->m_iIACPosition, ecuData->m_fMAP, ecuData->m_fAFRatio, ecuData->m_iThrottlePos,
-			(float) ecuData->m_fKnockRetard,(int) ecuData->m_iKnockCount, (float) ecuData->m_fBatteryVolts,
-			(int) ecuData->m_iEngineLoad, (float) ecuData->m_fSparkAdvance, (float) ecuData->m_fWaterTemp, (int) ecuData->m_iRunTime);
-		m_dwCSVRecord++;
-	}
-	csBuf = csBuf + "\n"; // Line Feed because we're logging to disk
-	m_file.WriteString(csBuf);
-}
-
-// Starts or stops csv logging to file
-BOOL CGMA140Parser::StartCSVLog(BOOL bStart)
-{
-	CString csBuf = "";
-
-	if (!bStart)
-	{ // we want to close the logging file
-		if (m_file.m_hFile != CFile::hFileNull)
-		{
-			WriteStatusLogged("CSV Log file has been stopped");
-			m_file.Close(); // close the logging file when we exit.
-		}
-		else
-			WriteStatusLogged("CSV Log file is already closed");
-
-		return FALSE;
-	}
-
-	// We now must want to log to a file
-
-	// Construct our File Dialog
-	CFileDialog		Dialog(FALSE, "csv", 
-						m_csCSVLogFile, 
-						OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT,
-						"log Files (*.csv)|*.csv|All Files (*.*)|*.*||", NULL);
-
-	// Change the title
-	Dialog.m_ofn.lpstrTitle = "Create/Open CSV Log File";
-
-	// Display the dialog box
-	if (Dialog.DoModal() == IDOK)
-	{
-		m_csCSVLogFile = Dialog.GetPathName();
-
-		if (!m_file.Open(m_csCSVLogFile, CFile::modeCreate | CFile::modeReadWrite | CFile::typeText))
-		{
-			csBuf.Format("Cannot open %s", m_csCSVLogFile.GetString());
-			WriteStatus(csBuf);
-			AfxMessageBox(csBuf, MB_OK | MB_ICONSTOP );
-			return FALSE;
-		}
-
-		WriteStatusLogged("CSV Log file has been opened");
-		WriteCSV(TRUE); // log our data to a csv file
-	}
-	else // User pressed cancel
-		WriteStatus("User cancelled CSV log file");
-
-	if (m_file.m_hFile != NULL)
-		return TRUE;
-	else
-		return FALSE;
-}
-// Tells the Supervisor that there's been a data change
-void CGMA140Parser::UpdateDialog(void)
-{
-	m_pSupervisor->UpdateDialog();
-	WriteCSV(FALSE); // log our data to a csv file
+void CGMA140Parser::InitializeSupportedValues(CEcuData* const ecuData) {
+	ecuData->m_iMPH = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fBatteryVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fWaterTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iRPM = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_bEngineClosedLoop = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
+	ecuData->m_bEngineStalled = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
+	ecuData->m_bACRequest = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iEpromID = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fStartWaterTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fThrottleVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iThrottleADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iThrottlePos = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fO2VoltsLeft = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iRichLeanCounterL = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iBLM = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iBLMCell = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iIntegratorL = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iIACPosition = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iDesiredIdle = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fBaro = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fBaroVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iBaroADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fMAP = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fMAPVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iMAPADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fMATVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iMATADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fMATTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fAirFlow = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fSparkAdvance = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fAFRatio = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iInjectorBasePWMsL = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fKnockRetard = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iRunTime = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iKnockCount = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 }
 
 // Parses the buffer into real data
@@ -158,7 +82,7 @@ int CGMA140Parser::Parse(unsigned char* buffer, int iLength)
 		case ECU_HEADER_GMA140: // Packet Header Start
 			{
 				iIndex++; // now find the length
-				iPacketLength = GetLength((int)buffer[iIndex]); // Length of data
+				iPacketLength = CGMBaseFunctions::GetLength((int)buffer[iIndex]); // Length of data
 				iIndex++; // This has the mode number
 				if (iPacketLength != 0)
 				{// Data in Header
@@ -187,31 +111,31 @@ int CGMA140Parser::Parse(unsigned char* buffer, int iLength)
 					iIndex += iPacketLength;
 				}
 				// Check CRC
-				if (!CheckChecksum(pPacketStart, 3 + iPacketLength))
+				if (!CGMBaseFunctions::CheckChecksum(pPacketStart, 3 + iPacketLength))
 					WriteStatus("Checksum Error");
 				break;
 			}
 		case 0x0a: // Computed Values
 			{
 				iIndex++; // now find the length
-				iPacketLength = GetLength((int)buffer[iIndex]); // Length of data
+				iPacketLength = CGMBaseFunctions::GetLength((int)buffer[iIndex]); // Length of data
 				iIndex++; // This has the mode number
 				ParseAnalogues(&buffer[iIndex], iPacketLength);
 				iIndex += iPacketLength; // should be 3
 				// Check CRC
-				if (!CheckChecksum(pPacketStart, 3 + iPacketLength))
+				if (!CGMBaseFunctions::CheckChecksum(pPacketStart, 3 + iPacketLength))
 					WriteStatus("Checksum Error");
 				break;
 			}
 		case 0x05: // ADC Values
 			{
 				iIndex++; // now find the length
-				iPacketLength = GetLength((int)buffer[iIndex]); // Length of data
+				iPacketLength = CGMBaseFunctions::GetLength((int)buffer[iIndex]); // Length of data
 				iIndex++; // This has the mode number
 				ParseADC(&buffer[iIndex], iPacketLength);
 				iIndex += iPacketLength; // should be 6 from ECU
 				// Check CRC
-				if (!CheckChecksum(pPacketStart, 3 + iPacketLength))
+				if (!CGMBaseFunctions::CheckChecksum(pPacketStart, 3 + iPacketLength))
 					WriteStatus("Checksum Error");
 				break;
 			}
@@ -233,7 +157,7 @@ int CGMA140Parser::Parse(unsigned char* buffer, int iLength)
 // Translates the incomming data stream as ADC Values
 void CGMA140Parser::ParseADC(unsigned char* buffer, int len)
 {
-	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
+	CEcuData *const ecuData = GetModifiableEcuData();
 
 	if (len>10)
 	{
@@ -252,7 +176,7 @@ void CGMA140Parser::ParseADC(unsigned char* buffer, int len)
 // Translates the incoming data stream as Analogue Values
 void CGMA140Parser::ParseAnalogues(unsigned char* buffer, int len)
 {
-	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
+	CEcuData *const ecuData = GetModifiableEcuData();
 
 	if (len>3)
 	{
@@ -269,7 +193,7 @@ void CGMA140Parser::ParseAnalogues(unsigned char* buffer, int len)
 // Translates the incoming data stream as Mode 1
 void CGMA140Parser::ParseMode1(unsigned char* buffer, int len)
 {
-	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
+	CEcuData *const ecuData = GetModifiableEcuData();
 
 	if (len<10) // remember half duplex. We read our commands as well
 	{
@@ -330,7 +254,7 @@ void CGMA140Parser::ParseMode1(unsigned char* buffer, int len)
 	ecuData->m_iMAPADC = buffer[29]; // in Counts
 	ecuData->m_fMATVolts = ((float)buffer[30] / (float)255.0) * (float)5.0; // in Volts
 	ecuData->m_iMATADC = buffer[30]; // in Counts
-	ecuData->m_fMATTemp = ReturnTemp(buffer[30]); // in °C
+	ecuData->m_fMATTemp = CGMBaseFunctions::ReturnTemp(buffer[30]); // in °C
 	ecuData->m_fBatteryVolts = (float)buffer[34] / (float)10.0;
 	ecuData->m_fAirFlow = (float) buffer[37];
 	ecuData->m_fSparkAdvance = ((float)((buffer[38] * 256) + buffer[39]) * (float)90.0) / (float)256.0; // in °
@@ -346,7 +270,7 @@ void CGMA140Parser::ParseMode1(unsigned char* buffer, int len)
 // Translates the incoming data stream as Mode 2
 void CGMA140Parser::ParseMode2(unsigned char* buffer, int len)
 {
-	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
+	CEcuData *const ecuData = GetModifiableEcuData();
 
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -373,7 +297,7 @@ void CGMA140Parser::ParseMode2(unsigned char* buffer, int len)
 // Translates the incoming data stream as Mode 3
 void CGMA140Parser::ParseMode3(unsigned char* buffer, int len)
 {
-	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
+	CEcuData *const ecuData = GetModifiableEcuData();
 
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -398,7 +322,7 @@ void CGMA140Parser::ParseMode3(unsigned char* buffer, int len)
 // Translates the incoming data stream as Mode 4
 void CGMA140Parser::ParseMode4(unsigned char* buffer, int len)
 {
-	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
+	CEcuData *const ecuData = GetModifiableEcuData();
 
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -514,7 +438,7 @@ void CGMA140Parser::ParseMode10(unsigned char* /*buffer*/, int len)
 // Translates the DTC Codes
 void CGMA140Parser::ParseDTCs(void)
 {
-	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
+	CEcuData *const ecuData = GetModifiableEcuData();
 
 	ecuData->m_csDTC.Empty();
 

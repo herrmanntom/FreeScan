@@ -1,10 +1,23 @@
 #pragma once
+
+#include "BaseDefines.h"
+
 class CEcuData
 {
-public:
-	
-	static const int   c_iUNSUPPORTED;
+private:
 	static const float c_fUNSUPPORTED;
+	static const int   c_iUNSUPPORTED;
+	static const BOOL  c_bUNSUPPORTED;
+
+public:
+	static const float c_fSUPPORTED_BY_PROTOCOL;
+	static const int   c_iSUPPORTED_BY_PROTOCOL;
+	static const BOOL  c_bSUPPORTED_BY_PROTOCOL;
+
+	static BOOL isValid(const float value);
+	static BOOL isValid(const int value);
+	static BOOL isSupported(const float value);
+	static BOOL isSupported(const int value);
 
 public:
 	CEcuData();
@@ -24,6 +37,8 @@ public:
 	void copyFromF002(unsigned char* const targetBuffer, const int targetBufferLen) const;
 	void copyFromF003(unsigned char* const targetBuffer, const int targetBufferLen) const;
 	void copyFromF004(unsigned char* const targetBuffer, const int targetBufferLen) const;
+
+	CString generateCsvLine(const BOOL header) const;
 
 	DWORD		m_dwBytesSent;
 	DWORD		m_dwBytesReceived;
@@ -100,6 +115,6 @@ private:
 	unsigned char* m_ucF004; // Mode 4 data buffer
 
 	void ResetVariables(void);
-	void ResetVariablesForGuiTest(void);
+	void SetVariablesForGuiTest(void);
 };
 

@@ -5,13 +5,23 @@
 #if _MSC_VER > 1000
 #pragma once
 #endif // _MSC_VER > 1000
-// DashBoardDlg.h : header file
-//
+
+#include "BaseDefines.h"
+
+#include <afxwin.h>
+#include <afxext.h>
+
+#ifndef _AFX_NO_OLE_SUPPORT
+#include <afxdtctl.h>          // MFC support for Internet Explorer 4 Common Controls
+#endif
+
+#ifndef _AFX_NO_AFXCMN_SUPPORT
+#include <afxcmn.h>                    // MFC support for Windows Common Controls
+#endif // _AFX_NO_AFXCMN_SUPPORT
 
 #include "TTPropertyPage.h" // Our Tooltip Class
-#include "Protocols/EcuData.h"
-#include "MainDlg.h"
-#include "Supervisor.h"
+#include "EcuData.h"
+#include "SupervisorInterface.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CDashBoardDlg dialog
@@ -53,7 +63,7 @@ private:
 
 	CBrush m_brush; // For our background colour
 
-	CFreeScanDlg*	m_pMainDlg; // Base Dialog Pointer.
+	CSupervisorInterface* m_pSupervisor;
 
 // Overrides
 	// ClassWizard generate virtual function overrides
@@ -65,12 +75,9 @@ protected:
 // Implementation
 public:
 	void Refresh(const CEcuData* const ecuData); // Updates all of our controls
-	void RegisterMainDialog(CFreeScanDlg* const mainDialog);
+	void RegisterSupervisor(CSupervisorInterface* const pSupervisor);
 
 private:
-	CSupervisor* GetSupervisor(void); // returns a pointer to the Supervisor
-	BOOL GetInteract(void);
-
 	// Generated message map functions
 	//{{AFX_MSG(CDashBoardDlg)
 	virtual BOOL OnInitDialog();

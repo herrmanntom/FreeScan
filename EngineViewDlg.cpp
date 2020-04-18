@@ -4,11 +4,6 @@
 // mail@andywhittaker.com
 //
 
-#include "stdafx.h"
-#include "FreeScan.h"
-#include "MainDlg.h"
-#include "Supervisor.h"
-
 #include "EngineViewDlg.h"
 
 #ifdef _DEBUG
@@ -46,7 +41,7 @@ CEngineViewDlg::CEngineViewDlg() : CTTPropertyPage(CEngineViewDlg::IDD)
 {
 	//{{AFX_DATA_INIT(CEngineViewDlg)
 	//}}AFX_DATA_INIT
-	m_pMainDlg = NULL;
+	m_pSupervisor = NULL;
 	m_bOneO2 = TRUE;	// True if only one O2 sensor
 }
 
@@ -62,17 +57,13 @@ void CEngineViewDlg::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 
 	//Updates the dialog.
-	Refresh(GetSupervisor()->GetEcuData());
-}
-
-// Returns a pointer to the Supervisor
-CSupervisor* CEngineViewDlg::GetSupervisor(void)
-{
-	return m_pMainDlg->m_pSupervisor;
+	if (m_pSupervisor != NULL) {
+		Refresh(m_pSupervisor->GetEcuData());
+	}
 }
 
 static inline void renderField(CClientDC * const client, const int column, const int row, const char *const textFormat, const float fValue) {
-	if (fValue == CEcuData::c_fUNSUPPORTED) {
+	if (!CEcuData::isValid(fValue)) {
 		client->TextOut(column, row  * HS, "N/A");
 	}
 	else {
@@ -83,7 +74,7 @@ static inline void renderField(CClientDC * const client, const int column, const
 }
 
 static inline void renderField(CClientDC * const client, const int column, const int row, const char *const textFormat, const int iValue) {
-	if (iValue == CEcuData::c_iUNSUPPORTED) {
+	if (!CEcuData::isValid(iValue)) {
 		client->TextOut(column, row  * HS, "N/A");
 	}
 	else {
@@ -118,7 +109,7 @@ void CEngineViewDlg::Refresh(const CEcuData* const ecuData)
 
 	renderField(&Client, COLD1, 3, "%5d", ecuData->m_iDesiredIdle);
 
-	if (GetSupervisor()->m_bMiles == TRUE) {
+	if (m_pSupervisor->GetMiles() == TRUE) {
 		renderField(&Client, COLD1, 4, "%5d", ecuData->m_iMPH);
 	}
 	else {
@@ -145,11 +136,11 @@ void CEngineViewDlg::Refresh(const CEcuData* const ecuData)
 	renderField(&Client, COLD1, 11, "%5d", ecuData->m_iRunTime);
 
 	// Draw second column
-	if (GetSupervisor()->m_bCentigrade == TRUE) {
+	if (m_pSupervisor->GetCentigrade() == TRUE) {
 		renderField(&Client, COLD2, 0, "%3.0f", ecuData->m_fStartWaterTemp);
 		renderField(&Client, COLD2, 1, "%3.0f", ecuData->m_fWaterTemp);
 		renderField(&Client, COLD2, 2, "%3.0f", ecuData->m_fMATTemp);
-		if ( ecuData->m_fOilTemp != CEcuData::c_fUNSUPPORTED ) {
+		if (CEcuData::isSupported(ecuData->m_fOilTemp)) {
 			renderField(&Client, COLD2, 3, "%3.0f", ecuData->m_fOilTemp);
 		}
 	}
@@ -157,7 +148,7 @@ void CEngineViewDlg::Refresh(const CEcuData* const ecuData)
 		renderField(&Client, COLD2, 0, "%3.0f", ecuData->m_fStartWaterTemp_inF);
 		renderField(&Client, COLD2, 1, "%3.0f", ecuData->m_fWaterTemp_inF);
 		renderField(&Client, COLD2, 2, "%3.0f", ecuData->m_fMATTemp_inF);
-		if ( ecuData->m_fOilTemp != CEcuData::c_fUNSUPPORTED ) {
+		if (CEcuData::isSupported(ecuData->m_fOilTemp)) {
 			renderField(&Client, COLD2, 3, "%3.0f", ecuData->m_fOilTemp_inF);
 		}
 	}
@@ -168,7 +159,7 @@ void CEngineViewDlg::Refresh(const CEcuData* const ecuData)
 	
 	renderField(&Client, COLD2, 6, "%5d", ecuData->m_iKnockCount);
 	
-	if (ecuData->m_fAirFlow != CEcuData::c_fUNSUPPORTED) {
+	if (CEcuData::isSupported(ecuData->m_fAirFlow)) {
 		renderField(&Client, COLD2, 7, "%5.0f", ecuData->m_fAirFlow);
 	}
 	
@@ -202,8 +193,8 @@ void CEngineViewDlg::Refresh(const CEcuData* const ecuData)
 	}
 }
 
-void CEngineViewDlg::RegisterMainDialog(CFreeScanDlg* const mainDialog) {
-	m_pMainDlg = mainDialog;
+void CEngineViewDlg::RegisterSupervisor(CSupervisorInterface* const pSupervisor) {
+	m_pSupervisor = pSupervisor;
 }
 
 BEGIN_MESSAGE_MAP(CEngineViewDlg, CTTPropertyPage)
@@ -229,10 +220,10 @@ void CEngineViewDlg::OnPaint()
 	
 	CClientDC	Client(&m_view);
 
-	const CEcuData *const ecuData = GetSupervisor()->GetEcuData();
+	const CEcuData *const ecuData = m_pSupervisor->GetEcuData();
 
 	// A simple check to see if we have only one O2 sensor fitted
-	if (ecuData->m_fO2VoltsRight == CEcuData::c_fUNSUPPORTED)
+	if (!CEcuData::isSupported(ecuData->m_fO2VoltsRight))
 		m_bOneO2 = TRUE;
 	else
 		m_bOneO2 = FALSE;
@@ -246,7 +237,7 @@ void CEngineViewDlg::OnPaint()
 	Client.TextOut(COLT1, 1  * HS,"RPM");
 	Client.TextOut(COLT1, 2  * HS,"IAC Position");
 	Client.TextOut(COLT1, 3  * HS,"Desired Idle");
-	if (GetSupervisor()->m_bMiles == TRUE)
+	if (m_pSupervisor->GetMiles() == TRUE)
 		Client.TextOut(COLT1, 4  * HS,"MPH");
 	else
 		Client.TextOut(COLT1, 4  * HS,"KPH");
@@ -274,14 +265,14 @@ void CEngineViewDlg::OnPaint()
 	Client.TextOut(COLT2, 0  * HS,"Start Temp");
 	Client.TextOut(COLT2, 1  * HS,"Coolant Temp");
 	Client.TextOut(COLT2, 2  * HS,"Mass Air Temp");
-	if ( ecuData->m_fOilTemp != CEcuData::c_fUNSUPPORTED ) {
+	if (CEcuData::isSupported(ecuData->m_fOilTemp)) {
 		Client.TextOut(COLT2, 3  * HS,"Oil Temp");
 	}
 	Client.TextOut(COLT2, 4  * HS,"Spark Advance");
 	Client.TextOut(COLT2, 5  * HS,"Knock Retard");
 	Client.TextOut(COLT2, 6  * HS,"Knock Count");
 	
-	if (ecuData->m_fAirFlow != CEcuData::c_fUNSUPPORTED) {
+	if (CEcuData::isSupported(ecuData->m_fAirFlow)) {
 		Client.TextOut(COLT2, 7 * HS, "Air Flow");
 	}
 	Client.TextOut(COLT2, 8  * HS,"Battery Volts");
@@ -293,11 +284,11 @@ void CEngineViewDlg::OnPaint()
 		Client.TextOut(COLT2, 9  * HS,"Integrator  ");
 	}
 
-	if (GetSupervisor()->m_bCentigrade == TRUE)	{
+	if (m_pSupervisor->GetCentigrade() == TRUE)	{
 		Client.TextOut(COLT2 + 130, 0  * HS,"°C");
 		Client.TextOut(COLT2 + 130, 1  * HS,"°C");
 		Client.TextOut(COLT2 + 130, 2  * HS,"°C");
-		if (ecuData->m_fOilTemp != CEcuData::c_fUNSUPPORTED) {
+		if (CEcuData::isSupported(ecuData->m_fOilTemp)) {
 			Client.TextOut(COLT2 + 130, 3 * HS, "°C");
 		}
 	}
@@ -305,7 +296,7 @@ void CEngineViewDlg::OnPaint()
 		Client.TextOut(COLT2 + 130, 0  * HS,"°F");
 		Client.TextOut(COLT2 + 130, 1  * HS,"°F");
 		Client.TextOut(COLT2 + 130, 2  * HS,"°F");
-		if (ecuData->m_fOilTemp_inF != CEcuData::c_fUNSUPPORTED) {
+		if (CEcuData::isSupported(ecuData->m_fOilTemp)) {
 			Client.TextOut(COLT2 + 130, 3 * HS, "°F");
 		}
 	}

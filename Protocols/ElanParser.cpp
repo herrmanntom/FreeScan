@@ -6,12 +6,9 @@
 //
 // This contains all low-level parsing functions.
 
-#include "stdafx.h"
-#include "..\FreeScan.h"
-#include "..\MainDlg.h"
 #include "ElanParser.h"
 
-#include "..\Supervisor.h"
+#include "GMBaseFunctions.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -23,121 +20,30 @@ static char THIS_FILE[]=__FILE__;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CElanParser::CElanParser()
-{
-	m_pSupervisor = NULL;
-
-	CFreeScanApp* pApp = (CFreeScanApp*) AfxGetApp();
-	m_csCSVLogFile = pApp->GetProfileString("ElanParser", "CSV Log Filename", "");
-
-	m_dwCSVRecord = 0; // Initialise the CSV record number
-	memset(m_ucDTC, 0, 3);// Reset DTC buffer
+CElanParser::CElanParser(CBaseProtocol* const m_pProtocol) : CBaseParser(m_pProtocol) {
+	memset(m_ucDTC, 0, sizeof(m_ucDTC));// Reset DTC buffer
 }
 
-CElanParser::~CElanParser()
-{
-	if (m_file.m_hFile != CFile::hFileNull)
-	{ // close our log file if it's open
-		m_file.Flush();
-		m_file.Close(); // close the logging file when we exit.
-	}
-
-	CFreeScanApp* pApp = (CFreeScanApp*) AfxGetApp();
-	pApp->WriteProfileString("ElanParser", "CSV Log Filename", m_csCSVLogFile);
+CElanParser::~CElanParser() {
 }
 
-// Starts or stops csv logging to file
-BOOL CElanParser::StartCSVLog(BOOL bStart)
-{
-	CString csBuf = "";
-
-	if (!bStart)
-	{ // we want to close the logging file
-		if (m_file.m_hFile != CFile::hFileNull)
-		{
-			WriteStatusLogged("CSV Log file has been stopped");
-			m_file.Close(); // close the logging file when we exit.
-		}
-		else
-			WriteStatusLogged("CSV Log file is already closed");
-
-		return FALSE;
-	}
-
-	// We now must want to log to a file
-
-	// Construct our File Dialog
-	CFileDialog		Dialog(FALSE, "csv", 
-						m_csCSVLogFile, 
-						OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT,
-						"log Files (*.csv)|*.csv|All Files (*.*)|*.*||", NULL);
-
-	// Change the title
-	Dialog.m_ofn.lpstrTitle = "Create/Open CSV Log File";
-
-	// Display the dialog box
-	if (Dialog.DoModal() == IDOK)
-	{
-		m_csCSVLogFile = Dialog.GetPathName();
-
-		if (!m_file.Open(m_csCSVLogFile, CFile::modeCreate | CFile::modeReadWrite | CFile::typeText))
-		{
-			csBuf.Format("Cannot open %s", m_csCSVLogFile.GetString());
-			WriteStatus(csBuf);
-			AfxMessageBox(csBuf, MB_OK | MB_ICONSTOP );
-			return FALSE;
-		}
-
-		WriteStatusLogged("CSV Log file has been opened");
-		WriteCSV(TRUE);
-	}
-	else // User pressed cancel
-		WriteStatus("User cancelled CSV log file");
-
-	if (m_file.m_hFile != NULL)
-		return TRUE;
-	else
-		return FALSE;
-}
-
-//WriteCSV(..) Writes CSV data to our log file.
-//If bTitle is true, the first title line is written, otherwise the data is written.
-void CElanParser::WriteCSV(BOOL bTitle) 
-{
-	if (m_file.m_pStream == NULL) return;// i.e. no file open
-
-	CString	csBuf;
-	if (bTitle)
-	{
-		m_dwCSVRecord = 0;
-		csBuf = _T("PC - Timestamp,Elan Sample,Coolant Sensor Volts,Start Water Temp,TPS Volts,Desired Idle,RPM,Road Speed,Crank Sensors,Oxygen Sensor,Idle Actuator Position,Barometric Air Pressure,MAP,Air:Fuel Ratio,TPS,MAT Sensor Volts,Knock Retard,Battery Volts,Engine Load,Spark Timing,Coolant Temp,MAT,Engine Running Time");
-	}
-	else
-	{
-		SYSTEMTIME localTime;
-
-		const CEcuData *const ecuData = m_pSupervisor->GetEcuData();
-
-		GetLocalTime(&localTime);
-
-		csBuf.Format(_T("%04d-%02d-%02d %02d:%02d:%02d.%03d,%ld,%4.2f,%3.1f,%4.2f,%d,%d,%d,%d,%5.3f,%d,%4.2f,%4.2f,%3.1f,%d,%4.2f,%3.1f,%3.1f,%d,%3.1f,%3.1f,%3.1f,%d"),
-			localTime.wYear, localTime.wMonth, localTime.wDay, localTime.wHour, localTime.wMinute, localTime.wSecond, localTime.wMilliseconds,
-			m_dwCSVRecord, ecuData->m_fWaterVolts, ecuData->m_fStartWaterTemp, ecuData->m_fThrottleVolts,
-			ecuData->m_iDesiredIdle, ecuData->m_iRPM, ecuData->m_iMPH, ecuData->m_iCrankSensors, ecuData->m_fO2VoltsLeft, ecuData->m_iIACPosition,
-			ecuData->m_fBaro, ecuData->m_fMAP, ecuData->m_fAFRatio, ecuData->m_iThrottlePos,
-			ecuData->m_fMATVolts, ecuData->m_fKnockRetard, ecuData->m_fBatteryVolts, ecuData->m_iEngineLoad, ecuData->m_fSparkAdvance,
-			ecuData->m_fWaterTemp, ecuData->m_fMATTemp, ecuData->m_iRunTime);
-		m_dwCSVRecord++;
-	}
-	csBuf = csBuf + "\n"; // Line Feed because we're logging to disk
-	m_file.WriteString(csBuf);
-}
-
-// Tells the Supervisor that there's been a data change
-void CElanParser::UpdateDialog(void)
-{
-	m_pSupervisor->UpdateDialog();
-	WriteCSV(FALSE); // log our data to a csv file
+void CElanParser::InitializeSupportedValues(CEcuData* const ecuData) {
+	ecuData->m_iEpromID = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fWaterTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fStartWaterTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fThrottleVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iThrottlePos = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iRPM = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fSparkAdvance = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iMPH = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iIACPosition = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iDesiredIdle = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fBatteryVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fMAP = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fMAPVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fO2VoltsLeft = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fAFRatio = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iRunTime = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 }
 
 // Parses the buffer into real data
@@ -159,7 +65,7 @@ int CElanParser::Parse(unsigned char* buffer, int iLength)
 				iIndex++; // now find the length
 				unsigned char ucLenByte = 0;
 				ucLenByte = buffer[iIndex];
-				iPacketLength = GetLength((int)buffer[iIndex]); // Length of data
+				iPacketLength = CGMBaseFunctions::GetLength((int)buffer[iIndex]); // Length of data
 				iIndex++; // This has the mode number
 				if (iPacketLength != 0)
 				{// Data in Header
@@ -183,31 +89,31 @@ int CElanParser::Parse(unsigned char* buffer, int iLength)
 					iIndex += iPacketLength;
 				}
 				// Check CRC
-				if (!CheckChecksum(pPacketStart, 3 + iPacketLength))
+				if (!CGMBaseFunctions::CheckChecksum(pPacketStart, 3 + iPacketLength))
 					WriteStatus("Checksum Error");
 				break;
 			}
 		case 0x0a: // Computed Values
 			{
 				iIndex++; // now find the length
-				iPacketLength = GetLength((int)buffer[iIndex]); // Length of data
+				iPacketLength = CGMBaseFunctions::GetLength((int)buffer[iIndex]); // Length of data
 				iIndex++; // This has the mode number
 				ParseAnalogues(&buffer[iIndex], iPacketLength);
 				iIndex += iPacketLength; // should be 3
 				// Check CRC
-				if (!CheckChecksum(pPacketStart, 3 + iPacketLength))
+				if (!CGMBaseFunctions::CheckChecksum(pPacketStart, 3 + iPacketLength))
 					WriteStatus("Checksum Error");
 				break;
 			}
 		case 0x05: // ADC Values
 			{
 				iIndex++; // now find the length
-				iPacketLength = GetLength((int)buffer[iIndex]); // Length of data
+				iPacketLength = CGMBaseFunctions::GetLength((int)buffer[iIndex]); // Length of data
 				iIndex++; // This has the mode number
 				ParseADC(&buffer[iIndex], iPacketLength);
 				iIndex += iPacketLength; // should be 10 or 58 from ECU
 				// Check CRC
-				if (!CheckChecksum(pPacketStart, 3 + iPacketLength))
+				if (!CGMBaseFunctions::CheckChecksum(pPacketStart, 3 + iPacketLength))
 					WriteStatus("Checksum Error");
 				break;
 			}
@@ -229,7 +135,7 @@ int CElanParser::Parse(unsigned char* buffer, int iLength)
 // Translates the incomming data stream as ADC Values
 void CElanParser::ParseADC(unsigned char* buffer, int len)
 {
-	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
+	CEcuData *const ecuData = GetModifiableEcuData();
 
 	if (len==0) // remember half duplex. We read our commands as well
 		WriteStatus("Received our TX command echo for mode 1.");
@@ -262,7 +168,7 @@ void CElanParser::ParseADC(unsigned char* buffer, int len)
 // Translates the incoming data stream as Analogue Values
 void CElanParser::ParseAnalogues(unsigned char* buffer, int len)
 {
-	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
+	CEcuData *const ecuData = GetModifiableEcuData();
 
 	if (len>3)
 	{
@@ -280,7 +186,7 @@ void CElanParser::ParseAnalogues(unsigned char* buffer, int len)
 // Translates the incoming data stream as Mode 1
 void CElanParser::ParseMode1_0(unsigned char* buffer, int len)
 {
-	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
+	CEcuData *const ecuData = GetModifiableEcuData();
 
 	if (len<10) // remember half duplex. We read our commands as well
 	{
@@ -337,7 +243,7 @@ void CElanParser::ParseMode1_0(unsigned char* buffer, int len)
 //	ecuData->m_iEngineLoad = (int)((float)buffer[36] / (float) 2.55);
 //	ecuData->m_fMATTemp = ((float)buffer[42] * (float)0.75) - (float)40.0; // in °C
 	
-	ecuData->m_fAirFlow = 0.0;
+//	ecuData->m_fAirFlow = 0.0;
 
 	ParseDTCs(); // Process the DTCs into text
 }
@@ -345,7 +251,7 @@ void CElanParser::ParseMode1_0(unsigned char* buffer, int len)
 // Translates the incoming data stream as Mode 2
 void CElanParser::ParseMode2(unsigned char* buffer, int len)
 {
-	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
+	CEcuData *const ecuData = GetModifiableEcuData();
 
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -372,7 +278,7 @@ void CElanParser::ParseMode2(unsigned char* buffer, int len)
 // Translates the incoming data stream as Mode 3
 void CElanParser::ParseMode3(unsigned char* buffer, int len)
 {
-	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
+	CEcuData *const ecuData = GetModifiableEcuData();
 
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -403,7 +309,7 @@ void CElanParser::ParseMode3(unsigned char* buffer, int len)
 // Translates the incoming data stream as Mode 4
 void CElanParser::ParseMode4(unsigned char* buffer, int len)
 {
-	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
+	CEcuData *const ecuData = GetModifiableEcuData();
 
 	if (len==0) // remember half duplex. We read our commands as well
 	{
@@ -430,7 +336,7 @@ void CElanParser::ParseMode4(unsigned char* buffer, int len)
 // Translates the DTC Codes
 void CElanParser::ParseDTCs(void)
 {
-	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
+	CEcuData *const ecuData = GetModifiableEcuData();
 
 	ecuData->m_csDTC.Empty();
 

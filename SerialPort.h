@@ -17,6 +17,8 @@
 #ifndef __SERIALPORT_H__
 #define __SERIALPORT_H__
 
+#include "BaseDefines.h"
+
 #include <sys/timeb.h>
 
 #define WM_COMM_BREAK_DETECTED		WM_USER+1	// A break was detected on input.

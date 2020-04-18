@@ -4,12 +4,12 @@
 #if _MSC_VER > 1000
 #pragma once
 #endif // _MSC_VER > 1000
-// EngineViewDlg.h : header file
-//
+
+#include "BaseDefines.h"
+
 #include "TTPropertyPage.h" // Our Tooltip Class
-#include "Protocols/EcuData.h"
-#include "MainDlg.h"
-#include "Supervisor.h"
+#include "EcuData.h"
+#include "SupervisorInterface.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CEngineViewDlg dialog
@@ -29,8 +29,8 @@ private:
 	CStatic	m_view;
 	//}}AFX_DATA
 
-	CFreeScanDlg*	m_pMainDlg; // Base Dialog Pointer.
-	BOOL			m_bOneO2;	// True if only one O2 sensor
+	CSupervisorInterface*	m_pSupervisor;
+	BOOL					m_bOneO2;	// True if only one O2 sensor
 
 // Overrides
 	// ClassWizard generate virtual function overrides
@@ -42,10 +42,9 @@ protected:
 // Implementation
 public:
 	void Refresh(const CEcuData* const ecuData);
-	void RegisterMainDialog(CFreeScanDlg* const mainDialog);
+	void RegisterSupervisor(CSupervisorInterface* const pSupervisor);
 
 private:
-	CSupervisor* GetSupervisor(void); // returns a pointer to the Supervisor
 
 	// Generated message map functions
 	//{{AFX_MSG(CEngineViewDlg)

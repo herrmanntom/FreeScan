@@ -4,25 +4,26 @@
 #if _MSC_VER >= 1000
 #pragma once
 #endif // _MSC_VER >= 1000
-// DetailDlg.h : header file
-//
+
+#include "BaseDefines.h"
+
+#include <afxwin.h>
+#include <EnumSer.h>
 
 #include "TTPropertyPage.h" // Our Tooltip Class
-#include "EnumSer.h"
-#include "Protocols/EcuData.h"
-#include "MainDlg.h"
-#include "Supervisor.h"
+#include "EcuData.h"
+#include "StatusWriter.h"
+#include "SupervisorInterface.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CDetailDlg dialog
 
 class CDetailDlg : public CTTPropertyPage
 {
-	DECLARE_DYNCREATE(CDetailDlg)
 
 // Construction
 public:
-	CDetailDlg();
+	CDetailDlg(CStatusWriter* pStatusWriter);
 	~CDetailDlg();
 
 // Dialog Data
@@ -49,8 +50,9 @@ private:
 	CButton	m_Interact;
 	//}}AFX_DATA
 
-	CFreeScanDlg* m_pMainDlg; // Base Dialog Pointer.
-private:
+	CStatusWriter* const m_pStatusWriter;
+	CSupervisorInterface* m_pSupervisor;
+
 //	CUIntArray m_cuPorts; // Stores the enumerated COM Port numbers
 	CEnumerateSerial::CPortsArray m_cuPorts; // Stores the enumerated COM Port numbers
 	CEnumerateSerial m_EnumSerial;//ARW 11/06/2019 New EnumSerial Class
@@ -66,20 +68,12 @@ protected:
 	//}}AFX_VIRTUAL
 
 // Implementation
-private:
-	void WriteStatus(CString csText);
-	void WriteASCII(unsigned char * buffer, int ilength);
 public:
 	void Refresh(const CEcuData* const ecuData);
 	void Init(void);
-	void RegisterMainDialog(CFreeScanDlg* const mainDialog);
+	void RegisterSupervisor(CSupervisorInterface* const pSupervisor);
 
 private:
-	CSupervisor* GetSupervisor(void); // returns a pointer to the Supervisor
-	CSupervisor* GetData(void); // return a pointer to the Data
-	BOOL GetInteract(void);// Returns if the ECU is interactive
-	BOOL GetCentigrade(void); // Returns if FreeScan is in Metric
-	BOOL GetMiles(void); // Returns if FreeScan is in Metric
 	void Enumerate(void); //Finds this computer's serial ports
 	// Generated message map functions
 	//{{AFX_MSG(CDetailDlg)

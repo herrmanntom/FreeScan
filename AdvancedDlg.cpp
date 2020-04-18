@@ -3,10 +3,6 @@
 // (c) 1996-99 Andy Whittaker, Chester, England. 
 // mail@andywhittaker.com
 
-#include "stdafx.h"
-#include "FreeScan.h"
-#include "MainDlg.h"
-#include "Supervisor.h"
 
 #include "AdvancedDlg.h"
 
@@ -23,20 +19,17 @@ static char THIS_FILE[] = __FILE__;
 
 IMPLEMENT_DYNCREATE(CAdvancedDlg, CTTPropertyPage)
 
-CAdvancedDlg::CAdvancedDlg() : CTTPropertyPage(CAdvancedDlg::IDD)
-{
+CAdvancedDlg::CAdvancedDlg() : CTTPropertyPage(CAdvancedDlg::IDD) {
 	//{{AFX_DATA_INIT(CAdvancedDlg)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
-	m_pMainDlg = NULL;
+	m_pSupervisor = NULL;
 }
 
-CAdvancedDlg::~CAdvancedDlg()
-{
+CAdvancedDlg::~CAdvancedDlg() {
 }
 
-void CAdvancedDlg::DoDataExchange(CDataExchange* pDX)
-{
+void CAdvancedDlg::DoDataExchange(CDataExchange* pDX) {
 	CTTPropertyPage::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CAdvancedDlg)
 	DDX_Control(pDX, IDC_SETDESIDLE, m_SetDesIdle);
@@ -46,48 +39,32 @@ void CAdvancedDlg::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 
 	//Updates the dialog.
-	Refresh(GetSupervisor()->GetEcuData());
+	if (m_pSupervisor != NULL) {
+		Refresh(m_pSupervisor->GetEcuData());
+	}
 }
 
-// Returns a pointer to the Supervisor
-CSupervisor* CAdvancedDlg::GetSupervisor(void)
-{
-	return m_pMainDlg->m_pSupervisor;
-}
-
-// Returns if the ECU is interactive
-BOOL CAdvancedDlg::GetInteract(void)
-{
-	return GetSupervisor()->GetInteract();
-}
-
-// Returns the current ECU Mode
-DWORD CAdvancedDlg::GetCurrentMode(void)
-{
-	return GetSupervisor()->GetCurrentMode();
-}
 
 // Updates all of our controls
-void CAdvancedDlg::Refresh(const CEcuData* const ecuData)
-{
+void CAdvancedDlg::Refresh(const CEcuData* const ecuData) {
 	CString buf;
-	DWORD	dwCurrentMode = GetCurrentMode();
+	DWORD	dwCurrentMode = (m_pSupervisor != NULL)? m_pSupervisor->GetCurrentMode() : 0;
 
-	if (dwCurrentMode != 1 || ecuData->m_iDesiredIdle == CEcuData::c_iUNSUPPORTED)
+	if (dwCurrentMode != 1 || !CEcuData::isValid(ecuData->m_iDesiredIdle)) {
 		buf.Format("N/A");
-	else
+	}
+	else {
 		buf.Format("%d", ecuData->m_iDesiredIdle);
+	}
 	m_DesiredIdle.SetWindowText(buf);
 
 	// Hide the buttons that don't work when not interactive
-	if (GetInteract())
-	{
+	if (m_pSupervisor != NULL && m_pSupervisor->GetInteract()) {
 		m_SetDesIdle.EnableWindow(TRUE);
 		m_ResetIAC.EnableWindow(TRUE);
 		m_ResetBLM.EnableWindow(TRUE);
 	}
-	else
-	{
+	else {
 		m_SetDesIdle.EnableWindow(FALSE);
 		m_ResetIAC.EnableWindow(FALSE);
 		m_ResetBLM.EnableWindow(FALSE);
@@ -95,8 +72,8 @@ void CAdvancedDlg::Refresh(const CEcuData* const ecuData)
 
 }
 
-void CAdvancedDlg::RegisterMainDialog(CFreeScanDlg* const mainDialog) {
-	m_pMainDlg = mainDialog;
+void CAdvancedDlg::RegisterSupervisor(CSupervisorInterface* const pSupervisor) {
+	m_pSupervisor = pSupervisor;
 }
 
 BEGIN_MESSAGE_MAP(CAdvancedDlg, CTTPropertyPage)
@@ -110,8 +87,7 @@ END_MESSAGE_MAP()
 /////////////////////////////////////////////////////////////////////////////
 // CAdvancedDlg message handlers
 
-BOOL CAdvancedDlg::OnInitDialog() 
-{
+BOOL CAdvancedDlg::OnInitDialog() {
 	CTTPropertyPage::OnInitDialog();
 	
 	// Add dialog items that want ToolTip text
@@ -121,30 +97,26 @@ BOOL CAdvancedDlg::OnInitDialog()
 	              // EXCEPTION: OCX Property Pages should return FALSE
 }
 
-void CAdvancedDlg::OnSetdesidle() 
-{
+void CAdvancedDlg::OnSetdesidle() {
 	CDesIdleDlg		dlg;
 
 	dlg.m_Value = 850;;
-	if (GetSupervisor()->GetEcuData()->m_iDesiredIdle != CEcuData::c_iUNSUPPORTED) {
-		dlg.m_Value = GetSupervisor()->GetEcuData()->m_iDesiredIdle;
+	if (CEcuData::isValid(m_pSupervisor->GetEcuData()->m_iDesiredIdle)) {
+		dlg.m_Value = m_pSupervisor->GetEcuData()->m_iDesiredIdle;
 	}
 	
-	if (dlg.DoModal() == IDOK)
-	{
+	if (dlg.DoModal() == IDOK) {
 		// Sends the ECU command to set the desired idle
 		unsigned char uc;
 		uc = (unsigned char) ((dlg.m_Value / 25) * 2);
-		GetSupervisor()->ECUMode(ECU_SET_DES_IDLE, uc);
+		m_pSupervisor->ECUMode(ECU_SET_DES_IDLE, uc);
 	}
 }
 
-void CAdvancedDlg::OnResetBLM() 
-{
-	GetSupervisor()->ECUMode(ECU_CLEAR_BLM);
+void CAdvancedDlg::OnResetBLM() {
+	m_pSupervisor->ECUMode(ECU_CLEAR_BLM);
 }
 
-void CAdvancedDlg::OnResetIAC() 
-{
-	GetSupervisor()->ECUMode(ECU_RESET_IAC);
+void CAdvancedDlg::OnResetIAC() {
+	m_pSupervisor->ECUMode(ECU_RESET_IAC);
 }

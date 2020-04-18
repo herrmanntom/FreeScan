@@ -1,8 +1,6 @@
 // TTPropertyPage.cpp : implementation file
 //
 
-#include "stdafx.h"
-#include "FreeScan.h"
 #include "TTPropertyPage.h"
 
 #ifdef _DEBUG

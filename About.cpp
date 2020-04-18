@@ -4,10 +4,9 @@
 // mail@andywhittaker.com
 //
 
-#include "stdafx.h"
-#include "resource.h"
-#include "FreeScan.h"
 #include "About.h"
+
+#include "resource.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

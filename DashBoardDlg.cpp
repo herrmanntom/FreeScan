@@ -3,11 +3,6 @@
 // (c) 1996-99 Andy Whittaker, Chester, England. 
 // mail@andywhittaker.com
 
-#include "stdafx.h"
-#include "FreeScan.h"
-#include "MainDlg.h"
-#include "Supervisor.h"
-
 #include "DashBoardDlg.h"
 
 #ifdef _DEBUG
@@ -56,7 +51,7 @@ CDashBoardDlg::CDashBoardDlg() : CTTPropertyPage(CDashBoardDlg::IDD)
 	//{{AFX_DATA_INIT(CDashBoardDlg)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
-	m_pMainDlg = NULL;
+	m_pSupervisor = NULL;
 }
 
 CDashBoardDlg::~CDashBoardDlg()
@@ -89,23 +84,13 @@ void CDashBoardDlg::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 
 	//Updates the dialog.
-	Refresh(GetSupervisor()->GetEcuData());
-}
-
-// Returns a pointer to the Supervisor
-CSupervisor* CDashBoardDlg::GetSupervisor(void)
-{
-	return m_pMainDlg->m_pSupervisor;
-}
-
-// Returns if the ECU is interactive
-BOOL CDashBoardDlg::GetInteract(void)
-{
-	return GetSupervisor()->GetInteract();
+	if (m_pSupervisor != NULL) {
+		Refresh(m_pSupervisor->GetEcuData());
+	}
 }
 
 static inline void updateField(CProgressCtrl *const progressMeter, CEdit * const textBox, const char *const textFormat, const float fValue, const float progressMeterScaleFactor, const int progressMeterMin, const int progressMeterMax) {
-	if (fValue != CEcuData::c_fUNSUPPORTED) {
+	if (CEcuData::isValid(fValue)) {
 		if (textBox != NULL && textFormat != NULL) {
 			CString buf;
 			buf.Format(textFormat, fValue);
@@ -129,7 +114,7 @@ static inline void updateField(CProgressCtrl *const progressMeter, CEdit * const
 }
 
 static inline void updateField(CProgressCtrl *const progressMeter, CEdit * const textBox, const char *const textFormat, const int iValue, const int progressMeterScaleFactor, const int progressMeterMin, const int progressMeterMax) {
-	if (iValue != CEcuData::c_iUNSUPPORTED) {
+	if (CEcuData::isValid(iValue)) {
 		if (textBox != NULL) {
 			CString buf;
 			buf.Format(textFormat, iValue);
@@ -177,8 +162,8 @@ void CDashBoardDlg::Refresh(const CEcuData* const ecuData)
 	updateField(&m_EngineLoad, NULL, NULL, ecuData->m_iEngineLoad, 1, LOAD_MIN, LOAD_MAX);
 }
 
-void CDashBoardDlg::RegisterMainDialog(CFreeScanDlg* const mainDialog) {
-	m_pMainDlg = mainDialog;
+void CDashBoardDlg::RegisterSupervisor(CSupervisorInterface* const pSupervisor) {
+	m_pSupervisor = pSupervisor;
 }
 
 BEGIN_MESSAGE_MAP(CDashBoardDlg, CTTPropertyPage)

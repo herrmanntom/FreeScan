@@ -8,7 +8,6 @@
 // All rights reserved - not to be sold.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "stdafx.h"
 #include "resource.h"
 #include "Led.h"
 

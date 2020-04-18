@@ -64,9 +64,11 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AssemblerListingLocation>.\Debug\</AssemblerListingLocation>
       <BrowseInformation>true</BrowseInformation>
-      <PrecompiledHeaderOutputFile>.\Debug\FreeScan.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>
+      </PrecompiledHeaderOutputFile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
       <ObjectFileName>.\Debug\</ObjectFileName>
       <ProgramDataBaseFileName>.\Debug\</ProgramDataBaseFileName>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -76,6 +78,8 @@
       <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointExceptions>true</FloatingPointExceptions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Protocols;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Midl>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -110,9 +114,11 @@
       <WarningLevel>Level4</WarningLevel>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AssemblerListingLocation>.\Release\</AssemblerListingLocation>
-      <PrecompiledHeaderOutputFile>.\Release\FreeScan.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>
+      </PrecompiledHeaderOutputFile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
       <ObjectFileName>.\Release\</ObjectFileName>
       <ProgramDataBaseFileName>.\Release\</ProgramDataBaseFileName>
       <SDLCheck>true</SDLCheck>
@@ -120,6 +126,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Protocols;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Midl>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -146,6 +154,8 @@
   <ItemGroup>
     <ClCompile Include="font.cpp" />
     <ClCompile Include="picture.cpp" />
+    <ClCompile Include="Protocols\BaseParser.cpp" />
+    <ClCompile Include="Protocols\BaseProtocol.cpp" />
     <ClCompile Include="Protocols\EcuData.cpp" />
     <ClCompile Include="Protocols\ELM327Parser.cpp" />
     <ClCompile Include="Protocols\ELM327Protocol.cpp" />
@@ -191,22 +201,21 @@
     <ClCompile Include="RawMode01.cpp" />
     <ClCompile Include="SensorDlg.cpp" />
     <ClCompile Include="StatusBitsDlg.cpp" />
-    <ClCompile Include="StdAfx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdafx.h</PrecompiledHeaderFile>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">stdafx.h</PrecompiledHeaderFile>
-    </ClCompile>
     <ClCompile Include="TCodesDlg.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.24.28314\include\vcruntime.h" />
+    <ClInclude Include="BaseDefines.h" />
     <ClInclude Include="picture.h" />
+    <ClInclude Include="Protocols\BaseParser.h" />
+    <ClInclude Include="Protocols\BaseProtocol.h" />
     <ClInclude Include="Protocols\EcuData.h" />
     <ClInclude Include="Protocols\ELM327Parser.h" />
     <ClInclude Include="Protocols\ELM327Protocol.h" />
     <ClInclude Include="DesIdleDlg.h" />
     <ClInclude Include="OXToolTipCtrl.h" />
+    <ClInclude Include="Protocols\SupervisorInterface.h" />
+    <ClInclude Include="StatusWriter.h" />
     <ClInclude Include="TTPropertyPage.h" />
     <ClInclude Include="EnumSer.h" />
     <ClInclude Include="SerialPort.h" />
@@ -283,7 +292,6 @@ makehm IDW_,HIDW_,0x50000 resource.h &gt;&gt;"hlp\$(TargetName).hm" </Command>
     </CustomBuild>
     <ClInclude Include="SensorDlg.h" />
     <ClInclude Include="StatusBitsDlg.h" />
-    <ClInclude Include="StdAfx.h" />
     <ClInclude Include="TCodesDlg.h" />
   </ItemGroup>
   <ItemGroup>

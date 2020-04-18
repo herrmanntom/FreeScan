@@ -4,11 +4,6 @@
 // mail@andywhittaker.com
 //
 
-#include "stdafx.h"
-#include "FreeScan.h"
-#include "MainDlg.h"
-#include "Supervisor.h"
-
 #include "RawMode01.h"
 
 #ifdef _DEBUG
@@ -27,7 +22,7 @@ CRawMode01::CRawMode01() : CPropertyPage(CRawMode01::IDD)
 	//{{AFX_DATA_INIT(CRawMode01)
 	//}}AFX_DATA_INIT
 
-	m_pMainDlg = NULL;
+	m_pSupervisor = NULL;
 }
 
 CRawMode01::~CRawMode01()
@@ -49,21 +44,16 @@ void CRawMode01::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 
 	//Updates the dialog.
-	Refresh(GetSupervisor()->GetEcuData());
+	if (m_pSupervisor != NULL) {
+		Refresh(m_pSupervisor->GetEcuData());
+	}
 }
-
 
 BEGIN_MESSAGE_MAP(CRawMode01, CPropertyPage)
 	//{{AFX_MSG_MAP(CRawMode01)
 		// NOTE: the ClassWizard will add message map macros here
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
-
-// Returns a pointer to the Supervisor
-CSupervisor* CRawMode01::GetSupervisor(void)
-{
-	return m_pMainDlg->m_pSupervisor;
-}
 
 /////////////////////////////////////////////////////////////////////////////
 // CRawMode01 message handlers
@@ -165,6 +155,6 @@ void CRawMode01::Refresh(const CEcuData* const ecuData)
 	m_db07.SetWindowText(buf);
 }
 
-void CRawMode01::RegisterMainDialog(CFreeScanDlg* const mainDialog) {
-	m_pMainDlg = mainDialog;
+void CRawMode01::RegisterSupervisor(CSupervisorInterface* const pSupervisor) {
+	m_pSupervisor = pSupervisor;
 }

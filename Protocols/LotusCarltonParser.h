@@ -9,25 +9,26 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "GMBaseFunctions.h"
+#include "BaseDefines.h"
+
+#include "BaseParser.h"
+#include "BaseProtocol.h"
 
 #define ECU_HEADER_LotusCarlton				0xf4
 
-class CSupervisor;
-class CLotusCarltonParser : public CGMBaseFunctions
+class CLotusCarltonParser : public CBaseParser
 {
 public:
-	CLotusCarltonParser();
+	CLotusCarltonParser(CBaseProtocol* const pProtocol);
 	virtual ~CLotusCarltonParser();
-	
+
+	void InitializeSupportedValues(CEcuData* const ecuData);
 	int Parse(unsigned char*, int iLength);
 
-protected:
-	// Protected pointers
-	CSupervisor*	m_pSupervisor; // pointer to the owner.
+private:
 	unsigned char	m_ucDTC[5]; // Fault codes buffer
 
-protected:
+private:
 	//Implementation
 	void ParseADC(unsigned char* buffer, int len);
 	void ParseAnalogues(unsigned char* buffer, int len);
@@ -36,16 +37,6 @@ protected:
 	void ParseMode3(unsigned char* buffer, int len);
 	void ParseMode4(unsigned char* buffer, int len);
 	void ParseDTCs(void);// Parse the DTCs
-
-	// CSV Logging
-	BOOL StartCSVLog(BOOL bStart);// Starts or stops csv logging to file
-	CStdioFile	m_file;// File class for logging to disk
-	CString		m_csCSVLogFile;// Filename for CSV logging
-	DWORD		m_dwCSVRecord;//CSV record number
-
-	void WriteCSV(BOOL bTitle);//Write CSV data to disk
-
-	void UpdateDialog(void);// forces dialog to be updated
 };
 
 #endif // !defined(AFX_LotusCarltonPARSER_H__19F33D4B_4031_11D3_9828_0080C83832F8__INCLUDED_)

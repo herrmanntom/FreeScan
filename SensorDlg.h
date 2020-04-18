@@ -4,13 +4,12 @@
 #if _MSC_VER > 1000
 #pragma once
 #endif // _MSC_VER > 1000
-// SensorDlg.h : header file
-//
+
+#include "BaseDefines.h"
 
 #include "TTPropertyPage.h" // Our Tooltip Class
-#include "Protocols/EcuData.h"
-#include "MainDlg.h"
-#include "Supervisor.h"
+#include "EcuData.h"
+#include "SupervisorInterface.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CSensorDlg dialog
@@ -45,7 +44,7 @@ private:
 	CEdit	m_CoolantTemp;
 	//}}AFX_DATA
 
-	CFreeScanDlg*	m_pMainDlg; // Base Dialog Pointer.
+	CSupervisorInterface* m_pSupervisor;
 
 // Overrides
 	// ClassWizard generate virtual function overrides
@@ -57,12 +56,9 @@ protected:
 // Implementation
 public:
 	void Refresh(const CEcuData* const ecuData); // Updates all of our controls
-	void RegisterMainDialog(CFreeScanDlg* const mainDialog);
+	void RegisterSupervisor(CSupervisorInterface* const pSupervisor);
 
 private:
-	CSupervisor* GetSupervisor(void); // returns a pointer to the Supervisor
-	BOOL GetInteract(void);
-
 	// Generated message map functions
 	//{{AFX_MSG(CSensorDlg)
 	virtual BOOL OnInitDialog();

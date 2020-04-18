@@ -4,7 +4,6 @@
 // mail@andywhittaker.com
 //
 
-#include "stdafx.h"
 #include "FreeScan.h"
 #include "MainDlg.h"
 

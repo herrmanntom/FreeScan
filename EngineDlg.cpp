@@ -4,11 +4,6 @@
 // mail@andywhittaker.com
 //
 
-#include "stdafx.h"
-#include "FreeScan.h"
-#include "MainDlg.h"
-#include "Supervisor.h"
-
 #include "EngineDlg.h"
 
 #ifdef _DEBUG
@@ -26,7 +21,7 @@ CEngineDlg::CEngineDlg() : CTTPropertyPage(CEngineDlg::IDD)
 {
 	//{{AFX_DATA_INIT(CEngineDlg)
 	//}}AFX_DATA_INIT
-	m_pMainDlg = NULL;
+	m_pSupervisor = NULL;
 }
 
 CEngineDlg::~CEngineDlg()
@@ -73,17 +68,13 @@ void CEngineDlg::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 
 	//Updates the dialog.
-	Refresh(GetSupervisor()->GetEcuData());
-}
-
-// Returns a pointer to the Supervisor
-CSupervisor* CEngineDlg::GetSupervisor(void)
-{
-	return m_pMainDlg->m_pSupervisor;
+	if (m_pSupervisor != NULL) {
+		Refresh(m_pSupervisor->GetEcuData());
+	}
 }
 
 static inline void updateField(DWORD dwCurrentMode, CEdit * const textBox, const char *const textFormat, const int iValue) {
-	if (dwCurrentMode != 1 || iValue == CEcuData::c_iUNSUPPORTED) {
+	if (dwCurrentMode != 1 || !CEcuData::isValid(iValue)) {
 		textBox->SetWindowText("N/A");
 	}
 	else {
@@ -94,7 +85,7 @@ static inline void updateField(DWORD dwCurrentMode, CEdit * const textBox, const
 }
 
 static inline void updateField(DWORD dwCurrentMode, CEdit * const textBox, const char *const textFormat, const float fValue) {
-	if (dwCurrentMode != 1 || fValue == CEcuData::c_fUNSUPPORTED) {
+	if (dwCurrentMode != 1 || !CEcuData::isValid(fValue)) {
 		textBox->SetWindowText("N/A");
 	}
 	else {
@@ -104,40 +95,34 @@ static inline void updateField(DWORD dwCurrentMode, CEdit * const textBox, const
 	}
 }
 
+static inline void updateBoolField(DWORD dwCurrentMode, CEdit* const textBox, const char* const textTrue, const char* const textFalse, const BOOL bValue) {
+	if (dwCurrentMode != 1 || !CEcuData::isValid(bValue)) {
+		textBox->SetWindowText("N/A");
+	}
+	else {
+		CString buf;
+		if (bValue == TRUE) {
+			buf = textTrue;
+		}
+		else {
+			buf = textFalse;
+		}
+		textBox->SetWindowText(buf);
+	}
+}
+
 // Updates all of our controls
 void CEngineDlg::Refresh(const CEcuData* const ecuData)
 {
-	DWORD	dwCurrentMode = GetSupervisor()->GetCurrentMode();
+	DWORD	dwCurrentMode = m_pSupervisor->GetCurrentMode();
 
-	if (!( (dwCurrentMode == 1) ||
-		(dwCurrentMode == 0) ))
-		m_status7.SetWindowText("??");
-	else if (ecuData->m_bEngineClosedLoop == TRUE)
-		m_status7.SetWindowText("Closed Loop");
-	else
-		m_status7.SetWindowText("Open Loop");
+	updateBoolField(dwCurrentMode, &m_status7, "Closed Loop", "Fixed Map", ecuData->m_bEngineClosedLoop);
 
-	if (!( (dwCurrentMode == 1) ||
-		(dwCurrentMode == 0) ))
-		m_status6.SetWindowText("N/A");
-	else if (ecuData->m_bEngineStalled == TRUE)
-		m_status6.SetWindowText("No Ref Pulses");
-	else
-		m_status6.SetWindowText("Running");
+	updateBoolField(dwCurrentMode, &m_status6, "No Ref Pulses", "Running", ecuData->m_bEngineStalled);
 
-	if (dwCurrentMode != 1)
-		m_ACRequest.SetWindowText("N/A");
-	else if (ecuData->m_bACRequest == TRUE)
-		m_ACRequest.SetWindowText("A/C Requested");
-	else
-		m_ACRequest.SetWindowText("A/C Off");
+	updateBoolField(dwCurrentMode, &m_ACRequest, "A/C Requested", "A/C Off", ecuData->m_bACRequest);
 
-	if (dwCurrentMode != 1)
-		m_ACClutch.SetWindowText("N/A");
-	else if (ecuData->m_bACClutch == TRUE)
-		m_ACClutch.SetWindowText("A/C Clutch ON");
-	else
-		m_ACClutch.SetWindowText("A/C Clutch OFF");
+	updateBoolField(dwCurrentMode, &m_ACClutch, "A/C Clutch ON", "A/C Clutch OFF", ecuData->m_bACClutch);
 
 	updateField(dwCurrentMode, &m_EpromID, "%04X", ecuData->m_iEpromID);
 
@@ -147,7 +132,7 @@ void CEngineDlg::Refresh(const CEcuData* const ecuData)
 
 	updateField(dwCurrentMode, &m_DesiredIdle, "%d", ecuData->m_iDesiredIdle);
 
-	if (GetSupervisor()->m_bMiles == TRUE) {
+	if (m_pSupervisor->GetMiles() == TRUE) {
 		updateField(dwCurrentMode, &m_MPH, "%d", ecuData->m_iMPH);
 	}
 	else {
@@ -156,7 +141,7 @@ void CEngineDlg::Refresh(const CEcuData* const ecuData)
 
 	updateField(dwCurrentMode, &m_BatteryVolts, "%3.1f", ecuData->m_fBatteryVolts);
 
-	if (GetSupervisor()->m_bCentigrade == TRUE) {
+	if (m_pSupervisor->GetCentigrade() == TRUE) {
 		updateField(dwCurrentMode, &m_StartCoolant, "%3.1f", ecuData->m_fStartWaterTemp);
 
 		updateField(dwCurrentMode, &m_CoolantTemp, "%3.1f", ecuData->m_fWaterTemp);
@@ -211,8 +196,8 @@ void CEngineDlg::Refresh(const CEcuData* const ecuData)
 	updateField(dwCurrentMode, &m_AirFlow, "%4.0f", ecuData->m_fAirFlow);
 }
 
-void CEngineDlg::RegisterMainDialog(CFreeScanDlg* const mainDialog) {
-	m_pMainDlg = mainDialog;
+void CEngineDlg::RegisterSupervisor(CSupervisorInterface* const pSupervisor) {
+	m_pSupervisor = pSupervisor;
 }
 
 BEGIN_MESSAGE_MAP(CEngineDlg, CTTPropertyPage)

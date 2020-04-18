@@ -4,12 +4,15 @@
 #if _MSC_VER > 1000
 #pragma once
 #endif // _MSC_VER > 1000
-// RawMode01.h : header file
-//
 
-#include "Protocols/EcuData.h"
-#include "MainDlg.h"
-#include "Supervisor.h"
+#include "BaseDefines.h"
+
+#include <afxwin.h>
+#include <afxdlgs.h>
+
+#include "EcuData.h"
+#include "SupervisorInterface.h"
+#include "resource.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CRawMode01 dialog
@@ -37,7 +40,7 @@ private:
 	CEdit	m_db00;
 	//}}AFX_DATA
 
-	CFreeScanDlg*	m_pMainDlg; // Base Dialog Pointer.
+	CSupervisorInterface* m_pSupervisor;
 
 // Overrides
 	// ClassWizard generate virtual function overrides
@@ -49,10 +52,9 @@ protected:
 // Implementation
 public:
 	void Refresh(const CEcuData* const ecuData);
-	void RegisterMainDialog(CFreeScanDlg* const mainDialog);
+	void RegisterSupervisor(CSupervisorInterface* const pSupervisor);
 
 private:
-	CSupervisor* GetSupervisor(void); // returns a pointer to the Supervisor
 	// Generated message map functions
 	//{{AFX_MSG(CRawMode01)
 		// NOTE: the ClassWizard will add member functions here

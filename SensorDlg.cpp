@@ -3,11 +3,6 @@
 // (c) 1996-99 Andy Whittaker, Chester, England. 
 // mail@andywhittaker.com
 
-#include "stdafx.h"
-#include "FreeScan.h"
-#include "MainDlg.h"
-#include "Supervisor.h"
-
 #include "SensorDlg.h"
 
 #ifdef _DEBUG
@@ -26,7 +21,7 @@ CSensorDlg::CSensorDlg() : CTTPropertyPage(CSensorDlg::IDD)
 	//{{AFX_DATA_INIT(CSensorDlg)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
-	m_pMainDlg = NULL;
+	m_pSupervisor = NULL;
 }
 
 CSensorDlg::~CSensorDlg()
@@ -55,23 +50,13 @@ void CSensorDlg::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 
 	//Updates the dialog.
-	Refresh(GetSupervisor()->GetEcuData());
-}
-
-// Returns a pointer to the Supervisor
-CSupervisor* CSensorDlg::GetSupervisor(void)
-{
-	return m_pMainDlg->m_pSupervisor;
-}
-
-// Returns if the ECU is interactive
-BOOL CSensorDlg::GetInteract(void)
-{
-	return GetSupervisor()->GetInteract();
+	if (m_pSupervisor != NULL) {
+		Refresh(m_pSupervisor->GetEcuData());
+	}
 }
 
 static inline void updateField(DWORD dwCurrentMode, CEdit * const textBox, const char *const textFormat, const int iValue) {
-	if (dwCurrentMode != 1 || iValue == CEcuData::c_iUNSUPPORTED) {
+	if (dwCurrentMode != 1 || !CEcuData::isValid(iValue)) {
 		textBox->SetWindowText("N/A");
 	}
 	else {
@@ -82,7 +67,7 @@ static inline void updateField(DWORD dwCurrentMode, CEdit * const textBox, const
 }
 
 static inline void updateField(DWORD dwCurrentMode, CEdit * const textBox, const char *const textFormat, const float fValue) {
-	if (dwCurrentMode != 1 || fValue == CEcuData::c_fUNSUPPORTED) {
+	if (dwCurrentMode != 1 || !CEcuData::isValid(fValue)) {
 		textBox->SetWindowText("N/A");
 	}
 	else {
@@ -95,9 +80,9 @@ static inline void updateField(DWORD dwCurrentMode, CEdit * const textBox, const
 // Updates all of our controls
 void CSensorDlg::Refresh(const CEcuData* const ecuData)
 {
-	DWORD	dwCurrentMode = GetSupervisor()->GetCurrentMode();
+	DWORD	dwCurrentMode = m_pSupervisor->GetCurrentMode();
 
-	if (GetSupervisor()->m_bCentigrade == TRUE) {
+	if (m_pSupervisor->GetCentigrade() == TRUE) {
 		updateField(dwCurrentMode, &m_CoolantTemp, "%3.1f", ecuData->m_fWaterTemp);
 		updateField(dwCurrentMode, &m_MAT, "%3.1f", ecuData->m_fMATTemp);
 	}
@@ -122,8 +107,8 @@ void CSensorDlg::Refresh(const CEcuData* const ecuData)
 	updateField(dwCurrentMode, &m_MapADC, "0x%02X", ecuData->m_iMAPADC);
 }
 
-void CSensorDlg::RegisterMainDialog(CFreeScanDlg* const mainDialog) {
-	m_pMainDlg = mainDialog;
+void CSensorDlg::RegisterSupervisor(CSupervisorInterface* const pSupervisor) {
+	m_pSupervisor = pSupervisor;
 }
 
 BEGIN_MESSAGE_MAP(CSensorDlg, CTTPropertyPage)
