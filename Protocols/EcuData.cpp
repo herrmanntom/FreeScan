@@ -35,10 +35,10 @@ BOOL CEcuData::isSupported(const int value) {
 
 const int MAX_RAW_DATA_SIZE = 100;
 
-CEcuData::CEcuData()
-{
+CEcuData::CEcuData() {
 	m_dwBytesSent = 0;
 	m_dwBytesReceived = 0;
+	m_iCsvColumnCount = c_iUNSUPPORTED;
 
 	m_ucF005 = new unsigned char[MAX_RAW_DATA_SIZE]; // never should get this big
 	m_ucF00A = new unsigned char[MAX_RAW_DATA_SIZE]; // never should get this big
@@ -47,12 +47,77 @@ CEcuData::CEcuData()
 	m_ucF003 = new unsigned char[MAX_RAW_DATA_SIZE]; // Mode 3 data buffer
 	m_ucF004 = new unsigned char[MAX_RAW_DATA_SIZE]; // Mode 4 data buffer
 
-	ResetVariables();
+	memset(m_ucF005, 0, MAX_RAW_DATA_SIZE);
+	memset(m_ucF00A, 0, MAX_RAW_DATA_SIZE);
+	memset(m_ucF001, 0, MAX_RAW_DATA_SIZE);
+	memset(m_ucF002, 0, MAX_RAW_DATA_SIZE);
+	memset(m_ucF003, 0, MAX_RAW_DATA_SIZE);
+	memset(m_ucF004, 0, MAX_RAW_DATA_SIZE);
+	
+	m_csProtocolComment = "";
+	
+	m_csDTC = "No reported faults."; // Reset Fault Codes
+
+	// Reset normal engine parameters
+	m_bEngineClosedLoop = c_bUNSUPPORTED;
+	m_bEngineStalled = c_bUNSUPPORTED;
+	m_bACRequest = c_bUNSUPPORTED;
+	m_bACClutch = c_bUNSUPPORTED;
+	m_fBatteryVolts = c_fUNSUPPORTED;
+	m_iRPM = c_iUNSUPPORTED;
+	m_iIACPosition = c_iUNSUPPORTED;
+	m_iDesiredIdle = c_iUNSUPPORTED;
+	m_iMPH = c_iUNSUPPORTED;
+	m_iMPH_inKPH = c_iUNSUPPORTED;
+	m_fStartWaterTemp = c_fUNSUPPORTED;
+	m_fStartWaterTemp_inF = c_fUNSUPPORTED;
+	m_fWaterTemp = c_fUNSUPPORTED;
+	m_fWaterTemp_inF = c_fUNSUPPORTED;
+	m_iWaterTempADC = c_iUNSUPPORTED;
+	m_fOilTemp = c_fUNSUPPORTED;
+	m_fOilTemp_inF = c_fUNSUPPORTED;
+	m_fWaterVolts = c_fUNSUPPORTED;
+	m_fMATTemp = c_fUNSUPPORTED;
+	m_fMATTemp_inF = c_fUNSUPPORTED;
+	m_fMATVolts = c_fUNSUPPORTED;
+	m_iMATADC = c_iUNSUPPORTED;
+	m_iEpromID = c_iUNSUPPORTED;
+	m_iRunTime = c_iUNSUPPORTED;
+	m_iCrankSensors = c_iUNSUPPORTED;
+	m_iThrottlePos = c_iUNSUPPORTED;
+	m_fThrottleVolts = c_fUNSUPPORTED;
+	m_iThrottleADC = c_iUNSUPPORTED;
+	m_iEngineLoad = c_iUNSUPPORTED;
+	m_fBaro = c_fUNSUPPORTED;
+	m_fBaroVolts = c_fUNSUPPORTED;
+	m_iBaroADC = c_iUNSUPPORTED;
+	m_fMAP = c_fUNSUPPORTED;
+	m_fMAPVolts = c_fUNSUPPORTED;
+	m_iMAPADC = c_iUNSUPPORTED;
+	m_iBoostPW = c_iUNSUPPORTED; // Pulse-width of the turbo boost controller
+	m_iCanisterDC = c_iUNSUPPORTED; // Duty Cycle of Charcoal Cansister controller
+	m_iSecondaryInjPW = c_iUNSUPPORTED; // Pulse-width of secondary injectors
+	m_iInjectorBasePWMsL = c_iUNSUPPORTED; // Injector Opening Time in Ms Left
+	m_iInjectorBasePWMsR = c_iUNSUPPORTED; // Injector Opening Time in Ms Right
+	m_fAFRatio = c_fUNSUPPORTED; // Air Fuel Ratio
+	m_fAirFlow = c_fUNSUPPORTED; // Air Flow
+	m_fSparkAdvance = c_fUNSUPPORTED;
+	m_fKnockRetard = c_fUNSUPPORTED;
+	m_iKnockCount = c_iUNSUPPORTED;
+	m_fO2VoltsLeft = c_fUNSUPPORTED;
+	m_fO2VoltsRight = c_fUNSUPPORTED;
+	m_iIntegratorL = c_iUNSUPPORTED; // Integrator Value Left
+	m_iIntegratorR = c_iUNSUPPORTED; // Integrator Value Right
+	m_iRichLeanCounterL = c_iUNSUPPORTED; // Rich/Lean Counter Left
+	m_iRichLeanCounterR = c_iUNSUPPORTED; // Rich/Lean Counter Right
+	m_iBLM = c_iUNSUPPORTED;	// Contents of the current BLM Cell
+	m_iBLMRight = c_iUNSUPPORTED;	// Contents of the current BLM Cell
+	m_iBLMCell = c_iUNSUPPORTED; // Current BLM Cell
+
 	//ResetVariablesForGuiTest();
 }
 
-CEcuData::CEcuData(const CEcuData& other): m_csProtocolComment(other.m_csProtocolComment), m_csDTC(other.m_csDTC)
-{
+CEcuData::CEcuData(const CEcuData& other): m_csProtocolComment(other.m_csProtocolComment), m_csDTC(other.m_csDTC) {
 	m_dwBytesSent = other.m_dwBytesSent;
 	m_dwBytesReceived = other.m_dwBytesReceived;
 	m_bEngineClosedLoop = other.m_bEngineClosedLoop;
@@ -125,8 +190,7 @@ CEcuData::CEcuData(const CEcuData& other): m_csProtocolComment(other.m_csProtoco
 	m_iKnockCount = other.m_iKnockCount;
 }
 
-CEcuData::~CEcuData()
-{
+CEcuData::~CEcuData() {
 	delete m_ucF005;
 	delete m_ucF00A;
 	delete m_ucF001; // Delete Mode 1 data buffer
@@ -183,7 +247,7 @@ void CEcuData::copyFromF004(unsigned char* const targetBuffer, int targetBufferL
 	copyAndSet(targetBuffer, targetBufferLen, m_ucF004, MAX_RAW_DATA_SIZE);
 }
 
-static CString generateCsvColumn(const float fValue, const BOOL header, const char* const title, const char* const format) {
+static CString generateCsvColumn(const BOOL header, int* const columnCount, const float fValue, const char* const title, const char* const format) {
 	CString	csBuf = _T("");
 	if (CEcuData::isSupported(fValue)) {
 		if (header == TRUE) {
@@ -197,11 +261,12 @@ static CString generateCsvColumn(const float fValue, const BOOL header, const ch
 		else {
 			csBuf = _T(", ");
 		}
+		(*columnCount)++;
 	}
 	return csBuf;
 }
 
-static CString generateCsvColumn(const int iValue, const BOOL header, const char* const title, const char* const format) {
+static CString generateCsvColumn(const BOOL header, int* const columnCount, const int iValue, const char* const title, const char* const format) {
 	CString	csBuf = _T("");
 	if (CEcuData::isSupported(iValue)) {
 		if (header == TRUE) {
@@ -215,136 +280,73 @@ static CString generateCsvColumn(const int iValue, const BOOL header, const char
 		else {
 			csBuf = _T(", ");
 		}
+		(*columnCount)++;
 	}
 	return csBuf;
 }
 
-CString CEcuData::generateCsvLine(const BOOL header) const {
+CString CEcuData::generateCsvLine(const BOOL header) {
+	int columnCount = 0;
 	CString	csBuf = _T("");
 	// main engine / vehicle fields
-	csBuf += generateCsvColumn(m_iRPM, header, "Engine Speed (RPM)", "%d");
-	csBuf += generateCsvColumn(m_iDesiredIdle, header, "Desired Idle (RPM)", "%d");
-	csBuf += generateCsvColumn(m_iMPH, header, "Road Speed (MPH)", "%d");
-	csBuf += generateCsvColumn(m_iMPH_inKPH, header, "Road Speed (KPH)", "%d");
-	csBuf += generateCsvColumn(m_fOilTemp, header, "Oil Temperature (°C)", "%3.1f");
-	csBuf += generateCsvColumn(m_fWaterTemp, header, "Coolant Temperature (°C)", "%3.1f");
-	csBuf += generateCsvColumn(m_fStartWaterTemp, header, "Start Coolant Temperature (°C)", "%3.1f");
-	csBuf += generateCsvColumn(m_iThrottlePos, header, "Throttle Position (%)", "%d");
-	csBuf += generateCsvColumn(m_iEngineLoad, header, "Engine Load (%)", "%d");
-	csBuf += generateCsvColumn(m_fBaro, header, "Atmospheric Pressure (bar)", "%4.2f");
-	csBuf += generateCsvColumn(m_fMAP, header, "Manifold Air Pressure (bar)", "%4.2f");
-	csBuf += generateCsvColumn(m_fMATTemp, header, "Manifold Air Temperature (°C)", "%3.1f");
-	csBuf += generateCsvColumn(m_fAirFlow, header, "Air Flow", "%3.1f");
-	csBuf += generateCsvColumn(m_fBatteryVolts, header, "Battery (V)", "%3.1f");
-	csBuf += generateCsvColumn(m_bACRequest, header, "Air Conditioner Demand", "%d");
-	csBuf += generateCsvColumn(m_bACClutch, header, "Air Conditioner Clutch Engaged", "%d");
-	csBuf += generateCsvColumn(m_bEngineStalled, header, "Engine Stalled", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_iRPM, "Engine Speed (RPM)", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_iDesiredIdle, "Desired Idle (RPM)", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_iMPH, "Road Speed (MPH)", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_iMPH_inKPH, "Road Speed (KPH)", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_fOilTemp, "Oil Temperature (°C)", "%3.1f");
+	csBuf += generateCsvColumn(header, &columnCount, m_fWaterTemp, "Coolant Temperature (°C)", "%3.1f");
+	csBuf += generateCsvColumn(header, &columnCount, m_fStartWaterTemp, "Start Coolant Temperature (°C)", "%3.1f");
+	csBuf += generateCsvColumn(header, &columnCount, m_iThrottlePos, "Throttle Position (%)", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_iEngineLoad, "Engine Load (%)", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_fBaro, "Atmospheric Pressure (bar)", "%4.2f");
+	csBuf += generateCsvColumn(header, &columnCount, m_fMAP, "Manifold Air Pressure (bar)", "%4.2f");
+	csBuf += generateCsvColumn(header, &columnCount, m_fMATTemp, "Manifold Air Temperature (°C)", "%3.1f");
+	csBuf += generateCsvColumn(header, &columnCount, m_fAirFlow, "Air Flow", "%3.1f");
+	csBuf += generateCsvColumn(header, &columnCount, m_fBatteryVolts, "Battery (V)", "%3.1f");
+	csBuf += generateCsvColumn(header, &columnCount, m_bACRequest, "Air Conditioner Demand", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_bACClutch, "Air Conditioner Clutch Engaged", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_bEngineStalled, "Engine Stalled", "%d");
 
 	// parameters controlled by engine management 
-	csBuf += generateCsvColumn(m_fAFRatio, header, "Air:Fuel (ratio)", "%3.1f");
-	csBuf += generateCsvColumn(m_fSparkAdvance, header, "Spark Advance (°)", "%3.1f");
-	csBuf += generateCsvColumn(m_fKnockRetard, header, "Knock Retard (°)", "%3.1f");
-	csBuf += generateCsvColumn(m_iInjectorBasePWMsL, header, "Injector Base Pule Width (ms)", "%d");
-	csBuf += generateCsvColumn(m_iInjectorBasePWMsR, header, "Injector Base Pule Width [Right Bank] (ms)", "%d");
-	csBuf += generateCsvColumn(m_iSecondaryInjPW, header, "Secondary Injectors Pule Width (ms)", "%d");
-	csBuf += generateCsvColumn(m_iBoostPW, header, "Wastegate Pule Width (ms)", "%d");
-	csBuf += generateCsvColumn(m_iIACPosition, header, "IAC Position", "%d");
-	csBuf += generateCsvColumn(m_iCanisterDC, header, "Charcoal Canister Purge Duty Cycle", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_fAFRatio, "Air:Fuel (ratio)", "%3.1f");
+	csBuf += generateCsvColumn(header, &columnCount, m_fSparkAdvance, "Spark Advance (°)", "%3.1f");
+	csBuf += generateCsvColumn(header, &columnCount, m_fKnockRetard, "Knock Retard (°)", "%3.1f");
+	csBuf += generateCsvColumn(header, &columnCount, m_iInjectorBasePWMsL, "Injector Base Pule Width (ms)", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_iInjectorBasePWMsR, "Injector Base Pule Width [Right Bank] (ms)", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_iSecondaryInjPW, "Secondary Injectors Pule Width (ms)", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_iBoostPW, "Wastegate Pule Width (ms)", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_iIACPosition, "IAC Position", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_iCanisterDC, "Charcoal Canister Purge Duty Cycle", "%d");
 
 	// parameters used by engine management to analyze and track engine state
-	csBuf += generateCsvColumn(m_iCrankSensors, header, "Crank Sensor (Counter)", "%d");
-	csBuf += generateCsvColumn(m_iKnockCount, header, "Knock (Counter)", "%d");
-	csBuf += generateCsvColumn(m_fO2VoltsLeft, header, "O2 Sensor (V)", "%5.3f");
-	csBuf += generateCsvColumn(m_fO2VoltsRight, header, "O2 Sensor [Right Bank] (V)", "%5.3f");
-	csBuf += generateCsvColumn(m_iRichLeanCounterL, header, "Rich / Lean (Counter)", "%d");
-	csBuf += generateCsvColumn(m_iRichLeanCounterR, header, "Rich / Lean [Right Bank] (Counter)", "%d");
-	csBuf += generateCsvColumn(m_iIntegratorL, header, "Integrator", "%d");
-	csBuf += generateCsvColumn(m_iIntegratorR, header, "Integrator [Right Bank]", "%d");
-	csBuf += generateCsvColumn(m_iBLM, header, "BLM value", "%d");
-	csBuf += generateCsvColumn(m_iBLMRight, header, "BLM value [Right Bank]", "%d");
-	csBuf += generateCsvColumn(m_iBLMCell, header, "BLM Cell", "%d");
-	csBuf += generateCsvColumn(m_bEngineClosedLoop, header, "Closed Loop", "%d");
-	csBuf += generateCsvColumn(m_iRunTime, header, "Engine Running Time (s)", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_iCrankSensors, "Crank Sensor (Counter)", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_iKnockCount, "Knock (Counter)", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_fO2VoltsLeft, "O2 Sensor (V)", "%5.3f");
+	csBuf += generateCsvColumn(header, &columnCount, m_fO2VoltsRight, "O2 Sensor [Right Bank] (V)", "%5.3f");
+	csBuf += generateCsvColumn(header, &columnCount, m_iRichLeanCounterL, "Rich / Lean (Counter)", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_iRichLeanCounterR, "Rich / Lean [Right Bank] (Counter)", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_iIntegratorL, "Integrator", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_iIntegratorR, "Integrator [Right Bank]", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_iBLM, "BLM value", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_iBLMRight, "BLM value [Right Bank]", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_iBLMCell, "BLM Cell", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_bEngineClosedLoop, "Closed Loop", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_iRunTime, "Engine Running Time (s)", "%d");
 
 	// redundant "raw voltages" from sensor that are represented with interpreted values above
-	csBuf += generateCsvColumn(m_fWaterVolts, header, "Coolant Sensor (V)", "%4.2f");
-	csBuf += generateCsvColumn(m_fThrottleVolts, header, "Throttle Position Sensor (V)", "%4.2f");
-	csBuf += generateCsvColumn(m_fBaroVolts, header, "Atmospheric Pressure Sensor (V)", "%4.2f");
-	csBuf += generateCsvColumn(m_fMAPVolts, header, "Manifold Air Pressure Sensor (V)", "%4.2f");
-	csBuf += generateCsvColumn(m_fMATVolts, header, "Manifold Air Temperature Sensor (V)", "%4.2f");
+	csBuf += generateCsvColumn(header, &columnCount, m_fWaterVolts, "Coolant Sensor (V)", "%4.2f");
+	csBuf += generateCsvColumn(header, &columnCount, m_fThrottleVolts, "Throttle Position Sensor (V)", "%4.2f");
+	csBuf += generateCsvColumn(header, &columnCount, m_fBaroVolts, "Atmospheric Pressure Sensor (V)", "%4.2f");
+	csBuf += generateCsvColumn(header, &columnCount, m_fMAPVolts, "Manifold Air Pressure Sensor (V)", "%4.2f");
+	csBuf += generateCsvColumn(header, &columnCount, m_fMATVolts, "Manifold Air Temperature Sensor (V)", "%4.2f");
 
+	if (m_iCsvColumnCount < 0) {
+		m_iCsvColumnCount = columnCount;
+	}
+	else if (m_iCsvColumnCount != columnCount) {
+		return "[CSV Implemenation ERROR!]" + csBuf;
+	}
 	return csBuf;
-}
-
-// Reset variables.
-void CEcuData::ResetVariables(void)
-{
-	m_csProtocolComment = "";
-
-	memset(m_ucF005, 0, MAX_RAW_DATA_SIZE);
-	memset(m_ucF00A, 0, MAX_RAW_DATA_SIZE);
-	memset(m_ucF001, 0, MAX_RAW_DATA_SIZE);
-	memset(m_ucF002, 0, MAX_RAW_DATA_SIZE);
-	memset(m_ucF003, 0, MAX_RAW_DATA_SIZE);
-	memset(m_ucF004, 0, MAX_RAW_DATA_SIZE);
-
-	m_csDTC = "No reported faults."; // Reset Fault Codes
-
-	// Reset normal engine parameters
-	m_bEngineClosedLoop = c_bUNSUPPORTED;
-	m_bEngineStalled = c_bUNSUPPORTED;
-	m_bACRequest = c_bUNSUPPORTED;
-	m_bACClutch = c_bUNSUPPORTED;
-	m_fBatteryVolts = c_fUNSUPPORTED;
-	m_iRPM = c_iUNSUPPORTED;
-	m_iIACPosition = c_iUNSUPPORTED;
-	m_iDesiredIdle = c_iUNSUPPORTED;
-	m_iMPH = c_iUNSUPPORTED;
-	m_iMPH_inKPH = c_iUNSUPPORTED;
-	m_fStartWaterTemp = c_fUNSUPPORTED;
-	m_fStartWaterTemp_inF = c_fUNSUPPORTED;
-	m_fWaterTemp = c_fUNSUPPORTED;
-	m_fWaterTemp_inF = c_fUNSUPPORTED;
-	m_iWaterTempADC = c_iUNSUPPORTED;
-	m_fOilTemp = c_fUNSUPPORTED;
-	m_fOilTemp_inF = c_fUNSUPPORTED;
-	m_fWaterVolts = c_fUNSUPPORTED;
-	m_fMATTemp = c_fUNSUPPORTED;
-	m_fMATTemp_inF = c_fUNSUPPORTED;
-	m_fMATVolts = c_fUNSUPPORTED;
-	m_iMATADC = c_iUNSUPPORTED;
-	m_iEpromID = c_iUNSUPPORTED;
-	m_iRunTime = c_iUNSUPPORTED;
-	m_iCrankSensors = c_iUNSUPPORTED;
-	m_iThrottlePos = c_iUNSUPPORTED;
-	m_fThrottleVolts = c_fUNSUPPORTED;
-	m_iThrottleADC = c_iUNSUPPORTED;
-	m_iEngineLoad = c_iUNSUPPORTED;
-	m_fBaro = c_fUNSUPPORTED;
-	m_fBaroVolts = c_fUNSUPPORTED;
-	m_iBaroADC = c_iUNSUPPORTED;
-	m_fMAP = c_fUNSUPPORTED;
-	m_fMAPVolts = c_fUNSUPPORTED;
-	m_iMAPADC = c_iUNSUPPORTED;
-	m_iBoostPW = c_iUNSUPPORTED; // Pulse-width of the turbo boost controller
-	m_iCanisterDC = c_iUNSUPPORTED; // Duty Cycle of Charcoal Cansister controller
-	m_iSecondaryInjPW = c_iUNSUPPORTED; // Pulse-width of secondary injectors
-	m_iInjectorBasePWMsL = c_iUNSUPPORTED; // Injector Opening Time in Ms Left
-	m_iInjectorBasePWMsR = c_iUNSUPPORTED; // Injector Opening Time in Ms Right
-	m_fAFRatio = c_fUNSUPPORTED; // Air Fuel Ratio
-	m_fAirFlow = c_fUNSUPPORTED; // Air Flow
-	m_fSparkAdvance = c_fUNSUPPORTED;
-	m_fKnockRetard = c_fUNSUPPORTED;
-	m_iKnockCount = c_iUNSUPPORTED;
-	m_fO2VoltsLeft = c_fUNSUPPORTED;
-	m_fO2VoltsRight = c_fUNSUPPORTED;
-	m_iIntegratorL = c_iUNSUPPORTED; // Integrator Value Left
-	m_iIntegratorR = c_iUNSUPPORTED; // Integrator Value Right
-	m_iRichLeanCounterL = c_iUNSUPPORTED; // Rich/Lean Counter Left
-	m_iRichLeanCounterR = c_iUNSUPPORTED; // Rich/Lean Counter Right
-	m_iBLM = c_iUNSUPPORTED;	// Contents of the current BLM Cell
-	m_iBLMRight = c_iUNSUPPORTED;	// Contents of the current BLM Cell
-	m_iBLMCell = c_iUNSUPPORTED; // Current BLM Cell
 }
 
 // Reset variables for GUI test

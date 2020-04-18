@@ -38,7 +38,7 @@ public:
 	void copyFromF003(unsigned char* const targetBuffer, const int targetBufferLen) const;
 	void copyFromF004(unsigned char* const targetBuffer, const int targetBufferLen) const;
 
-	CString generateCsvLine(const BOOL header) const;
+	CString generateCsvLine(const BOOL header);
 
 	DWORD		m_dwBytesSent;
 	DWORD		m_dwBytesReceived;
@@ -107,14 +107,15 @@ public:
 
 private:
 	// Raw Data : just a store so that we can debug
-	unsigned char* m_ucF005;
-	unsigned char* m_ucF00A;
-	unsigned char* m_ucF001; // Mode 1 data buffer
-	unsigned char* m_ucF002; // Mode 2 data buffer
-	unsigned char* m_ucF003; // Mode 3 data buffer
-	unsigned char* m_ucF004; // Mode 4 data buffer
+	unsigned char*	m_ucF005;
+	unsigned char*	m_ucF00A;
+	unsigned char*	m_ucF001; // Mode 1 data buffer
+	unsigned char*	m_ucF002; // Mode 2 data buffer
+	unsigned char*	m_ucF003; // Mode 3 data buffer
+	unsigned char*	m_ucF004; // Mode 4 data buffer
 
-	void ResetVariables(void);
+	int				m_iCsvColumnCount;
+
 	void SetVariablesForGuiTest(void);
 };
 
