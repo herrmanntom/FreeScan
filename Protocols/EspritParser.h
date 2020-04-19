@@ -35,7 +35,7 @@ private:
 	BOOL ParseMode2(unsigned char* buffer, int len);
 	BOOL ParseMode3(unsigned char* buffer, int len);
 	BOOL ParseMode4(unsigned char* buffer, int len);
-	void ParseDTCs(unsigned char* buffer);// Parse the DTCs
+	void ParseDTCs(CEcuData *const ecuData, unsigned char* buffer);// Parse the DTCs
 };
 
 #endif // !defined(AFX_ESPRITPARSER_H__19F33D4B_4031_11D3_9828_0080C83832F8__INCLUDED_)

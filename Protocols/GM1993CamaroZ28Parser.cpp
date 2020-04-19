@@ -28,6 +28,7 @@ CGM1993CamaroZ28Parser::~CGM1993CamaroZ28Parser() {
 }
 
 void CGM1993CamaroZ28Parser::InitializeSupportedValues(CEcuData* const ecuData) {
+	ecuData->m_csDTC = "No reported faults.";
 	ecuData->m_bEngineClosedLoop = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bACRequest = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bACClutch = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
@@ -254,7 +255,7 @@ void CGM1993CamaroZ28Parser::ParseMode1_0(unsigned char* buffer, int len)
 	ecuData->m_iMPH = (int)buffer[52]; // Count is in MPH
 	ecuData->m_iEngineLoad = (int)((float)buffer[53] / (float) 2.56);
 
-	ParseDTCs(); // Process the DTCs into text
+	ParseDTCs(ecuData); // Process the DTCs into text
 }
 
 // Translates the incoming data stream as Mode 2
@@ -315,7 +316,7 @@ void CGM1993CamaroZ28Parser::ParseMode3(unsigned char* buffer, int len)
 	m_ucDTC[3] = buffer[6]; // Fault code byte 4
 	m_ucDTC[4] = buffer[7]; // Fault code byte 5
 
-	ParseDTCs(); // Process the DTCs into text
+	ParseDTCs(ecuData); // Process the DTCs into text
 }
 
 // Translates the incoming data stream as Mode 4
@@ -438,16 +439,14 @@ void CGM1993CamaroZ28Parser::ParseMode10(unsigned char* /*buffer*/, int len)
 }
 
 // Translates the DTC Codes
-void CGM1993CamaroZ28Parser::ParseDTCs(void)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
+void CGM1993CamaroZ28Parser::ParseDTCs(CEcuData *const ecuData) {
 
 	ecuData->m_csDTC.Empty();
 
-	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0) && (m_ucDTC[3] == 0) && (m_ucDTC[4] == 0))
+	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0) && (m_ucDTC[3] == 0) && (m_ucDTC[4] == 0)) {
 		ecuData->m_csDTC = "No reported faults.";
-	else
-	{
+	}
+	else {
 		ecuData->m_csDTC = "The following faults are reported:\n";
 		
 		// Now print the fault-codes
@@ -660,7 +659,6 @@ void CGM1993CamaroZ28Parser::ParseDTCs(void)
 			ecuData->m_csDTC += "CODE 72  GEAR SWITCH FAILURE";
 			ecuData->m_csDTC += "\n";
 		}
-
 
 	}
 

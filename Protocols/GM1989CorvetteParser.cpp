@@ -28,6 +28,7 @@ CGM1989CorvetteParser::~CGM1989CorvetteParser() {
 }
 
 void CGM1989CorvetteParser::InitializeSupportedValues(CEcuData* const ecuData) {
+	ecuData->m_csDTC = "No reported faults.";
 	ecuData->m_bEngineClosedLoop = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bACRequest = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bACClutch = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
@@ -256,7 +257,7 @@ void CGM1989CorvetteParser::ParseMode1_0(unsigned char* buffer, int len)
 	ecuData->m_fAFRatio = (((float)(buffer[48])  + ((float) buffer[47] * (float)256.0))/ (float)10.0); // Air Fuel Ratio
 	ecuData->m_iRunTime = (buffer[52] * 256) + buffer[53]; // Total running time
 
-	ParseDTCs(); // Process the DTCs into text
+	ParseDTCs(ecuData); // Process the DTCs into text
 }
 
 // Translates the incoming data stream as Mode 2
@@ -311,7 +312,7 @@ void CGM1989CorvetteParser::ParseMode3(unsigned char* buffer, int len)
 	m_ucDTC[2] = buffer[5]; // Fault code byte 3
 	m_ucDTC[3] = buffer[6]; // Fault code byte 4
 
-	ParseDTCs(); // Process the DTCs into text
+	ParseDTCs(ecuData); // Process the DTCs into text
 }
 
 // Translates the incoming data stream as Mode 4
@@ -434,16 +435,14 @@ void CGM1989CorvetteParser::ParseMode10(unsigned char* /*buffer*/, int len)
 }
 
 // Translates the DTC Codes
-void CGM1989CorvetteParser::ParseDTCs(void)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
+void CGM1989CorvetteParser::ParseDTCs(CEcuData *const ecuData) {
 
 	ecuData->m_csDTC.Empty();
 
-	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0) && (m_ucDTC[3] == 0))
+	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0) && (m_ucDTC[3] == 0)) {
 		ecuData->m_csDTC = "No reported faults.";
-	else
-	{
+	}
+	else {
 		ecuData->m_csDTC = "The following faults are reported:\n";
 		
 		// Now print the fault-codes

@@ -28,6 +28,7 @@ CLotusCarltonParser::~CLotusCarltonParser() {
 }
 
 void CLotusCarltonParser::InitializeSupportedValues(CEcuData* const ecuData) {
+	ecuData->m_csDTC = "No reported faults.";
 	ecuData->m_iEpromID = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fWaterTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fMAPVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
@@ -260,7 +261,7 @@ void CLotusCarltonParser::ParseMode1_0(unsigned char* buffer, int len)
 //	ecuData->m_iCrankSensors = buffer[15];
 //	ecuData->m_iEngineLoad = (int)((float)buffer[36] / (float) 2.55);
 
-	ParseDTCs(); // Process the DTCs into text
+	ParseDTCs(ecuData); // Process the DTCs into text
 }
 
 // Translates the incoming data stream as Mode 2
@@ -318,7 +319,7 @@ void CLotusCarltonParser::ParseMode3(unsigned char* buffer, int len)
 	m_ucDTC[0] = buffer[1]; // Fault code byte 1
 	m_ucDTC[1] = buffer[2]; // Fault code byte 2
 	m_ucDTC[2] = buffer[3]; // Fault code byte 3
-	ParseDTCs(); // Process the DTCs into text
+	ParseDTCs(ecuData); // Process the DTCs into text
 }
 
 // Translates the incoming data stream as Mode 4
@@ -349,16 +350,14 @@ void CLotusCarltonParser::ParseMode4(unsigned char* buffer, int len)
 }
 
 // Translates the DTC Codes
-void CLotusCarltonParser::ParseDTCs(void)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
+void CLotusCarltonParser::ParseDTCs(CEcuData *const ecuData) {
 
 	ecuData->m_csDTC.Empty();
 
-	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0) && (m_ucDTC[3] == 0) && (m_ucDTC[4] == 0))
+	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0) && (m_ucDTC[3] == 0) && (m_ucDTC[4] == 0)) {
 		ecuData->m_csDTC = "No reported faults.";
-	else
-	{
+	}
+	else {
 		ecuData->m_csDTC = "The following faults are reported:\n";
 		
 		// Now print the fault-codes

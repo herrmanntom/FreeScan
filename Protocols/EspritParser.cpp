@@ -28,6 +28,7 @@ CEspritParser::~CEspritParser() {
 }
 
 void CEspritParser::InitializeSupportedValues(CEcuData* const ecuData) {
+	ecuData->m_csDTC = "No reported faults.";
 	ecuData->m_iEpromID = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bEngineClosedLoop = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bEngineStalled = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
@@ -289,7 +290,7 @@ BOOL CEspritParser::ParseMode1(unsigned char* buffer, int len) {
 	ecuData->m_iRunTime = (buffer[52] * 256) + buffer[53]; // Total running time
 	ecuData->m_iCanisterDC = (int)(((float)buffer[30]) / 2.56f); // Canister Purge
 	
-	ParseDTCs(buffer); // Process the DTCs into text
+	ParseDTCs(ecuData, buffer); // Process the DTCs into text
 
 	return TRUE;
 }
@@ -376,15 +377,14 @@ BOOL CEspritParser::ParseMode4(unsigned char* buffer, int len) {
 }
 
 // Translates the DTC Codes
-void CEspritParser::ParseDTCs(unsigned char* buffer) {
-	CEcuData *const ecuData = GetModifiableEcuData();
+void CEspritParser::ParseDTCs(CEcuData *const ecuData, unsigned char* buffer) {
 
 	ecuData->m_csDTC.Empty();
 
-	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0))
+	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0)) {
 		ecuData->m_csDTC = "No reported faults.";
-	else
-	{
+	}
+	else {
 		ecuData->m_csDTC = "The following faults are reported:\n";
 		
 		// Now print the fault-codes

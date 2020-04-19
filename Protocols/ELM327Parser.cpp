@@ -28,6 +28,7 @@ CELM327Parser::~CELM327Parser() {
 }
 
 void CELM327Parser::InitializeSupportedValues(CEcuData* const ecuData) {
+	ecuData->m_csDTC = "No reported faults.";
 	ecuData->m_bEngineClosedLoop = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bEngineStalled = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bACRequest = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
@@ -283,7 +284,7 @@ void CELM327Parser::ParseMode1(unsigned char* buffer, int len)
 	ecuData->m_fAFRatio = (float)buffer[47] / (float)10.0; // Air Fuel Ratio
 	ecuData->m_iRunTime = (buffer[52] * 256) + buffer[53]; // Total running time
 	
-	ParseDTCs(buffer); // Process the DTCs into text
+	ParseDTCs(ecuData, buffer); // Process the DTCs into text
 }
 
 // Translates the incoming data stream as Mode 2
@@ -366,16 +367,14 @@ void CELM327Parser::ParseMode4(unsigned char* buffer, int len)
 }
 
 // Translates the DTC Codes
-void CELM327Parser::ParseDTCs(unsigned char* buffer)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
+void CELM327Parser::ParseDTCs(CEcuData *const ecuData, unsigned char* buffer) {
 
 	ecuData->m_csDTC.Empty();
 
-	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0))
+	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0)) {
 		ecuData->m_csDTC = "No reported faults.";
-	else
-	{
+	}
+	else {
 		ecuData->m_csDTC = "The following faults are reported:\n";
 		
 		// Now print the fault-codes

@@ -36,7 +36,7 @@ private:
 	void ParseMode2(unsigned char* buffer, int len);
 	void ParseMode3(unsigned char* buffer, int len);
 	void ParseMode4(unsigned char* buffer, int len);
-	void ParseDTCs(void);// Parse the DTCs
+	void ParseDTCs(CEcuData *const ecuData);// Parse the DTCs
 };
 
 #endif // !defined(AFX_LotusCarltonPARSER_H__19F33D4B_4031_11D3_9828_0080C83832F8__INCLUDED_)

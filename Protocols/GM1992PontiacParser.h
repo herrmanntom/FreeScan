@@ -42,7 +42,7 @@ private:
 	BOOL ParseMode8(unsigned char* buffer, int len);
 	BOOL ParseMode9(unsigned char* buffer, int len);
 	BOOL ParseMode10(unsigned char* buffer, int len);
-	void ParseDTCs(void);// Parse the DTCs
+	void ParseDTCs(CEcuData *const ecuData);// Parse the DTCs
 };
 
 #endif // !defined(AFX_GM1992PontiacPARSER_H__19F33D4B_4031_11D3_9828_0080C83832F8__INCLUDED_)

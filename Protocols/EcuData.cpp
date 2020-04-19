@@ -56,7 +56,7 @@ CEcuData::CEcuData() {
 	
 	m_csProtocolComment = "";
 	
-	m_csDTC = "No reported faults."; // Reset Fault Codes
+	m_csDTC = ""; // Reset Fault Codes
 
 	// Reset normal engine parameters
 	m_bEngineClosedLoop = c_bUNSUPPORTED;

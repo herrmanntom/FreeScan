@@ -28,6 +28,7 @@ CGMA143Parser::~CGMA143Parser() {
 }
 
 void CGMA143Parser::InitializeSupportedValues(CEcuData* const ecuData) {
+	ecuData->m_csDTC = "No reported faults.";
 	ecuData->m_iMPH = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fBatteryVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fWaterTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
@@ -253,7 +254,7 @@ void CGMA143Parser::ParseMode1(unsigned char* buffer, int len)
 
 	ecuData->m_iEpromID = (int)buffer[67] + ((int)buffer[66] * 256);
 
-	ParseDTCs(); // Process the DTCs into text
+	ParseDTCs(ecuData); // Process the DTCs into text
 }
 
 // Translates the incoming data stream as Mode 2
@@ -336,16 +337,14 @@ void CGMA143Parser::ParseMode4(unsigned char* buffer, int len)
 }
 
 // Translates the DTC Codes
-void CGMA143Parser::ParseDTCs(void)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
+void CGMA143Parser::ParseDTCs(CEcuData *const ecuData) {
 
 	ecuData->m_csDTC.Empty();
 
-	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0) && (m_ucDTC[3] == 0) && (m_ucDTC[4] == 0) && (m_ucDTC[5] == 0))
+	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0) && (m_ucDTC[3] == 0) && (m_ucDTC[4] == 0) && (m_ucDTC[5] == 0)) {
 		ecuData->m_csDTC = "No reported faults.";
-	else
-	{
+	}
+	else {
 		ecuData->m_csDTC = "The following historical faults are reported:\n";
 		
 		// Now print the fault-codes

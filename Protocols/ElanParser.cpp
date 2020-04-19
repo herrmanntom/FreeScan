@@ -28,6 +28,7 @@ CElanParser::~CElanParser() {
 }
 
 void CElanParser::InitializeSupportedValues(CEcuData* const ecuData) {
+	ecuData->m_csDTC = "No reported faults.";
 	ecuData->m_iEpromID = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fWaterTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fStartWaterTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
@@ -245,7 +246,7 @@ void CElanParser::ParseMode1_0(unsigned char* buffer, int len)
 	
 //	ecuData->m_fAirFlow = 0.0;
 
-	ParseDTCs(); // Process the DTCs into text
+	ParseDTCs(ecuData); // Process the DTCs into text
 }
 
 // Translates the incoming data stream as Mode 2
@@ -303,7 +304,7 @@ void CElanParser::ParseMode3(unsigned char* buffer, int len)
 	m_ucDTC[0] = buffer[1]; // Fault code byte 1
 	m_ucDTC[1] = buffer[2]; // Fault code byte 2
 	m_ucDTC[2] = buffer[3]; // Fault code byte 3
-	ParseDTCs(); // Process the DTCs into text
+	ParseDTCs(ecuData); // Process the DTCs into text
 }
 
 // Translates the incoming data stream as Mode 4
@@ -334,16 +335,14 @@ void CElanParser::ParseMode4(unsigned char* buffer, int len)
 }
 
 // Translates the DTC Codes
-void CElanParser::ParseDTCs(void)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
+void CElanParser::ParseDTCs(CEcuData *const ecuData) {
 
 	ecuData->m_csDTC.Empty();
 
-	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0))
+	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0)) {
 		ecuData->m_csDTC = "No reported faults.";
-	else
-	{
+	}
+	else {
 		ecuData->m_csDTC = "The following faults are reported:\n";
 		
 		// Now print the fault-codes

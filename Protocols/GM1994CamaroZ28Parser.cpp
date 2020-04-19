@@ -28,6 +28,7 @@ CGM1994CamaroZ28Parser::~CGM1994CamaroZ28Parser() {
 }
 
 void CGM1994CamaroZ28Parser::InitializeSupportedValues(CEcuData* const ecuData) {
+	ecuData->m_csDTC = "No reported faults.";
 	ecuData->m_bEngineClosedLoop = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bACRequest = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bACClutch = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
@@ -375,7 +376,7 @@ void CGM1994CamaroZ28Parser::ParseMode1_0(unsigned char* buffer, int len)
 	ecuData->m_iMPH = (int)buffer[58]; // Count is in MPH
 	ecuData->m_iRunTime = (buffer[59] * 256) + buffer[60]; // Total running time
 
-	ParseDTCs(); // Process the DTCs into text
+	ParseDTCs(ecuData); // Process the DTCs into text
 }
 
 // Translates the incoming data stream as Mode 1 Msg 1
@@ -514,7 +515,7 @@ void CGM1994CamaroZ28Parser::ParseMode3(unsigned char* buffer, int len)
 	m_ucDTC[1] = buffer[2]; // Fault code byte 2
 	m_ucDTC[2] = buffer[3]; // Fault code byte 3
 
-	ParseDTCs(); // Process the DTCs into text
+	ParseDTCs(ecuData); // Process the DTCs into text
 }
 
 // Translates the incoming data stream as Mode 4
@@ -637,16 +638,14 @@ void CGM1994CamaroZ28Parser::ParseMode10(unsigned char* /*buffer*/, int len)
 }
 
 // Translates the DTC Codes
-void CGM1994CamaroZ28Parser::ParseDTCs(void)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
+void CGM1994CamaroZ28Parser::ParseDTCs(CEcuData *const ecuData) {
 
 	ecuData->m_csDTC.Empty();
 
-	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0) && (m_ucDTC[3] == 0) && (m_ucDTC[4] == 0) && (m_ucDTC[5] == 0) && (m_ucDTC[6] == 0) && (m_ucDTC[7] == 0))
+	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0) && (m_ucDTC[3] == 0) && (m_ucDTC[4] == 0) && (m_ucDTC[5] == 0) && (m_ucDTC[6] == 0) && (m_ucDTC[7] == 0)) {
 		ecuData->m_csDTC = "No reported faults.";
-	else
-	{
+	}
+	else {
 		ecuData->m_csDTC = "The following faults are reported:\n";
 		
 		// Now print the fault-codes

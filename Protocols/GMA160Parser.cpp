@@ -28,6 +28,7 @@ CGMA160Parser::~CGMA160Parser() {
 }
 
 void CGMA160Parser::InitializeSupportedValues(CEcuData* const ecuData) {
+	ecuData->m_csDTC = "No reported faults.";
 	ecuData->m_bEngineClosedLoop = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bACRequest = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bACClutch = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
@@ -257,7 +258,7 @@ void CGMA160Parser::ParseMode1_0(unsigned char* buffer, int len)
 	ecuData->m_fAFRatio = (float)buffer[55] / (float)10.0; // Air Fuel Ratio
 	ecuData->m_iBoostPW = (int) ((float)buffer[56] / (float)2.55); // Boost Solenoid
 
-	ParseDTCs(); // Process the DTCs into text
+	ParseDTCs(ecuData); // Process the DTCs into text
 }
 
 // Translates the incoming data stream as Mode 2
@@ -311,7 +312,7 @@ void CGMA160Parser::ParseMode3(unsigned char* buffer, int len)
 //	m_ucDTC[1] = buffer[4]; // Fault code byte 2
 //	m_ucDTC[2] = buffer[5]; // Fault code byte 3
 
-	ParseDTCs(); // Process the DTCs into text
+	ParseDTCs(ecuData); // Process the DTCs into text
 }
 
 // Translates the incoming data stream as Mode 4
@@ -434,16 +435,14 @@ void CGMA160Parser::ParseMode10(unsigned char* /*buffer*/, int len)
 }
 
 // Translates the DTC Codes
-void CGMA160Parser::ParseDTCs(void)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
+void CGMA160Parser::ParseDTCs(CEcuData *const ecuData) {
 
 	ecuData->m_csDTC.Empty();
 
-	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0) && (m_ucDTC[3] == 0))
+	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0) && (m_ucDTC[3] == 0)) {
 		ecuData->m_csDTC = "No reported faults.";
-	else
-	{
+	}
+	else {
 		ecuData->m_csDTC = "The following faults are reported:\n";
 		
 		// Now print the fault-codes

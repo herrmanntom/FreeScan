@@ -64,12 +64,16 @@ BEGIN_MESSAGE_MAP(CTCodesDlg, CPropertyPage)
 END_MESSAGE_MAP()
 
 // Updates all of our controls
-void CTCodesDlg::Refresh(const CEcuData* const ecuData)
-{
+void CTCodesDlg::Refresh(const CEcuData* const ecuData) {
 	//CListBox
 	m_TList.ResetContent();
 
-	FillListBox(m_TList, ecuData->m_csDTC);
+	if (ecuData->m_csDTC.GetLength() > 0) {
+		FillListBox(m_TList, ecuData->m_csDTC);
+	}
+	else {
+		FillListBox(m_TList, "DTCs are not supported by this protocol.");
+	}
 
 	// Hide the buttons that don't work when not interactive
 	if (m_pSupervisor->GetInteract())

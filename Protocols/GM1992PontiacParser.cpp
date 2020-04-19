@@ -28,6 +28,7 @@ CGM1992PontiacParser::~CGM1992PontiacParser() {
 }
 
 void CGM1992PontiacParser::InitializeSupportedValues(CEcuData* const ecuData) {
+	ecuData->m_csDTC = "No reported faults.";
 	ecuData->m_bEngineClosedLoop = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bACRequest = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bACClutch = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
@@ -275,7 +276,7 @@ BOOL CGM1992PontiacParser::ParseMode1_0(unsigned char* buffer, int len)
 	ecuData->m_iKnockCount = (int)buffer[51];
 	ecuData->m_iRunTime = (buffer[49] * 256) + buffer[50]; // Total running time
 
-	ParseDTCs(); // Process the DTCs into text
+	ParseDTCs(ecuData); // Process the DTCs into text
 
 	return TRUE;
 }
@@ -339,7 +340,7 @@ BOOL CGM1992PontiacParser::ParseMode3(unsigned char* buffer, int len)
 	m_ucDTC[2] = buffer[5]; // Fault code byte 3
 	m_ucDTC[3] = buffer[6]; // Fault code byte 4
 
-	ParseDTCs(); // Process the DTCs into text
+	ParseDTCs(ecuData); // Process the DTCs into text
 
 	return TRUE;
 }
@@ -474,16 +475,14 @@ BOOL CGM1992PontiacParser::ParseMode10(unsigned char* /*buffer*/, int len)
 }
 
 // Translates the DTC Codes
-void CGM1992PontiacParser::ParseDTCs(void)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
+void CGM1992PontiacParser::ParseDTCs(CEcuData *const ecuData) {
 
 	ecuData->m_csDTC.Empty();
 
-	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0) && (m_ucDTC[3] == 0))
+	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0) && (m_ucDTC[3] == 0)) {
 		ecuData->m_csDTC = "No reported faults.";
-	else
-	{
+	}
+	else {
 		ecuData->m_csDTC = "The following faults are reported:\n";
 		
 		// Now print the fault-codes
