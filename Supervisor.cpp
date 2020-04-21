@@ -264,11 +264,10 @@ void CSupervisor::WriteCSV(BOOL bTitle) {
 }
 
 // Updates the dialogs because of a data change
-void CSupervisor::UpdateDialog(void)
-{
-	WriteCSV(false);
+void CSupervisor::UpdateDialog(void) {
 	ConvertMiles();
 	ConvertDegrees();
+	WriteCSV(false);
 	m_pMainDlg->Update(GetEcuData());
 }
 
