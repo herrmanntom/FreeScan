@@ -196,10 +196,8 @@ BOOL CStatusDlg::StartLog(BOOL bStart)
 
 	OPENFILENAME ofn;
 	memset(&ofn, 0, sizeof(ofn)); // initialize structure to 0/NULL
-	TCHAR szFileName[_MAX_PATH]; // contains full path name after return
-	TCHAR szFileTitle[_MAX_PATH];
-	szFileName[0] = '\0'; // initialises file title buffer
-	szFileTitle[0] = '\0';
+	TCHAR szFileName[_MAX_PATH] = { 0 }; // contains full path name after return
+	TCHAR szFileTitle[_MAX_PATH] = { 0 };
 	ofn.lStructSize = sizeof(ofn);
 	ofn.lpstrFile = szFileName;
 	ofn.nMaxFile = _countof(szFileName);
@@ -208,6 +206,7 @@ BOOL CStatusDlg::StartLog(BOOL bStart)
 	ofn.lpstrTitle = _T("Create/Open Logging File");
 	ofn.lpstrFilter = _T("log Files (*.txt)\0*.txt\0All Files (*.*)\0*.*\0\0\0");
 	ofn.lpstrInitialDir = m_csLogFile.GetString();
+	ofn.lpstrDefExt = _T("txt");
 
 	// setup initial file name from the registry
 	//lstrcpyn(szFileName, m_csLogFile, _countof(szFileName));//unsafe
