@@ -181,8 +181,6 @@ void CSupervisor::Init(int iModel)
 	if (m_pProtocol != NULL) {
 		m_pProtocol->InitializeSupportedValues(m_pEcuData);
 		m_pProtocol->Init(m_pCom);
-
-		this->Interact(m_bInteract); // reset interact and start timer, if required
 	}
 
 }
@@ -375,6 +373,9 @@ BOOL CSupervisor::Start(void)
 			m_bHasRun = TRUE;
 			m_pProtocol->Reset();
 			m_pProtocol->InitializeSupportedValues(m_pEcuData);
+
+			this->Interact(m_bInteract); // reset interact and start timer, if required
+
 			return TRUE;
 		}
 	}
@@ -387,6 +388,8 @@ BOOL CSupervisor::Start(void)
 			WriteStatus(_T("Com Port restarted"));
 			m_pProtocol->Reset();
 			m_pProtocol->InitializeSupportedValues(m_pEcuData);
+
+			this->Interact(m_bInteract); // reset interact and start timer, if required
 		}
 		return TRUE;
 	}
