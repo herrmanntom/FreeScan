@@ -70,17 +70,16 @@ void CGM1992PontiacParser::InitializeSupportedValues(CEcuData* const ecuData) {
 }
 
 // Parses the buffer into real data
-int CGM1992PontiacParser::Parse(unsigned char* buffer, int iLength)
-{
-	WriteASCII(buffer, iLength); // Log the activity
+BOOL CGM1992PontiacParser::Parse(const unsigned char* const buffer, int const length, CEcuData* const ecuData) {
+	WriteASCII(buffer, length); // Log the activity
 
 	int	iIndex=0, iPacketLength;
-	unsigned char* pPacketStart=NULL;
+	const unsigned char* pPacketStart=NULL;
 
 	BOOL dataWasUpdated = FALSE;
 
 	// Scan the whole packet for its header.
-	for(iIndex=0;iIndex<iLength;iIndex++)
+	for(iIndex=0;iIndex< length;iIndex++)
 	{
 		pPacketStart = buffer + iIndex; // Marks the start of Packet for the CRC.
 		switch(buffer[iIndex])
@@ -97,22 +96,22 @@ int CGM1992PontiacParser::Parse(unsigned char* buffer, int iLength)
 					if(buffer[iIndex]==1) // Main data-stream
 					{
 						if(ucLenByte==0x95) // length 64 including mode byte
-							dataWasUpdated |= ParseMode1_0(&buffer[iIndex], iPacketLength);
+							dataWasUpdated |= ParseMode1_0(&buffer[iIndex], iPacketLength, ecuData);
 					}
 					else if(buffer[iIndex]==2) // length x including mode byte
-						dataWasUpdated |= ParseMode2(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode2(&buffer[iIndex], iPacketLength, ecuData);
 					else if(buffer[iIndex]==3) // length max x including mode byte
-						dataWasUpdated |= ParseMode3(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode3(&buffer[iIndex], iPacketLength, ecuData);
 					else if(buffer[iIndex]==4) // length max x including mode byte
-						dataWasUpdated |= ParseMode4(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode4(&buffer[iIndex], iPacketLength, ecuData);
 					else if(buffer[iIndex]==7) // length max 2 including mode byte
-						dataWasUpdated |= ParseMode7(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode7(&buffer[iIndex], iPacketLength, ecuData);
 					else if(buffer[iIndex]==8) // length max 1 including mode byte
-						dataWasUpdated |= ParseMode8(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode8(&buffer[iIndex], iPacketLength, ecuData);
 					else if(buffer[iIndex]==9) // length max 1 including mode byte
-						dataWasUpdated |= ParseMode9(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode9(&buffer[iIndex], iPacketLength, ecuData);
 					else if(buffer[iIndex]==10) // length max 1 including mode byte
-						dataWasUpdated |= ParseMode10(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode10(&buffer[iIndex], iPacketLength, ecuData);
 					else
 					{
 						CString	temp; // write to the spy window
@@ -132,7 +131,7 @@ int CGM1992PontiacParser::Parse(unsigned char* buffer, int iLength)
 				iPacketLength = CGMBaseFunctions::GetLength((int)buffer[iIndex]); // Length of data
 				iIndex++; // This has the mode number
 				// No data so don't parse.
-				dataWasUpdated |= ParseModeF0(&buffer[iIndex], iPacketLength);
+				dataWasUpdated |= ParseModeF0(&buffer[iIndex], iPacketLength, ecuData);
 				iIndex += iPacketLength; // should be 3
 				// Check CRC
 				if (!CGMBaseFunctions::CheckChecksum(pPacketStart, 3 + iPacketLength))
@@ -144,7 +143,7 @@ int CGM1992PontiacParser::Parse(unsigned char* buffer, int iLength)
 				iIndex++; // now find the length
 				iPacketLength = CGMBaseFunctions::GetLength((int)buffer[iIndex]); // Length of data
 				iIndex++; // This has the mode number
-				dataWasUpdated |= ParseMode05(&buffer[iIndex], iPacketLength);
+				dataWasUpdated |= ParseMode05(&buffer[iIndex], iPacketLength, ecuData);
 				iIndex += iPacketLength; // should be 3
 				// Check CRC
 				if (!CGMBaseFunctions::CheckChecksum(pPacketStart, 3 + iPacketLength))
@@ -156,7 +155,7 @@ int CGM1992PontiacParser::Parse(unsigned char* buffer, int iLength)
 				iIndex++; // now find the length
 				iPacketLength = CGMBaseFunctions::GetLength((int)buffer[iIndex]); // Length of data
 				iIndex++; // This has the mode number
-				dataWasUpdated |= ParseMode0A(&buffer[iIndex], iPacketLength);
+				dataWasUpdated |= ParseMode0A(&buffer[iIndex], iPacketLength, ecuData);
 				iIndex += iPacketLength; // should be 3
 				// Check CRC
 				if (!CGMBaseFunctions::CheckChecksum(pPacketStart, 3 + iPacketLength))
@@ -172,37 +171,26 @@ int CGM1992PontiacParser::Parse(unsigned char* buffer, int iLength)
 		}// Switch
 	}// for()
 
-	// Force the main application to update itself
-	if (dataWasUpdated) {
-		UpdateDialog();
-	}
-
-	return iLength; // Successfully parsed.
+	return dataWasUpdated;
 }
 
 // Translates the incoming data stream from the chatter
-BOOL CGM1992PontiacParser::ParseModeF0(unsigned char* /*buffer*/, int /*len*/)
-{
+BOOL CGM1992PontiacParser::ParseModeF0(const unsigned char* /*buffer*/, int /*len*/, CEcuData* const /*ecuData*/) {
 	return FALSE;
 }
 
 // Translates the incoming data stream from the chatter
-BOOL CGM1992PontiacParser::ParseMode05(unsigned char* /*buffer*/, int /*len*/)
-{
+BOOL CGM1992PontiacParser::ParseMode05(const unsigned char* /*buffer*/, int /*len*/, CEcuData* const /*ecuData*/) {
 	return FALSE;
 }
 
 // Translates the incoming data stream from the chatter
-BOOL CGM1992PontiacParser::ParseMode0A(unsigned char* /*buffer*/, int /*len*/)
-{
+BOOL CGM1992PontiacParser::ParseMode0A(const unsigned char* /*buffer*/, int /*len*/, CEcuData* const /*ecuData*/) {
 	return FALSE;
 }
 
 // Translates the incoming data stream as Mode 1 Msg 0
-BOOL CGM1992PontiacParser::ParseMode1_0(unsigned char* buffer, int len)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
-
+BOOL CGM1992PontiacParser::ParseMode1_0(const unsigned char* buffer, int len, CEcuData* const ecuData) {
 	if (len<10) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("Received our TX command echo for mode 1 Msg 0.");
@@ -283,10 +271,7 @@ BOOL CGM1992PontiacParser::ParseMode1_0(unsigned char* buffer, int len)
 }
 
 // Translates the incoming data stream as Mode 2
-BOOL CGM1992PontiacParser::ParseMode2(unsigned char* buffer, int len)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
-
+BOOL CGM1992PontiacParser::ParseMode2(const unsigned char* buffer, int len, CEcuData* const ecuData) {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 2.");
@@ -312,10 +297,7 @@ BOOL CGM1992PontiacParser::ParseMode2(unsigned char* buffer, int len)
 }
 
 // Translates the incoming data stream as Mode 3
-BOOL CGM1992PontiacParser::ParseMode3(unsigned char* buffer, int len)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
-
+BOOL CGM1992PontiacParser::ParseMode3(const unsigned char* buffer, int len, CEcuData* const ecuData) {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 3.");
@@ -347,10 +329,7 @@ BOOL CGM1992PontiacParser::ParseMode3(unsigned char* buffer, int len)
 }
 
 // Translates the incoming data stream as Mode 4
-BOOL CGM1992PontiacParser::ParseMode4(unsigned char* buffer, int len)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
-
+BOOL CGM1992PontiacParser::ParseMode4(const unsigned char* buffer, int len, CEcuData* const ecuData) {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 4.");
@@ -376,8 +355,7 @@ BOOL CGM1992PontiacParser::ParseMode4(unsigned char* buffer, int len)
 }
 
 // Translates the incoming data stream as Mode 7
-BOOL CGM1992PontiacParser::ParseMode7(unsigned char* /*buffer*/, int len)
-{
+BOOL CGM1992PontiacParser::ParseMode7(const unsigned char* /*buffer*/, int len, CEcuData* const /*ecuData*/) {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 7.");
@@ -401,8 +379,7 @@ BOOL CGM1992PontiacParser::ParseMode7(unsigned char* /*buffer*/, int len)
 }
 
 // Translates the incoming data stream as Mode 8
-BOOL CGM1992PontiacParser::ParseMode8(unsigned char* /*buffer*/, int len)
-{
+BOOL CGM1992PontiacParser::ParseMode8(const unsigned char* /*buffer*/, int len, CEcuData* const /*ecuData*/) {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 8.");
@@ -426,8 +403,7 @@ BOOL CGM1992PontiacParser::ParseMode8(unsigned char* /*buffer*/, int len)
 }
 
 // Translates the incoming data stream as Mode 9
-BOOL CGM1992PontiacParser::ParseMode9(unsigned char* /*buffer*/, int len)
-{
+BOOL CGM1992PontiacParser::ParseMode9(const unsigned char* /*buffer*/, int len, CEcuData* const /*ecuData*/) {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 9.");
@@ -451,8 +427,7 @@ BOOL CGM1992PontiacParser::ParseMode9(unsigned char* /*buffer*/, int len)
 }
 
 // Translates the incoming data stream as Mode 10
-BOOL CGM1992PontiacParser::ParseMode10(unsigned char* /*buffer*/, int len)
-{
+BOOL CGM1992PontiacParser::ParseMode10(const unsigned char* /*buffer*/, int len, CEcuData* const /*ecuData*/) {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 10.");
@@ -477,7 +452,6 @@ BOOL CGM1992PontiacParser::ParseMode10(unsigned char* /*buffer*/, int len)
 
 // Translates the DTC Codes
 void CGM1992PontiacParser::ParseDTCs(CEcuData *const ecuData) {
-
 	ecuData->m_csDTC.Empty();
 
 	if ((m_ucDTC[0] == 0) && (m_ucDTC[1] == 0) && (m_ucDTC[2] == 0) && (m_ucDTC[3] == 0)) {

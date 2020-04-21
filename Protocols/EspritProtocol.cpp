@@ -212,8 +212,8 @@ void CEspritProtocol::SendNextCommand(void)
 
 
 // Handle the message from the serial port class.
-void CEspritProtocol::OnCharsReceived(const unsigned char* const buffer, const DWORD bytesRead) {
-	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
+BOOL CEspritProtocol::OnCharsReceived(const unsigned char* const buffer, const DWORD bytesRead, CEcuData* const ecuData) {
+	BOOL			updatedEcuData = FALSE;
 
 	unsigned char	ucRX; // current byte we are reading
 	CString			buf; // for status messages
@@ -223,9 +223,8 @@ void CEspritProtocol::OnCharsReceived(const unsigned char* const buffer, const D
 	for(uByteIndex = 0; uByteIndex < bytesRead; uByteIndex++)
 	{
 		ucRX = buffer[uByteIndex]; // index the read-in byte
-		ecuData->m_dwBytesReceived ++;
 
-		// Character received is returned in "ch", then copied as ucRX.
+		// Character received is returned in "buffer", then copied as ucRX.
 
 		// OK, we will receive our ECU bytes, one byte at a time. Therefore, we create
 		// what is, in effect, a state machine to build up the data buffer to pass to
@@ -243,7 +242,7 @@ void CEspritProtocol::OnCharsReceived(const unsigned char* const buffer, const D
 				{
 					buf.Format("%02x - Finding start header", ucRX);
 					WriteStatus(buf);
-					return;
+					return updatedEcuData;
 				}
 
 				buf.Format("%02x - Found main start header", ucRX);
@@ -256,7 +255,7 @@ void CEspritProtocol::OnCharsReceived(const unsigned char* const buffer, const D
 				{// These headers must coincide with what the Parser(..) understands;
 					buf.Format("%02x - Unrecognised header", ucRX);
 					WriteStatus(buf);
-					return;
+					return updatedEcuData;
 				}
 
 				buf.Format("%02x - Header sent by ECU", ucRX);
@@ -318,10 +317,10 @@ void CEspritProtocol::OnCharsReceived(const unsigned char* const buffer, const D
 			HandleTX(m_ucBuffer, m_iLen + 3);
 
 			// Now Parse it if checksum OK
-			if (CGMBaseFunctions::CheckChecksum(m_ucBuffer, m_iLen + 3))
-				m_parser.Parse(m_ucBuffer, m_iLen + 3);
-			else
-			{// may have lost our way, so reset to find header
+			if (CGMBaseFunctions::CheckChecksum(m_ucBuffer, m_iLen + 3)) {
+				updatedEcuData |= m_parser.Parse(m_ucBuffer, m_iLen + 3, ecuData);
+			}
+			else {// may have lost our way, so reset to find header
 				m_bFirstRead = TRUE;
 				WriteStatus("Checksum Error - Not Parsing !!! **** !!! **** !!!");
 			}
@@ -335,6 +334,8 @@ void CEspritProtocol::OnCharsReceived(const unsigned char* const buffer, const D
 
 		} // if (m_bReadHeader)
 	} // for (...)
+
+	return updatedEcuData;
 }
 
 // Receives the buffer and decides what mode commands to send

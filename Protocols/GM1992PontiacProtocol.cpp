@@ -27,7 +27,7 @@ CGM1992PontiacProtocol::~CGM1992PontiacProtocol() {
 
 void CGM1992PontiacProtocol::InitializeSupportedValues(CEcuData* const ecuData) {
 	// Put your comments and release notes about the protocol here.
-	ecuData->m_csProtocolComment.Format("Name: GM816B 1992 Pontiac 3.2\nVersion v1.4\nDate: 2020-04-16\nEngine Usage:\n3.4L PFI   (LQ1)   (VIN=X)   92           W-CAR\n3.4L PFI   (LQ1)   (VIN=X)   93           W-CAR\n3.1L PFI   (LH0)   (VIN=T)   93    1W,2W,3W,4W -CAR\n3.1L PFI   (LH0)   (VIN=T)   94           1W\nImplemented by Andy Whittaker.\nProtocol by B. Henson");
+	ecuData->m_csProtocolComment.Format("Name: GM816B 1992 Pontiac 3.2\nVersion v1.4\nDate: 2020-04-21\nEngine Usage:\n3.4L PFI   (LQ1)   (VIN=X)   92           W-CAR\n3.4L PFI   (LQ1)   (VIN=X)   93           W-CAR\n3.1L PFI   (LH0)   (VIN=T)   93    1W,2W,3W,4W -CAR\n3.1L PFI   (LH0)   (VIN=T)   94           1W\nImplemented by Andy Whittaker.\nProtocol by B. Henson");
 	m_parser.InitializeSupportedValues(ecuData);
 }
 
@@ -208,8 +208,8 @@ void CGM1992PontiacProtocol::SendNextCommand(void)
 }
 
 // Handle the message from the serial port class.
-void CGM1992PontiacProtocol::OnCharsReceived(const unsigned char* const buffer, const DWORD bytesRead) {
-	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
+BOOL CGM1992PontiacProtocol::OnCharsReceived(const unsigned char* const buffer, const DWORD bytesRead, CEcuData* const ecuData) {
+	BOOL			updatedEcuData = FALSE;
 	
 	unsigned char	ucRX; // current byte we are reading
 	CString			buf; // for status messages
@@ -219,9 +219,8 @@ void CGM1992PontiacProtocol::OnCharsReceived(const unsigned char* const buffer, 
 	for(uByteIndex = 0; uByteIndex < bytesRead; uByteIndex++)
 	{
 		ucRX = buffer[uByteIndex]; // index the read-in byte
-		ecuData->m_dwBytesReceived ++;
 
-		// Character received is returned in "ch", then copied as ucRX.
+		// Character received is returned in "buffer", then copied as ucRX.
 
 		// OK, we will receive our ECU bytes, one byte at a time. Therefore, we create
 		// what is, in effect, a state machine to build up the data buffer to pass to
@@ -239,7 +238,7 @@ void CGM1992PontiacProtocol::OnCharsReceived(const unsigned char* const buffer, 
 				{
 					buf.Format("%02x - Finding start header", ucRX);
 					WriteStatus(buf);
-					return;
+					return updatedEcuData;
 				}
 
 				buf.Format("%02x - Found main start header", ucRX);
@@ -252,7 +251,7 @@ void CGM1992PontiacProtocol::OnCharsReceived(const unsigned char* const buffer, 
 				{// These headers must coincide with what the Parser(..) understands;
 					buf.Format("%02x - Unrecognised header", ucRX);
 					WriteStatus(buf);
-					return;
+					return updatedEcuData;
 				}
 
 				buf.Format("%02x - Header sent by ECU", ucRX);
@@ -315,10 +314,9 @@ void CGM1992PontiacProtocol::OnCharsReceived(const unsigned char* const buffer, 
 
 			// Now Parse it if checksum OK
 			if (CGMBaseFunctions::CheckChecksum(m_ucBuffer, m_iLen + 3)) {
-				m_parser.Parse(m_ucBuffer, m_iLen + 3);
+				updatedEcuData |= m_parser.Parse(m_ucBuffer, m_iLen + 3, ecuData);
 			}
-			else
-			{// may have lost our way, so reset to find header
+			else { // may have lost our way, so reset to find header
 				m_bFirstRead = TRUE;
 				WriteStatus("Checksum Error - Not Parsing !!! **** !!! **** !!!");
 			}
@@ -332,6 +330,8 @@ void CGM1992PontiacProtocol::OnCharsReceived(const unsigned char* const buffer, 
 
 		} // if (m_bReadHeader)
 	} // for(..)
+
+	return updatedEcuData;
 }
 
 // Receives the buffer and decides what mode commands to send

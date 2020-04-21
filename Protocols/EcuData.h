@@ -24,6 +24,8 @@ public:
 	CEcuData(const CEcuData& other);
 	~CEcuData();
 
+	void copyFields(const CEcuData* const other);
+
 	void copyToF005(const unsigned char* const sourceBuffer, const int sourceLength);
 	void copyToF00A(const unsigned char* const sourceBuffer, const int sourceLength);
 	void copyToF001(const unsigned char* const sourceBuffer, const int sourceLength);

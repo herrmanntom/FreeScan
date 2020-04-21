@@ -50,7 +50,6 @@ private:
 public:
 	void Init(int iModel);// Initialises the Supervisor and Protocol
 
-	void UpdateDialog(void);// Updates the dialogs because of a data change
 	void ConvertDegrees(void); // converts all temps to degF
 	void ConvertMiles(void); // converts speeds to kph
 	void SetCurrentPort(UINT nPort);// Sets current com port
@@ -72,7 +71,7 @@ public:
 	void ECUMode(DWORD dwMode, const unsigned char data);// Changes the ECU mode number
 	void ForceDataFromECU(void);
 	const CEcuData *const GetEcuData(void);
-	CEcuData *const GetModifiableEcuData(void);
+	void IncreaseSentBytesInEcuData(const DWORD additionalBytesSent);
 
 	void Test(void); // Sends a packet to the current parser for testing
 
@@ -84,6 +83,8 @@ private:
 	void WriteStatusLogged(const CString csText);
 
 	void PumpMessages(void);
+
+	CEcuData *const GetModifiableEcuData(void);
 
 	// Generated message map functions
 protected:

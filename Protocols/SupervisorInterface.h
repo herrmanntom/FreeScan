@@ -38,9 +38,8 @@ public:
 
 	virtual BOOL StartCSVLog(BOOL bStart) = 0;
 
-	virtual void UpdateDialog(void) = 0;
 	virtual void ForceDataFromECU(void) = 0;
 
 	virtual const CEcuData* const GetEcuData(void) = 0;
-	virtual CEcuData* const GetModifiableEcuData(void) = 0;
+	virtual void IncreaseSentBytesInEcuData(const DWORD additionalBytesSent) = 0;
 };

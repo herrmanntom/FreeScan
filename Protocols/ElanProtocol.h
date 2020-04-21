@@ -40,7 +40,7 @@ public:
 	void SetECUMode(const DWORD dwMode, const unsigned char data);
 	DWORD GetCurrentMode(void);
 	void ForceDataFromECU(void);
-	void OnCharsReceived(const unsigned char* const buffer, const DWORD bytesRead);
+	BOOL OnCharsReceived(const unsigned char* const buffer, const DWORD bytesRead, CEcuData* const ecuData);
 
 protected:
 	BOOL SendIdle(void); // Sends idle message to get bus

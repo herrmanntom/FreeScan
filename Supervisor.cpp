@@ -227,7 +227,17 @@ void CSupervisor::PumpMessages()
 // Handle the message from the serial port class.
 LONG CSupervisor::OnCharReceived(WPARAM ch, LPARAM BytesRead) {
 	if (m_pProtocol != NULL) {
-		m_pProtocol->OnCharsReceived((const unsigned char* const) ch, (const DWORD) BytesRead);
+		m_pEcuData->m_dwBytesReceived += BytesRead;
+
+		CEcuData* const ecuData = GetModifiableEcuData();
+		const BOOL modifiedEcuData = m_pProtocol->OnCharsReceived((const unsigned char* const) ch, (const DWORD) BytesRead, ecuData);
+		if (modifiedEcuData == TRUE) {
+			m_pEcuData->copyFields(ecuData);
+			ConvertMiles();
+			ConvertDegrees();
+			WriteCSV(false);
+			m_pMainDlg->Update(ecuData);
+		}
 	}
 	return 0;
 }
@@ -261,14 +271,6 @@ void CSupervisor::WriteCSV(BOOL bTitle) {
 	}
 	csBuf += _T("\n"); // Line Feed because we're logging to disk
 	m_file.WriteString(csBuf);
-}
-
-// Updates the dialogs because of a data change
-void CSupervisor::UpdateDialog(void) {
-	ConvertMiles();
-	ConvertDegrees();
-	WriteCSV(false);
-	m_pMainDlg->Update(GetEcuData());
 }
 
 // Converts temps to degF
@@ -548,6 +550,10 @@ CEcuData *const CSupervisor::GetModifiableEcuData(void) {
 	return m_pEcuData;
 }
 
+void CSupervisor::IncreaseSentBytesInEcuData(const DWORD additionalBytesSent) {
+	m_pEcuData->m_dwBytesSent += additionalBytesSent;
+}
+
 void CSupervisor::OnTimer(UINT nIDEvent) {
 	WriteStatus("OnTimer");
 
@@ -574,7 +580,7 @@ void CSupervisor::Test()
 			(unsigned char)0x49,(unsigned char)0x2d,(unsigned char)0x00,(unsigned char)0x01,(unsigned char)0xc6,(unsigned char)0x01,(unsigned char)0x90,(unsigned char)0x20,
 			(unsigned char)0x1f};
 
-		m_pProtocol->OnCharsReceived(buffer, 68);
+		m_pProtocol->OnCharsReceived(buffer, 68, GetModifiableEcuData());
 	}
 	else if (m_pProtocol != NULL && dynamic_cast<CGM1989CorvetteProtocol*>(m_pProtocol) != nullptr)
 	{
@@ -601,7 +607,7 @@ void CSupervisor::Test()
 			(unsigned char)0xe8,(unsigned char)0x7b,(unsigned char)0x07,(unsigned char)0x20,(unsigned char)0x02,(unsigned char)0x0c,(unsigned char)0x82,
 			(unsigned char)0x08};
 
-		m_pProtocol->OnCharsReceived(buffer, 67);
+		m_pProtocol->OnCharsReceived(buffer, 67, GetModifiableEcuData());
 	}
 	else if (m_pProtocol != NULL && dynamic_cast<CGM1994CamaroZ28Protocol*>(m_pProtocol) != nullptr)
 	{
@@ -616,7 +622,7 @@ void CSupervisor::Test()
 			(unsigned char)0x00,(unsigned char)0x00,(unsigned char)0x00,(unsigned char)0x6f,
 			(unsigned char)0xab};
 
-		m_pProtocol->OnCharsReceived(buffer, 64);
+		m_pProtocol->OnCharsReceived(buffer, 64, GetModifiableEcuData());
 	}
 	else if (m_pProtocol != NULL && dynamic_cast<CElanProtocol*>(m_pProtocol) != nullptr)
 	{
@@ -632,7 +638,7 @@ void CSupervisor::Test()
 				(unsigned char)0x02,(unsigned char)0x41,(unsigned char)0x01,(unsigned char)0xc9,(unsigned char)0x00,(unsigned char)0x17,(unsigned char)0x65,
 				(unsigned char)0x5c};
 
-		m_pProtocol->OnCharsReceived(buffer, 67);
+		m_pProtocol->OnCharsReceived(buffer, 67, GetModifiableEcuData());
 	}
 	else if (m_pProtocol != NULL && dynamic_cast<CGMA143Protocol*>(m_pProtocol) != nullptr)
 	{
@@ -648,7 +654,7 @@ void CSupervisor::Test()
 				(unsigned char)0x00,(unsigned char)0x00,(unsigned char)0x00,(unsigned char)0x00,(unsigned char)0x00,(unsigned char)0x00,(unsigned char)0x00,(unsigned char)0x00,
 				(unsigned char)0x00,(unsigned char)0x1F,(unsigned char)0xEE,(unsigned char)0x07};
 
-		m_pProtocol->OnCharsReceived(buffer, 71);
+		m_pProtocol->OnCharsReceived(buffer, 71, GetModifiableEcuData());
 	}
 	else if (m_pProtocol != NULL && dynamic_cast<CGMA160Protocol*>(m_pProtocol) != nullptr)
 	{
@@ -673,7 +679,7 @@ void CSupervisor::Test()
 				(unsigned char)0x00,(unsigned char)0x00,(unsigned char)0x00,(unsigned char)0x7e,(unsigned char)0x00,(unsigned char)0xc5,(unsigned char)0x1f,(unsigned char)0xff,
 				(unsigned char)0x20,(unsigned char)0x20,(unsigned char)0x02,(unsigned char)0x54,(unsigned char)0x6f,(unsigned char)0x02,(unsigned char)0x00,(unsigned char)0x6a};
 */
-		m_pProtocol->OnCharsReceived(buffer, 67);
+		m_pProtocol->OnCharsReceived(buffer, 67, GetModifiableEcuData());
 	}
 	else
 	{

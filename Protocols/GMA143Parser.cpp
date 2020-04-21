@@ -62,15 +62,16 @@ void CGMA143Parser::InitializeSupportedValues(CEcuData* const ecuData) {
 }
 
 // Parses the buffer into real data
-int CGMA143Parser::Parse(unsigned char* buffer, int iLength)
-{
-	WriteASCII(buffer, iLength); // Log the activity
+BOOL CGMA143Parser::Parse(const unsigned char* buffer, int length, CEcuData* const ecuData) {
+	WriteASCII(buffer, length); // Log the activity
 
 	int	iIndex=0, iPacketLength;
-	unsigned char* pPacketStart=NULL;
+	const unsigned char* pPacketStart=NULL;
+
+	BOOL dataWasUpdated = FALSE;
 
 	// Scan the whole packet for its header.
-	for(iIndex=0;iIndex<iLength;iIndex++)
+	for(iIndex=0;iIndex< length;iIndex++)
 	{
 		pPacketStart = buffer + iIndex; // Marks the start of Packet for the CRC.
 		switch(buffer[iIndex])
@@ -83,13 +84,13 @@ int CGMA143Parser::Parse(unsigned char* buffer, int iLength)
 				if (iPacketLength != 0)
 				{// Data in Header
 					if(buffer[iIndex]==1) // length 68 including mode byte
-						ParseMode1(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode1(&buffer[iIndex], iPacketLength, ecuData);
 					else if(buffer[iIndex]==2) // length 65 including mode byte
-						ParseMode2(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode2(&buffer[iIndex], iPacketLength, ecuData);
 					else if(buffer[iIndex]==3) // length max 7 including mode byte
-						ParseMode3(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode3(&buffer[iIndex], iPacketLength, ecuData);
 					else if(buffer[iIndex]==4) // length max 11 including mode byte
-						ParseMode4(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode4(&buffer[iIndex], iPacketLength, ecuData);
 					else
 					{
 						CString	temp; // write to the spy window
@@ -108,7 +109,7 @@ int CGMA143Parser::Parse(unsigned char* buffer, int iLength)
 				iIndex++; // now find the length
 				iPacketLength = CGMBaseFunctions::GetLength((int)buffer[iIndex]); // Length of data
 				iIndex++; // This has the mode number
-				ParseAnalogues(&buffer[iIndex], iPacketLength);
+				dataWasUpdated |= ParseAnalogues(&buffer[iIndex], iPacketLength, ecuData);
 				iIndex += iPacketLength; // should be 3
 				// Check CRC
 				if (!CGMBaseFunctions::CheckChecksum(pPacketStart, 3 + iPacketLength))
@@ -120,7 +121,7 @@ int CGMA143Parser::Parse(unsigned char* buffer, int iLength)
 				iIndex++; // now find the length
 				iPacketLength = CGMBaseFunctions::GetLength((int)buffer[iIndex]); // Length of data
 				iIndex++; // This has the mode number
-				ParseADC(&buffer[iIndex], iPacketLength);
+				dataWasUpdated |= ParseADC(&buffer[iIndex], iPacketLength, ecuData);
 				iIndex += iPacketLength; // should be 6 from ECU
 				// Check CRC
 				if (!CGMBaseFunctions::CheckChecksum(pPacketStart, 3 + iPacketLength))
@@ -136,17 +137,11 @@ int CGMA143Parser::Parse(unsigned char* buffer, int iLength)
 		}// Switch
 	}// for()
 
-	// Force the main application to update itself
-	UpdateDialog();
-
-	return iLength; // Successfully parsed.
+	return dataWasUpdated;
 }
 
 // Translates the incomming data stream as ADC Values
-void CGMA143Parser::ParseADC(unsigned char* buffer, int len)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
-
+BOOL CGMA143Parser::ParseADC(const unsigned char* buffer, int len, CEcuData* const ecuData) {
 	if (len>10)
 	{
 		WriteStatus("Warning: F005 larger than expected, packet truncated.");
@@ -159,13 +154,12 @@ void CGMA143Parser::ParseADC(unsigned char* buffer, int len)
 	ecuData->m_iMPH = (int)buffer[2]; // Count is in MPH
 	ecuData->m_fBatteryVolts = (float)buffer[4] / (float)10.0;
 	ecuData->m_fWaterTemp = ((float)buffer[9] * (float)0.75) - (float)40.0; // in °C
+
+	return TRUE;
 }
 
 // Translates the incoming data stream as Analogue Values
-void CGMA143Parser::ParseAnalogues(unsigned char* buffer, int len)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
-
+BOOL CGMA143Parser::ParseAnalogues(const unsigned char* buffer, int len, CEcuData* const ecuData) {
 	if (len>3)
 	{
 		WriteStatus("Warning: F00A larger than expected, packet truncated.");
@@ -176,17 +170,16 @@ void CGMA143Parser::ParseAnalogues(unsigned char* buffer, int len)
 
 	// Work out real world data from the packet.
 	ecuData->m_iRPM = ((int)buffer[1] * 256) + (int)buffer[2];
+
+	return TRUE;
 }
 
 // Translates the incoming data stream as Mode 1
-void CGMA143Parser::ParseMode1(unsigned char* buffer, int len)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
-
+BOOL CGMA143Parser::ParseMode1(const unsigned char* buffer, int len, CEcuData* const ecuData) {
 	if (len<10) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("Received our TX command echo for mode 1.");
-		return;
+		return FALSE;
 	}
 	else if (len>68)
 	{
@@ -255,22 +248,21 @@ void CGMA143Parser::ParseMode1(unsigned char* buffer, int len)
 	ecuData->m_iEpromID = (int)buffer[67] + ((int)buffer[66] * 256);
 
 	ParseDTCs(ecuData); // Process the DTCs into text
+
+	return TRUE;
 }
 
 // Translates the incoming data stream as Mode 2
-void CGMA143Parser::ParseMode2(unsigned char* buffer, int len)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
-
+BOOL CGMA143Parser::ParseMode2(const unsigned char* buffer, int len, CEcuData* const ecuData) {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 2.");
-		return;
+		return FALSE;
 	}
 	else if (len==1) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("1 Received our TX command echo for mode 2.");
-		return;
+		return FALSE;
 	}
 	else if (len>65)
 	{
@@ -282,22 +274,21 @@ void CGMA143Parser::ParseMode2(unsigned char* buffer, int len)
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
+
+	return TRUE;
 }
 
 // Translates the incoming data stream as Mode 3
-void CGMA143Parser::ParseMode3(unsigned char* buffer, int len)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
-
+BOOL CGMA143Parser::ParseMode3(const unsigned char* buffer, int len, CEcuData* const ecuData) {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 3.");
-		return;
+		return FALSE;
 	}
 	else if (len==1) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("1 Received our TX command echo for mode 3.");
-		return;
+		return FALSE;
 	}
 	else if (len>11)
 	{
@@ -307,22 +298,20 @@ void CGMA143Parser::ParseMode3(unsigned char* buffer, int len)
 
 	ecuData->copyToF003(buffer, len);
 
+	return TRUE;
 }
 
 // Translates the incoming data stream as Mode 4
-void CGMA143Parser::ParseMode4(unsigned char* buffer, int len)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
-
+BOOL CGMA143Parser::ParseMode4(const unsigned char* buffer, int len, CEcuData* const ecuData) {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 4.");
-		return;
+		return FALSE;
 	}
 	else if (len==1) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("1 Received our TX command echo for mode 4.");
-		return;
+		return FALSE;
 	}
 	else if (len>11)
 	{
@@ -334,6 +323,8 @@ void CGMA143Parser::ParseMode4(unsigned char* buffer, int len)
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
+
+	return true;
 }
 
 // Translates the DTC Codes

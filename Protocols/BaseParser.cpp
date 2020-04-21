@@ -15,10 +15,3 @@ void CBaseParser::WriteASCII(const unsigned char* const buffer, const int ilengt
 	m_pBaseProtocol->WriteASCII(buffer, ilength);
 }
 
-void CBaseParser::UpdateDialog(void) {
-	m_pBaseProtocol->UpdateDialog();
-}
-
-CEcuData* const CBaseParser::GetModifiableEcuData(void) {
-	return m_pBaseProtocol->GetModifiableEcuData();
-}

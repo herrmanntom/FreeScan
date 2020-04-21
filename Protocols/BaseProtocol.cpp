@@ -49,11 +49,11 @@ BOOL CBaseProtocol::Init(CSerialPort* pcom) {
 }
 
 // Write a string to the port - This can even write NULL characters
-void CBaseProtocol::WriteToECU(unsigned char* string, int stringlength, BOOL bDelay)
-{
-	CEcuData* const ecuData = m_pSupervisor->GetModifiableEcuData();
-	ecuData->m_dwBytesSent += stringlength;
+void CBaseProtocol::WriteToECU(unsigned char* string, int stringlength, BOOL bDelay) {
 	m_pcom->WriteToPort(string, stringlength, bDelay);
+	if (stringlength > 0) {
+		m_pSupervisor->IncreaseSentBytesInEcuData(stringlength);
+	}
 }
 
 DWORD CBaseProtocol::GetTimeoutForPingDuringInteract(void) {
@@ -73,16 +73,4 @@ void CBaseProtocol::SetInteract(const BOOL bInteract) {
 		WriteStatus("In monitor mode, no interaction with ECU will be done.");
 		m_bInteract = FALSE;
 	}
-}
-
-void CBaseProtocol::UpdateDialog(void) {
-	m_pSupervisor->UpdateDialog();
-}
-
-const CEcuData* const CBaseProtocol::GetEcuData(void) {
-	return m_pSupervisor->GetEcuData();
-}
-
-CEcuData* const CBaseProtocol::GetModifiableEcuData(void) {
-	return m_pSupervisor->GetModifiableEcuData();
 }

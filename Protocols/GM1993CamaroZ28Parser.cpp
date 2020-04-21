@@ -65,15 +65,16 @@ void CGM1993CamaroZ28Parser::InitializeSupportedValues(CEcuData* const ecuData) 
 }
 
 // Parses the buffer into real data
-int CGM1993CamaroZ28Parser::Parse(unsigned char* buffer, int iLength)
-{
-	WriteASCII(buffer, iLength); // Log the activity
+BOOL CGM1993CamaroZ28Parser::Parse(const unsigned char* const buffer, int const length, CEcuData* const ecuData) {
+	WriteASCII(buffer, length); // Log the activity
 
 	int	iIndex=0, iPacketLength;
-	unsigned char* pPacketStart=NULL;
+	const unsigned char* pPacketStart=NULL;
+
+	BOOL dataWasUpdated = FALSE;
 
 	// Scan the whole packet for its header.
-	for(iIndex=0;iIndex<iLength;iIndex++)
+	for(iIndex=0;iIndex< length;iIndex++)
 	{
 		pPacketStart = buffer + iIndex; // Marks the start of Packet for the CRC.
 		switch(buffer[iIndex])
@@ -90,22 +91,22 @@ int CGM1993CamaroZ28Parser::Parse(unsigned char* buffer, int iLength)
 					if(buffer[iIndex]==1) // Main data-stream
 					{
 						if(ucLenByte==0x95) // length 64 including mode byte
-							ParseMode1_0(&buffer[iIndex], iPacketLength);
+							dataWasUpdated |= ParseMode1_0(&buffer[iIndex], iPacketLength, ecuData);
 					}
 					else if(buffer[iIndex]==2) // length x including mode byte
-						ParseMode2(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode2(&buffer[iIndex], iPacketLength, ecuData);
 					else if(buffer[iIndex]==3) // length max x including mode byte
-						ParseMode3(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode3(&buffer[iIndex], iPacketLength, ecuData);
 					else if(buffer[iIndex]==4) // length max x including mode byte
-						ParseMode4(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode4(&buffer[iIndex], iPacketLength, ecuData);
 					else if(buffer[iIndex]==7) // length max 2 including mode byte
-						ParseMode7(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode7(&buffer[iIndex], iPacketLength, ecuData);
 					else if(buffer[iIndex]==8) // length max 1 including mode byte
-						ParseMode8(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode8(&buffer[iIndex], iPacketLength, ecuData);
 					else if(buffer[iIndex]==9) // length max 1 including mode byte
-						ParseMode9(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode9(&buffer[iIndex], iPacketLength, ecuData);
 					else if(buffer[iIndex]==10) // length max 1 including mode byte
-						ParseMode10(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode10(&buffer[iIndex], iPacketLength, ecuData);
 					else
 					{
 						CString	temp; // write to the spy window
@@ -125,7 +126,7 @@ int CGM1993CamaroZ28Parser::Parse(unsigned char* buffer, int iLength)
 				iPacketLength = CGMBaseFunctions::GetLength((int)buffer[iIndex]); // Length of data
 				iIndex++; // This has the mode number
 				// No data so don't parse.
-//				ParseMode0A(&buffer[iIndex], iPacketLength);
+//				dataWasUpdated |= ParseMode0A(&buffer[iIndex], iPacketLength, ecuData);
 				iIndex += iPacketLength; // should be 3
 				// Check CRC
 				if (!CGMBaseFunctions::CheckChecksum(pPacketStart, 3 + iPacketLength))
@@ -137,7 +138,7 @@ int CGM1993CamaroZ28Parser::Parse(unsigned char* buffer, int iLength)
 				iIndex++; // now find the length
 				iPacketLength = CGMBaseFunctions::GetLength((int)buffer[iIndex]); // Length of data
 				iIndex++; // This has the mode number
-				ParseMode0A(&buffer[iIndex], iPacketLength);
+				dataWasUpdated |= ParseMode0A(&buffer[iIndex], iPacketLength, ecuData);
 				iIndex += iPacketLength; // should be 3
 				// Check CRC
 				if (!CGMBaseFunctions::CheckChecksum(pPacketStart, 3 + iPacketLength))
@@ -149,7 +150,7 @@ int CGM1993CamaroZ28Parser::Parse(unsigned char* buffer, int iLength)
 				iIndex++; // now find the length
 				iPacketLength = CGMBaseFunctions::GetLength((int)buffer[iIndex]); // Length of data
 				iIndex++; // This has the mode number
-				ParseMode90(&buffer[iIndex], iPacketLength);
+				dataWasUpdated |= ParseMode90(&buffer[iIndex], iPacketLength, ecuData);
 				iIndex += iPacketLength; // should be 5
 				// Check CRC
 				if (!CGMBaseFunctions::CheckChecksum(pPacketStart, 3 + iPacketLength))
@@ -165,31 +166,25 @@ int CGM1993CamaroZ28Parser::Parse(unsigned char* buffer, int iLength)
 		}// Switch
 	}// for()
 
-	// Force the main application to update itself
-	UpdateDialog();
-
-	return iLength; // Successfully parsed.
+	return dataWasUpdated;
 }
 
 // Translates the incoming data stream from the chatter
-void CGM1993CamaroZ28Parser::ParseMode0A(unsigned char* /*buffer*/, int /*len*/)
-{
+BOOL CGM1993CamaroZ28Parser::ParseMode0A(const unsigned char* /*buffer*/, int /*len*/, CEcuData* const /*ecuData*/) {
+	return FALSE;
 }
 
 // Translates the incoming data stream from the chatter
-void CGM1993CamaroZ28Parser::ParseMode90(unsigned char* /*buffer*/, int /*len*/)
-{
+BOOL CGM1993CamaroZ28Parser::ParseMode90(const unsigned char* /*buffer*/, int /*len*/, CEcuData* const /*ecuData*/) {
+	return FALSE;
 }
 
 // Translates the incoming data stream as Mode 1 Msg 0
-void CGM1993CamaroZ28Parser::ParseMode1_0(unsigned char* buffer, int len)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
-
+BOOL CGM1993CamaroZ28Parser::ParseMode1_0(const unsigned char* buffer, int len, CEcuData* const ecuData) {
 	if (len<10) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("Received our TX command echo for mode 1 Msg 0.");
-		return;
+		return FALSE;
 	}
 	else if (len>64)
 	{
@@ -256,22 +251,21 @@ void CGM1993CamaroZ28Parser::ParseMode1_0(unsigned char* buffer, int len)
 	ecuData->m_iEngineLoad = (int)((float)buffer[53] / (float) 2.56);
 
 	ParseDTCs(ecuData); // Process the DTCs into text
+
+	return TRUE;
 }
 
 // Translates the incoming data stream as Mode 2
-void CGM1993CamaroZ28Parser::ParseMode2(unsigned char* buffer, int len)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
-
+BOOL CGM1993CamaroZ28Parser::ParseMode2(const unsigned char* buffer, int len, CEcuData* const ecuData) {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 2.");
-		return;
+		return FALSE;
 	}
 	else if (len==1) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("1 Received our TX command echo for mode 2.");
-		return;
+		return FALSE;
 	}
 	else if (len>65)
 	{
@@ -283,22 +277,21 @@ void CGM1993CamaroZ28Parser::ParseMode2(unsigned char* buffer, int len)
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
+
+	return TRUE;
 }
 
 // Translates the incoming data stream as Mode 3
-void CGM1993CamaroZ28Parser::ParseMode3(unsigned char* buffer, int len)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
-
+BOOL CGM1993CamaroZ28Parser::ParseMode3(const unsigned char* buffer, int len, CEcuData* const ecuData) {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 3.");
-		return;
+		return FALSE;
 	}
 	else if (len==1) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("1 Received our TX command echo for mode 3.");
-		return;
+		return FALSE;
 	}
 	else if (len>11)
 	{
@@ -317,22 +310,21 @@ void CGM1993CamaroZ28Parser::ParseMode3(unsigned char* buffer, int len)
 	m_ucDTC[4] = buffer[7]; // Fault code byte 5
 
 	ParseDTCs(ecuData); // Process the DTCs into text
+
+	return TRUE;
 }
 
 // Translates the incoming data stream as Mode 4
-void CGM1993CamaroZ28Parser::ParseMode4(unsigned char* buffer, int len)
-{
-	CEcuData *const ecuData = GetModifiableEcuData();
-
+BOOL CGM1993CamaroZ28Parser::ParseMode4(const unsigned char* buffer, int len, CEcuData* const ecuData) {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 4.");
-		return;
+		return FALSE;
 	}
 	else if (len==1) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("1 Received our TX command echo for mode 4.");
-		return;
+		return FALSE;
 	}
 	else if (len>11)
 	{
@@ -344,20 +336,21 @@ void CGM1993CamaroZ28Parser::ParseMode4(unsigned char* buffer, int len)
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
+
+	return TRUE;
 }
 
 // Translates the incoming data stream as Mode 7
-void CGM1993CamaroZ28Parser::ParseMode7(unsigned char* /*buffer*/, int len)
-{
+BOOL CGM1993CamaroZ28Parser::ParseMode7(const unsigned char* /*buffer*/, int len, CEcuData* const /*ecuData*/) {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 7.");
-		return;
+		return FALSE;
 	}
 	else if (len==1) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("1 Received our TX command echo for mode 7.");
-		return;
+		return FALSE;
 	}
 	else if (len>2)
 	{
@@ -367,20 +360,21 @@ void CGM1993CamaroZ28Parser::ParseMode7(unsigned char* /*buffer*/, int len)
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
+
+	return FALSE;
 }
 
 // Translates the incoming data stream as Mode 8
-void CGM1993CamaroZ28Parser::ParseMode8(unsigned char* /*buffer*/, int len)
-{
+BOOL CGM1993CamaroZ28Parser::ParseMode8(const unsigned char* /*buffer*/, int len, CEcuData* const /*ecuData*/) {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 8.");
-		return;
+		return FALSE;
 	}
 	else if (len==1) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("1 Received our TX command echo for mode 8.");
-		return;
+		return FALSE;
 	}
 	else if (len>1)
 	{
@@ -390,20 +384,21 @@ void CGM1993CamaroZ28Parser::ParseMode8(unsigned char* /*buffer*/, int len)
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
+
+	return FALSE;
 }
 
 // Translates the incoming data stream as Mode 9
-void CGM1993CamaroZ28Parser::ParseMode9(unsigned char* /*buffer*/, int len)
-{
+BOOL CGM1993CamaroZ28Parser::ParseMode9(const unsigned char* /*buffer*/, int len, CEcuData* const /*ecuData*/) {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 9.");
-		return;
+		return FALSE;
 	}
 	else if (len==1) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("1 Received our TX command echo for mode 9.");
-		return;
+		return FALSE;
 	}
 	else if (len>1)
 	{
@@ -413,20 +408,21 @@ void CGM1993CamaroZ28Parser::ParseMode9(unsigned char* /*buffer*/, int len)
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
+
+	return FALSE;
 }
 
 // Translates the incoming data stream as Mode 10
-void CGM1993CamaroZ28Parser::ParseMode10(unsigned char* /*buffer*/, int len)
-{
+BOOL CGM1993CamaroZ28Parser::ParseMode10(const unsigned char* /*buffer*/, int len, CEcuData* const /*ecuData*/) {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 10.");
-		return;
+		return FALSE;
 	}
 	else if (len==1) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("1 Received our TX command echo for mode 10.");
-		return;
+		return FALSE;
 	}
 	else if (len>1)
 	{
@@ -436,6 +432,8 @@ void CGM1993CamaroZ28Parser::ParseMode10(unsigned char* /*buffer*/, int len)
 
 	// Mode number is in index 0
 	// Work out real-world data from the packet.
+
+	return FALSE;
 }
 
 // Translates the DTC Codes

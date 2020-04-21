@@ -74,16 +74,16 @@ void CEspritParser::InitializeSupportedValues(CEcuData* const ecuData) {
 }
 
 // Parses the buffer into real data
-int CEspritParser::Parse(unsigned char* buffer, int iLength) {
-	WriteASCII(buffer, iLength); // Log the activity
+BOOL CEspritParser::Parse(const unsigned char* const buffer, int const length, CEcuData* const ecuData) {
+	WriteASCII(buffer, length); // Log the activity
 
 	int	iIndex=0, iPacketLength;
-	unsigned char* pPacketStart=NULL;
+	const unsigned char* pPacketStart=NULL;
 
 	BOOL dataWasUpdated = FALSE;
 
 	// Scan the whole packet for its header.
-	for(iIndex=0;iIndex<iLength;iIndex++)
+	for(iIndex=0;iIndex< length;iIndex++)
 	{
 		pPacketStart = buffer + iIndex; // Marks the start of Packet for the CRC.
 		switch(buffer[iIndex])
@@ -96,13 +96,13 @@ int CEspritParser::Parse(unsigned char* buffer, int iLength) {
 				if (iPacketLength != 0)
 				{// Data in Header
 					if(buffer[iIndex]==1) // length 65 including mode byte
-						dataWasUpdated |= ParseMode1(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode1(&buffer[iIndex], iPacketLength, ecuData);
 					else if(buffer[iIndex]==2) // length 65 including mode byte
-						dataWasUpdated |= ParseMode2(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode2(&buffer[iIndex], iPacketLength, ecuData);
 					else if(buffer[iIndex]==3) // length max 7 including mode byte
-						dataWasUpdated |= ParseMode3(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode3(&buffer[iIndex], iPacketLength, ecuData);
 					else if(buffer[iIndex]==4) // length max 11 including mode byte
-						dataWasUpdated |= ParseMode4(&buffer[iIndex], iPacketLength);
+						dataWasUpdated |= ParseMode4(&buffer[iIndex], iPacketLength, ecuData);
 					else
 					{
 						CString	temp; // write to the spy window
@@ -121,7 +121,7 @@ int CEspritParser::Parse(unsigned char* buffer, int iLength) {
 				iIndex++; // now find the length
 				iPacketLength = CGMBaseFunctions::GetLength((int)buffer[iIndex]); // Length of data
 				iIndex++; // This has the mode number
-				dataWasUpdated |= ParseAnalogues(&buffer[iIndex], iPacketLength);
+				dataWasUpdated |= ParseAnalogues(&buffer[iIndex], iPacketLength, ecuData);
 				iIndex += iPacketLength; // should be 3
 				// Check CRC
 				if (!CGMBaseFunctions::CheckChecksum(pPacketStart, 3 + iPacketLength))
@@ -133,7 +133,7 @@ int CEspritParser::Parse(unsigned char* buffer, int iLength) {
 				iIndex++; // now find the length
 				iPacketLength = CGMBaseFunctions::GetLength((int)buffer[iIndex]); // Length of data
 				iIndex++; // This has the mode number
-				dataWasUpdated |= ParseADC(&buffer[iIndex], iPacketLength);
+				dataWasUpdated |= ParseADC(&buffer[iIndex], iPacketLength, ecuData);
 				iIndex += iPacketLength; // should be 10 or 58 from ECU
 				// Check CRC
 				if (!CGMBaseFunctions::CheckChecksum(pPacketStart, 3 + iPacketLength))
@@ -149,18 +149,11 @@ int CEspritParser::Parse(unsigned char* buffer, int iLength) {
 		}// Switch
 	}// for()
 
-	// Force the main application to update itself
-	if (dataWasUpdated) {
-		UpdateDialog();
-	}
-
-	return iLength; // Successfully parsed.
+	return dataWasUpdated;
 }
 
 // Translates the incoming data stream as ADC Values
-BOOL CEspritParser::ParseADC(unsigned char* buffer, int len) {
-	CEcuData *const ecuData = GetModifiableEcuData();
-
+BOOL CEspritParser::ParseADC(const unsigned char* buffer, int len, CEcuData* const ecuData) {
 	if (len>10)
 	{
 		WriteStatus(_T("Warning: F005 larger than expected, packet truncated."));
@@ -189,9 +182,7 @@ BOOL CEspritParser::ParseADC(unsigned char* buffer, int len) {
 }
 
 // Translates the incoming data stream as Analogue Values
-BOOL CEspritParser::ParseAnalogues(unsigned char* buffer, int len) {
-	CEcuData *const ecuData = GetModifiableEcuData();
-
+BOOL CEspritParser::ParseAnalogues(const unsigned char* buffer, int len, CEcuData* const ecuData) {
 	if (len>3)
 	{
 		WriteStatus(_T("Warning: F00A larger than expected, packet truncated."));
@@ -208,9 +199,7 @@ BOOL CEspritParser::ParseAnalogues(unsigned char* buffer, int len) {
 }
 
 // Translates the incoming data stream as Mode 1
-BOOL CEspritParser::ParseMode1(unsigned char* buffer, int len) {
-	CEcuData *const ecuData = GetModifiableEcuData();
-
+BOOL CEspritParser::ParseMode1(const unsigned char* buffer, int len, CEcuData* const ecuData) {
 	if (len<10) // remember half duplex. We read our commands as well
 	{
 		WriteStatus(_T("Received our TX command echo for mode 1."));
@@ -290,15 +279,13 @@ BOOL CEspritParser::ParseMode1(unsigned char* buffer, int len) {
 	ecuData->m_iRunTime = (buffer[52] * 256) + buffer[53]; // Total running time
 	ecuData->m_iCanisterDC = (int)(((float)buffer[30]) / 2.56f); // Canister Purge
 	
-	ParseDTCs(ecuData, buffer); // Process the DTCs into text
+	ParseDTCs(buffer, len, ecuData); // Process the DTCs into text
 
 	return TRUE;
 }
 
 // Translates the incoming data stream as Mode 2
-BOOL CEspritParser::ParseMode2(unsigned char* buffer, int len) {
-	CEcuData *const ecuData = GetModifiableEcuData();
-
+BOOL CEspritParser::ParseMode2(const unsigned char* buffer, int len, CEcuData* const ecuData) {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 2.");
@@ -324,9 +311,7 @@ BOOL CEspritParser::ParseMode2(unsigned char* buffer, int len) {
 }
 
 // Translates the incoming data stream as Mode 3
-BOOL CEspritParser::ParseMode3(unsigned char* buffer, int len) {
-	CEcuData *const ecuData = GetModifiableEcuData();
-
+BOOL CEspritParser::ParseMode3(const unsigned char* buffer, int len, CEcuData* const ecuData) {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 3.");
@@ -349,9 +334,7 @@ BOOL CEspritParser::ParseMode3(unsigned char* buffer, int len) {
 }
 
 // Translates the incoming data stream as Mode 4
-BOOL CEspritParser::ParseMode4(unsigned char* buffer, int len) {
-	CEcuData *const ecuData = GetModifiableEcuData();
-
+BOOL CEspritParser::ParseMode4(const unsigned char* buffer, int len, CEcuData* const ecuData) {
 	if (len==0) // remember half duplex. We read our commands as well
 	{
 		WriteStatus("0 Received our TX command echo for mode 4.");
@@ -377,7 +360,7 @@ BOOL CEspritParser::ParseMode4(unsigned char* buffer, int len) {
 }
 
 // Translates the DTC Codes
-void CEspritParser::ParseDTCs(CEcuData *const ecuData, unsigned char* buffer) {
+void CEspritParser::ParseDTCs(const unsigned char* buffer, int len, CEcuData* const ecuData) {
 
 	ecuData->m_csDTC.Empty();
 
@@ -473,12 +456,12 @@ void CEspritParser::ParseDTCs(CEcuData *const ecuData, unsigned char* buffer) {
 			ecuData->m_csDTC += "\n";
 			ecuData->m_csDTC += "26 - TIP - Some relay (probably) or secondary injector is open-circuit";
 			ecuData->m_csDTC += "\n";
-			if (buffer[54] & 0x80)
+			if (len >54 && buffer[54] & 0x80)
 			{
 				ecuData->m_csDTC += "26 -B A/C Clutch, EGR, Chk Light, Fan, Wastegate or Canister Relay";
 				ecuData->m_csDTC += "\n";
 			}
-			if (buffer[54] & 0x01)
+			if (len > 54 && buffer[54] & 0x01)
 			{
 				ecuData->m_csDTC += "26 -A  Coolant or RPM Relay, Secondary Injectors";
 				ecuData->m_csDTC += "\n";

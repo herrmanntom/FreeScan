@@ -262,8 +262,8 @@ void CGM1994CamaroZ28Protocol::SendNextCommand(void)
 }
 
 // Handle the message from the serial port class.
-void CGM1994CamaroZ28Protocol::OnCharsReceived(const unsigned char* const buffer, const DWORD bytesRead) {
-	CEcuData *const ecuData = m_pSupervisor->GetModifiableEcuData();
+BOOL CGM1994CamaroZ28Protocol::OnCharsReceived(const unsigned char* const buffer, const DWORD bytesRead, CEcuData* const ecuData) {
+	BOOL			updatedEcuData = FALSE;
 	
 	unsigned char	ucRX; // current byte we are reading
 	CString			buf; // for status messages
@@ -273,7 +273,6 @@ void CGM1994CamaroZ28Protocol::OnCharsReceived(const unsigned char* const buffer
 	for(uByteIndex = 0; uByteIndex < bytesRead; uByteIndex++)
 	{
 		ucRX = buffer[uByteIndex]; // index the read-in byte
-		ecuData->m_dwBytesReceived ++;
 
 		// Character received is returned in "ch", then copied as ucRX.
 
@@ -293,7 +292,7 @@ void CGM1994CamaroZ28Protocol::OnCharsReceived(const unsigned char* const buffer
 				{
 					buf.Format("%02x - Finding start header", ucRX);
 					WriteStatus(buf);
-					return;
+					return updatedEcuData;
 				}
 
 				buf.Format("%02x - Found main start header", ucRX);
@@ -306,7 +305,7 @@ void CGM1994CamaroZ28Protocol::OnCharsReceived(const unsigned char* const buffer
 				{// These headers must coincide with what the Parser(..) understands;
 					buf.Format("%02x - Unrecognised header", ucRX);
 					WriteStatus(buf);
-					return;
+					return updatedEcuData;
 				}
 
 				buf.Format("%02x - Header sent by ECU", ucRX);
@@ -368,10 +367,10 @@ void CGM1994CamaroZ28Protocol::OnCharsReceived(const unsigned char* const buffer
 			HandleTX(m_ucBuffer, m_iLen + 3);
 
 			// Now Parse it if checksum OK
-			if (CGMBaseFunctions::CheckChecksum(m_ucBuffer, m_iLen + 3))
-				m_parser.Parse(m_ucBuffer, m_iLen + 3);
-			else
-			{// may have lost our way, so reset to find header
+			if (CGMBaseFunctions::CheckChecksum(m_ucBuffer, m_iLen + 3)) {
+				updatedEcuData |= m_parser.Parse(m_ucBuffer, m_iLen + 3, ecuData);
+			}
+			else { // may have lost our way, so reset to find header
 				m_bFirstRead = TRUE;
 				WriteStatus("Checksum Error - Not Parsing !!! **** !!! **** !!!");
 			}
@@ -385,6 +384,8 @@ void CGM1994CamaroZ28Protocol::OnCharsReceived(const unsigned char* const buffer
 
 		} // if (m_bReadHeader)
 	} // for (..)
+
+	return updatedEcuData;
 }
 
 // Receives the buffer and decides what mode commands to send

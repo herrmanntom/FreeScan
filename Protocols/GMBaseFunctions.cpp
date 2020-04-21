@@ -47,7 +47,7 @@ static const double	m_fTemps[256] =   {
 
 
 // Calculates and checks the CRC
-BOOL CGMBaseFunctions::CheckChecksum(unsigned char * buffer, int iLength)
+BOOL CGMBaseFunctions::CheckChecksum(const unsigned char* const buffer, int iLength)
 {
 	unsigned int sum = 0;
 	int i;

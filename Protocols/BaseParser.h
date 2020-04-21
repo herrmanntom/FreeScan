@@ -16,11 +16,7 @@ protected:
 	void WriteStatus(const CString csText);
 	void WriteASCII(const unsigned char* const buffer, const int ilength);
 
-	void UpdateDialog(void);
-
-	CEcuData* const GetModifiableEcuData(void);
-
 public:
 	virtual void InitializeSupportedValues(CEcuData* const ecuData) = 0;
-	virtual int Parse(unsigned char*, int iLength) = 0;
+	virtual BOOL Parse(const unsigned char* const buffer, int const length, CEcuData* const ecuData) = 0;
 };

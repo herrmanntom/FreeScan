@@ -18,7 +18,7 @@ private:
 	virtual ~CGMBaseFunctions() = delete;
 
 public:
-	static BOOL CheckChecksum(unsigned char * buffer, int iLength);
+	static BOOL CheckChecksum(const unsigned char* const buffer, int iLength);
 	static void SetChecksum(unsigned char * buffer, int iLength);// Calculates and sets the correct CRC
 	static int  GetLength(int iLength);
 	static float ReturnTemp(int iADC);

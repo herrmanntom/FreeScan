@@ -24,33 +24,33 @@ public:
 	virtual ~CGM1994CamaroZ28Parser();
 
 	void InitializeSupportedValues(CEcuData* const ecuData);
-	int Parse(unsigned char*, int iLength);
+	BOOL Parse(const unsigned char* const buffer, int const length, CEcuData* const ecuData);
 
 private:
 	unsigned char	m_ucDTC[8]; // Fault codes buffer
 
 private:
 	//Implementation
-	void ParseMode0A(unsigned char* buffer, int len);
-	void ParseCMode10(unsigned char* buffer, int len);
-	void ParseMode40(unsigned char* buffer, int len);
-	void ParseMode41(unsigned char* buffer, int len);
-	void ParseMode45(unsigned char* buffer, int len);
-	void ParseMode90(unsigned char* buffer, int len);
-	void ParseMode92(unsigned char* buffer, int len);
-	void ParseMode93(unsigned char* buffer, int len);
-	void ParseMode1_0(unsigned char* buffer, int len);
-	void ParseMode1_1(unsigned char* buffer, int len);
-	void ParseMode1_2(unsigned char* buffer, int len);
-	void ParseMode1_4(unsigned char* buffer, int len);
-	void ParseMode1_6(unsigned char* buffer, int len);
-	void ParseMode2(unsigned char* buffer, int len);
-	void ParseMode3(unsigned char* buffer, int len);
-	void ParseMode4(unsigned char* buffer, int len);
-	void ParseMode7(unsigned char* buffer, int len);
-	void ParseMode8(unsigned char* buffer, int len);
-	void ParseMode9(unsigned char* buffer, int len);
-	void ParseMode10(unsigned char* buffer, int len);
+	BOOL ParseMode0A(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseCMode10(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode40(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode41(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode45(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode90(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode92(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode93(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode1_0(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode1_1(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode1_2(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode1_4(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode1_6(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode2(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode3(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode4(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode7(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode8(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode9(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode10(const unsigned char* buffer, int len, CEcuData* const ecuData);
 	void ParseDTCs(CEcuData *const ecuData);// Parse the DTCs
 };
 

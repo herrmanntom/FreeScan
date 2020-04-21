@@ -9,10 +9,10 @@
 class CBaseProtocol : public CObject
 {
 private:
-	CStatusWriter* const m_pStatusWriter;
+	CStatusWriter* const		m_pStatusWriter;
+	CSupervisorInterface* const	m_pSupervisor;
 
 protected:
-	CSupervisorInterface* const m_pSupervisor;
 	BOOL						m_bInteract; // allow sending mode requests to ECU
 	CSerialPort*				m_pcom; // Our com port object pointer of the Supervisor
 
@@ -22,8 +22,6 @@ protected:
 	void WriteLogEntry(const LPCTSTR pstrFormat, ...);
 	void WriteStatusLogged(const CString csText);
 
-	const CEcuData* const GetEcuData(void);
-
 public:
 	virtual ~CBaseProtocol();
 
@@ -32,7 +30,7 @@ public:
 	virtual void SetECUMode(const DWORD dwMode, const unsigned char data) = 0;
 	virtual DWORD GetCurrentMode(void) = 0;
 	virtual void ForceDataFromECU(void) = 0;
-	virtual void OnCharsReceived(const unsigned char* const buffer, const DWORD bytesRead) = 0;
+	virtual BOOL OnCharsReceived(const unsigned char* const buffer, const DWORD bytesRead, CEcuData* const ecuData) = 0;
 
 	virtual BOOL Init(CSerialPort* pcom);
 	virtual void WriteToECU(unsigned char* string, int stringlength, BOOL bDelay = TRUE);
@@ -43,8 +41,4 @@ public:
 
 	void WriteStatus(const CString csText);
 	void WriteASCII(const unsigned char* const buffer, const int ilength);
-
-	void UpdateDialog(void);
-
-	CEcuData* const GetModifiableEcuData(void);
 };

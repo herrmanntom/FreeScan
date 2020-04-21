@@ -23,19 +23,19 @@ public:
 	virtual ~CELM327Parser();
 
 	void InitializeSupportedValues(CEcuData* const ecuData);
-	int Parse(unsigned char*, int iLength);
+	BOOL Parse(const unsigned char* const buffer, int const length, CEcuData* const ecuData);
 
 private:
 	unsigned char	m_ucDTC[3]; // Fault codes buffer
 
 protected:
-	void ParseADC(unsigned char* buffer, int len);
-	void ParseAnalogues(unsigned char* buffer, int len);
-	void ParseMode1(unsigned char* buffer, int len);
-	void ParseMode2(unsigned char* buffer, int len);
-	void ParseMode3(unsigned char* buffer, int len);
-	void ParseMode4(unsigned char* buffer, int len);
-	void ParseDTCs(CEcuData *const ecuData, unsigned char* buffer);// Parse the DTCs
+	BOOL ParseADC(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseAnalogues(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode1(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode2(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode3(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	BOOL ParseMode4(const unsigned char* buffer, int len, CEcuData* const ecuData);
+	void ParseDTCs(const unsigned char* buffer, int len, CEcuData* const ecuData);// Parse the DTCs
 };
 
 #endif // !defined(AFX_ELM327PARSER_H__19F33D4B_4031_11D3_9828_0080C83832F8__INCLUDED_)
