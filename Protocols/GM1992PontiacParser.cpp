@@ -268,7 +268,8 @@ BOOL CGM1992PontiacParser::ParseMode1_0(unsigned char* buffer, int len)
 	ecuData->m_fMATTemp = CGMBaseFunctions::ReturnTemp(buffer[30]); // in °C
 	ecuData->m_fBatteryVolts = (float)buffer[34] / (float)10.0;
 	ecuData->m_fAirFlow = (float)buffer[37];
-	ecuData->m_fSparkAdvance = ((float)buffer[40]) * (90.0f / 256.0f); // in °
+	ecuData->m_fSparkAdvance = ((float)((buffer[38] * 256) + buffer[39])) * (90.0f / 256.0f); // in °
+//	ecuData->m_fSparkAdvance = ((float)buffer[40]) * (90.0f / 256.0f); // in °
 	ecuData->m_fAFRatio = ((float)(buffer[41]) / (float)10.0); // Air Fuel Ratio
 	ecuData->m_iInjectorBasePWMsL = (int) ( (float)((buffer[42] * 256) + buffer[43]) / (float)65.536);
 	ecuData->m_iCanisterDC = (int) (((float)buffer[29]) / 2.56f); // Canister Purge
