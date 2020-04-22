@@ -116,6 +116,13 @@ CEcuData::CEcuData() {
 }
 
 CEcuData::CEcuData(const CEcuData& other) {
+	m_ucF005 = new unsigned char[MAX_RAW_DATA_SIZE];
+	m_ucF00A = new unsigned char[MAX_RAW_DATA_SIZE];
+	m_ucF001 = new unsigned char[MAX_RAW_DATA_SIZE];
+	m_ucF002 = new unsigned char[MAX_RAW_DATA_SIZE];
+	m_ucF003 = new unsigned char[MAX_RAW_DATA_SIZE];
+	m_ucF004 = new unsigned char[MAX_RAW_DATA_SIZE];
+
 	copyFields(&other);
 }
 
@@ -127,17 +134,11 @@ void CEcuData::copyFields(const CEcuData* const other) {
 
 	m_iCsvColumnCount = other->m_iCsvColumnCount;
 
-	m_ucF005 = new unsigned char[MAX_RAW_DATA_SIZE];
 	memcpy(m_ucF005, other->m_ucF005, sizeof(m_ucF005));
-	m_ucF00A = new unsigned char[MAX_RAW_DATA_SIZE];
 	memcpy(m_ucF00A, other->m_ucF00A, sizeof(m_ucF00A));
-	m_ucF001 = new unsigned char[MAX_RAW_DATA_SIZE];
 	memcpy(m_ucF001, other->m_ucF001, sizeof(m_ucF001));
-	m_ucF002 = new unsigned char[MAX_RAW_DATA_SIZE];
 	memcpy(m_ucF002, other->m_ucF002, sizeof(m_ucF002));
-	m_ucF003 = new unsigned char[MAX_RAW_DATA_SIZE];
 	memcpy(m_ucF003, other->m_ucF003, sizeof(m_ucF003));
-	m_ucF004 = new unsigned char[MAX_RAW_DATA_SIZE];
 	memcpy(m_ucF004, other->m_ucF004, sizeof(m_ucF004));
 
 	m_csProtocolComment = other->m_csProtocolComment;

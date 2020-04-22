@@ -876,10 +876,10 @@ void CSerialPort::WriteToPort(unsigned char* string, int stringlength, BOOL bDel
 		}
 	}
 	WriteChar(this); // Write to port immediately
-	ftime(&m_timeLastWrittenToPort);
 	if (bDelay) { // sleep to reduce stress on ECU serial port.
 		Sleep(halfDelay);
 	}
+	ftime(&m_timeLastWrittenToPort);
 }
 
 // Returns the device control block
