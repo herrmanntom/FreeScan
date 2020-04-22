@@ -229,14 +229,19 @@ LONG CSupervisor::OnCharReceived(WPARAM ch, LPARAM BytesRead) {
 	if (m_pProtocol != NULL && BytesRead > 0) {
 		m_dwBytesReceived += BytesRead;
 
-		CEcuData* const ecuData = GetModifiableEcuData();
+		CEcuData* const ecuData = new CEcuData(*m_pEcuData);
 		const BOOL modifiedEcuData = m_pProtocol->OnCharsReceived((const unsigned char* const) ch, (const DWORD) BytesRead, ecuData);
+		
 		if (modifiedEcuData == TRUE) {
-			m_pEcuData->copyFields(ecuData);
+			m_pEcuData->copyFields(ecuData); // this is and should remain the only place where m_pEcuData is updated
+		}
+		delete ecuData;
+
+		if (modifiedEcuData == TRUE) {
 			ConvertMiles();
 			ConvertDegrees();
 			WriteCSV(false);
-			m_pMainDlg->Update(ecuData);
+			m_pMainDlg->Update(m_pEcuData);
 		}
 	}
 	return 0;
@@ -551,10 +556,6 @@ const CEcuData *const CSupervisor::GetEcuData(void) {
 	return m_pEcuData;
 }
 
-CEcuData *const CSupervisor::GetModifiableEcuData(void) {
-	return m_pEcuData;
-}
-
 DWORD CSupervisor::GetReceivedBytes() {
 	return m_dwBytesReceived;
 }
@@ -593,7 +594,7 @@ void CSupervisor::Test()
 			(unsigned char)0x49,(unsigned char)0x2d,(unsigned char)0x00,(unsigned char)0x01,(unsigned char)0xc6,(unsigned char)0x01,(unsigned char)0x90,(unsigned char)0x20,
 			(unsigned char)0x1f};
 
-		m_pProtocol->OnCharsReceived(buffer, 68, GetModifiableEcuData());
+		m_pProtocol->OnCharsReceived(buffer, 68, m_pEcuData);
 	}
 	else if (m_pProtocol != NULL && dynamic_cast<CGM1989CorvetteProtocol*>(m_pProtocol) != nullptr)
 	{
@@ -620,7 +621,7 @@ void CSupervisor::Test()
 			(unsigned char)0xe8,(unsigned char)0x7b,(unsigned char)0x07,(unsigned char)0x20,(unsigned char)0x02,(unsigned char)0x0c,(unsigned char)0x82,
 			(unsigned char)0x08};
 
-		m_pProtocol->OnCharsReceived(buffer, 67, GetModifiableEcuData());
+		m_pProtocol->OnCharsReceived(buffer, 67, m_pEcuData);
 	}
 	else if (m_pProtocol != NULL && dynamic_cast<CGM1994CamaroZ28Protocol*>(m_pProtocol) != nullptr)
 	{
@@ -635,7 +636,7 @@ void CSupervisor::Test()
 			(unsigned char)0x00,(unsigned char)0x00,(unsigned char)0x00,(unsigned char)0x6f,
 			(unsigned char)0xab};
 
-		m_pProtocol->OnCharsReceived(buffer, 64, GetModifiableEcuData());
+		m_pProtocol->OnCharsReceived(buffer, 64, m_pEcuData);
 	}
 	else if (m_pProtocol != NULL && dynamic_cast<CElanProtocol*>(m_pProtocol) != nullptr)
 	{
@@ -651,7 +652,7 @@ void CSupervisor::Test()
 				(unsigned char)0x02,(unsigned char)0x41,(unsigned char)0x01,(unsigned char)0xc9,(unsigned char)0x00,(unsigned char)0x17,(unsigned char)0x65,
 				(unsigned char)0x5c};
 
-		m_pProtocol->OnCharsReceived(buffer, 67, GetModifiableEcuData());
+		m_pProtocol->OnCharsReceived(buffer, 67, m_pEcuData);
 	}
 	else if (m_pProtocol != NULL && dynamic_cast<CGMA143Protocol*>(m_pProtocol) != nullptr)
 	{
@@ -667,7 +668,7 @@ void CSupervisor::Test()
 				(unsigned char)0x00,(unsigned char)0x00,(unsigned char)0x00,(unsigned char)0x00,(unsigned char)0x00,(unsigned char)0x00,(unsigned char)0x00,(unsigned char)0x00,
 				(unsigned char)0x00,(unsigned char)0x1F,(unsigned char)0xEE,(unsigned char)0x07};
 
-		m_pProtocol->OnCharsReceived(buffer, 71, GetModifiableEcuData());
+		m_pProtocol->OnCharsReceived(buffer, 71, m_pEcuData);
 	}
 	else if (m_pProtocol != NULL && dynamic_cast<CGMA160Protocol*>(m_pProtocol) != nullptr)
 	{
@@ -692,7 +693,7 @@ void CSupervisor::Test()
 				(unsigned char)0x00,(unsigned char)0x00,(unsigned char)0x00,(unsigned char)0x7e,(unsigned char)0x00,(unsigned char)0xc5,(unsigned char)0x1f,(unsigned char)0xff,
 				(unsigned char)0x20,(unsigned char)0x20,(unsigned char)0x02,(unsigned char)0x54,(unsigned char)0x6f,(unsigned char)0x02,(unsigned char)0x00,(unsigned char)0x6a};
 */
-		m_pProtocol->OnCharsReceived(buffer, 67, GetModifiableEcuData());
+		m_pProtocol->OnCharsReceived(buffer, 67, m_pEcuData);
 	}
 	else
 	{

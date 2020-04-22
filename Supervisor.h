@@ -89,8 +89,6 @@ private:
 
 	void PumpMessages(void);
 
-	CEcuData *const GetModifiableEcuData(void);
-
 	// Generated message map functions
 protected:
 	//{{AFX_MSG(CGM1992PontiacProtocol)
