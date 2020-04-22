@@ -52,7 +52,7 @@ BOOL CBaseProtocol::Init(CSerialPort* pcom) {
 void CBaseProtocol::WriteToECU(unsigned char* string, int stringlength, BOOL bDelay) {
 	m_pcom->WriteToPort(string, stringlength, bDelay);
 	if (stringlength > 0) {
-		m_pSupervisor->IncreaseSentBytesInEcuData(stringlength);
+		m_pSupervisor->IncreaseSentBytes(stringlength);
 	}
 }
 

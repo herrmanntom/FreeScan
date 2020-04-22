@@ -42,8 +42,6 @@ public:
 
 	CString generateCsvLine(const BOOL header);
 
-	DWORD		m_dwBytesSent;
-	DWORD		m_dwBytesReceived;
 	CString		m_csProtocolComment; // public copy of the current protocol's comments
 
     // Data that has been read-in and parsed from the ECU.

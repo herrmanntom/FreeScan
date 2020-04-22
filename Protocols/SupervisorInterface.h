@@ -21,7 +21,6 @@ public:
 
 	virtual BOOL GetInteract(void) = 0;
 	virtual void Interact(BOOL bInteract) = 0;
-	virtual DWORD GetCurrentMode(void) = 0;
 	virtual UINT GetCurrentPort(void) = 0;
 	virtual void SetCurrentPort(UINT nPort) = 0;
 	virtual DWORD GetWriteDelay(void) = 0;
@@ -30,7 +29,11 @@ public:
 	virtual void Centigrade(BOOL bUnit) = 0;
 	virtual BOOL GetMiles(void) = 0;
 	virtual void Miles(BOOL bUnit) = 0;
+	virtual DWORD GetCurrentMode(void) = 0;
 	virtual void ECUMode(DWORD dwMode, const unsigned char Data = 0) = 0;
+	virtual DWORD GetReceivedBytes() = 0;
+	virtual DWORD GetSentBytes() = 0;
+	virtual void IncreaseSentBytes(const DWORD additionalBytesSent) = 0;
 
 	virtual BOOL Start(void) = 0;// Starts the ECU monitoring
 	virtual BOOL Stop(void) = 0;
@@ -41,5 +44,4 @@ public:
 	virtual void ForceDataFromECU(void) = 0;
 
 	virtual const CEcuData* const GetEcuData(void) = 0;
-	virtual void IncreaseSentBytesInEcuData(const DWORD additionalBytesSent) = 0;
 };

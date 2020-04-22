@@ -48,6 +48,8 @@ CSupervisor::CSupervisor(CFreeScanDlg* pMainDlg, CStatusWriter* pStatusDlg)
 	m_bMiles = pApp->GetProfileInt(_T("Supervisor"), _T("Miles"), TRUE);
 
 	m_pCom = NULL;
+	m_dwBytesSent = 0;
+	m_dwBytesReceived = 0;
 	m_bHasRun = FALSE;
 	m_iModel = 0;
 
@@ -224,8 +226,8 @@ void CSupervisor::PumpMessages()
 
 // Handle the message from the serial port class.
 LONG CSupervisor::OnCharReceived(WPARAM ch, LPARAM BytesRead) {
-	if (m_pProtocol != NULL) {
-		m_pEcuData->m_dwBytesReceived += BytesRead;
+	if (m_pProtocol != NULL && BytesRead > 0) {
+		m_dwBytesReceived += BytesRead;
 
 		CEcuData* const ecuData = GetModifiableEcuData();
 		const BOOL modifiedEcuData = m_pProtocol->OnCharsReceived((const unsigned char* const) ch, (const DWORD) BytesRead, ecuData);
@@ -553,8 +555,16 @@ CEcuData *const CSupervisor::GetModifiableEcuData(void) {
 	return m_pEcuData;
 }
 
-void CSupervisor::IncreaseSentBytesInEcuData(const DWORD additionalBytesSent) {
-	m_pEcuData->m_dwBytesSent += additionalBytesSent;
+DWORD CSupervisor::GetReceivedBytes() {
+	return m_dwBytesReceived;
+}
+
+DWORD CSupervisor::GetSentBytes() {
+	return m_dwBytesSent;
+}
+
+void CSupervisor::IncreaseSentBytes(const DWORD additionalBytesSent) {
+	m_dwBytesSent += additionalBytesSent;
 }
 
 void CSupervisor::OnTimer(UINT nIDEvent) {

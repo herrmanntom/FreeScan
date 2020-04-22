@@ -35,6 +35,8 @@ public:
 private:
 	CBaseProtocol*	m_pProtocol;
 	CSerialPort*	m_pCom;// Our com port object pointer
+	DWORD			m_dwBytesSent;
+	DWORD			m_dwBytesReceived;
 	BOOL			m_bHasRun; // Has the com port been started?
 
 	CStdioFile		m_file;// File class for logging to disk
@@ -69,9 +71,12 @@ public:
 	BOOL GetMiles(void);
 	DWORD GetCurrentMode(void);// Returns the current ECU mode
 	void ECUMode(DWORD dwMode, const unsigned char data);// Changes the ECU mode number
+	DWORD GetReceivedBytes();
+	DWORD GetSentBytes();
+	void IncreaseSentBytes(const DWORD additionalBytesSent);
+
 	void ForceDataFromECU(void);
 	const CEcuData *const GetEcuData(void);
-	void IncreaseSentBytesInEcuData(const DWORD additionalBytesSent);
 
 	void Test(void); // Sends a packet to the current parser for testing
 

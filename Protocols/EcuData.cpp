@@ -36,8 +36,6 @@ BOOL CEcuData::isSupported(const int value) {
 const int MAX_RAW_DATA_SIZE = 100;
 
 CEcuData::CEcuData() {
-	m_dwBytesSent = 0;
-	m_dwBytesReceived = 0;
 	m_iCsvColumnCount = c_iUNSUPPORTED;
 
 	m_ucF005 = new unsigned char[MAX_RAW_DATA_SIZE]; // never should get this big
@@ -122,10 +120,11 @@ CEcuData::CEcuData(const CEcuData& other) {
 }
 
 void CEcuData::copyFields(const CEcuData* const other) {
-	ASSERT(other != NULL);
+	if (other == NULL) {
+		ASSERT(false);
+		return;
+	}
 
-	m_dwBytesSent = other->m_dwBytesSent;
-	m_dwBytesReceived = other->m_dwBytesReceived;
 	m_iCsvColumnCount = other->m_iCsvColumnCount;
 
 	m_ucF005 = new unsigned char[MAX_RAW_DATA_SIZE];

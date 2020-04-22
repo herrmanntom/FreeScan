@@ -98,9 +98,9 @@ void CDetailDlg::Refresh(const CEcuData* const ecuData)
 	CString buf;
 	
 	// Update bytes sent and received
-	buf.Format("%d", ecuData->m_dwBytesReceived);
+	buf.Format("%d", m_pSupervisor->GetReceivedBytes());
 	m_Received.SetWindowText(buf);
-	buf.Format("%d", ecuData->m_dwBytesSent);
+	buf.Format("%d", m_pSupervisor->GetSentBytes());
 	m_Sent.SetWindowText(buf);
 
 	m_Comments.ResetContent();	// Clear protocol comments
