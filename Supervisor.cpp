@@ -250,15 +250,16 @@ LONG CSupervisor::OnCharReceived(WPARAM ch, LPARAM BytesRead) {
 //WriteCSV(..) Writes CSV data to our log file.
 //If bTitle is true, the first title line is written, otherwise the data is written.
 void CSupervisor::WriteCSV(BOOL bTitle) {
-	if (m_file.m_pStream == NULL) {// i.e. no file open
+	if (m_file.m_pStream == NULL || (!bTitle && m_dwCSVRecord == 0)) {// i.e. no file open, or writing line before title
 		return;
 	}
 
 	CString	csBuf;
+	DWORD newCSVRecordNumber;
 	if (bTitle) {
-		m_dwCSVRecord = 0;
 		csBuf = _T("PC-Timestamp,Sample");
 		csBuf += m_pEcuData->generateCsvLine(TRUE);
+		newCSVRecordNumber = 1;
 	}
 	else {
 		SYSTEMTIME localTime;
@@ -272,10 +273,11 @@ void CSupervisor::WriteCSV(BOOL bTitle) {
 		);
 		csBuf += m_pEcuData->generateCsvLine(FALSE);
 
-		m_dwCSVRecord++;
+		newCSVRecordNumber = m_dwCSVRecord + 1;
 	}
 	csBuf += _T("\n"); // Line Feed because we're logging to disk
 	m_file.WriteString(csBuf);
+	m_dwCSVRecord = newCSVRecordNumber;
 }
 
 // Converts temps to degF
@@ -426,19 +428,18 @@ BOOL CSupervisor::ShutDown(void)
 }
 
 // Starts or stops csv logging to file
-BOOL CSupervisor::StartCSVLog(BOOL bStart)
-{
+BOOL CSupervisor::StartCSVLog(BOOL bStart) {
 	CString csBuf = "";
 
-	if (!bStart)
-	{ // we want to close the logging file
-		if (m_file.m_hFile != CFile::hFileNull)
-		{
+	if (!bStart) { // we want to close the logging file
+		if (m_file.m_hFile != CFile::hFileNull)	{
 			WriteStatusLogged("CSV Log file has been stopped");
+			m_dwCSVRecord = 0;
 			m_file.Close(); // close the logging file when we exit.
 		}
-		else
+		else {
 			WriteStatusLogged("CSV Log file is already closed");
+		}
 
 		return FALSE;
 	}
@@ -455,12 +456,11 @@ BOOL CSupervisor::StartCSVLog(BOOL bStart)
 	Dialog.m_ofn.lpstrTitle = "Create/Open CSV Log File";
 
 	// Display the dialog box
-	if (Dialog.DoModal() == IDOK)
-	{
+	if (Dialog.DoModal() == IDOK) {
 		m_csCSVLogFile = Dialog.GetPathName();
 
-		if (!m_file.Open(m_csCSVLogFile, CFile::modeCreate | CFile::modeReadWrite | CFile::typeText))
-		{
+		m_dwCSVRecord = 0;
+		if (!m_file.Open(m_csCSVLogFile, CFile::modeCreate | CFile::modeReadWrite | CFile::typeText)) {
 			csBuf.Format("Cannot open %s", m_csCSVLogFile.GetString());
 			WriteStatus(csBuf);
 			AfxMessageBox(csBuf, MB_OK | MB_ICONSTOP);
@@ -470,13 +470,16 @@ BOOL CSupervisor::StartCSVLog(BOOL bStart)
 		WriteStatusLogged("CSV Log file has been opened");
 		WriteCSV(TRUE);
 	}
-	else // User pressed cancel
+	else { // User pressed cancel
 		WriteStatus("User cancelled CSV log file");
+	}
 
-	if (m_file.m_hFile != NULL)
+	if (m_file.m_hFile != NULL) {
 		return TRUE;
-	else
+	}
+	else {
 		return FALSE;
+	}
 }
 
 // Requests whether FreeScan talks to the ECU or not
