@@ -15,11 +15,9 @@ static char THIS_FILE[] = __FILE__;
 // CDesIdleDlg dialog
 
 
-CDesIdleDlg::CDesIdleDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(CDesIdleDlg::IDD, pParent)
-{
+CDesIdleDlg::CDesIdleDlg(CWnd* pParent, UINT currentDesiredIdle) : CDialog(CDesIdleDlg::IDD, pParent) {
 	//{{AFX_DATA_INIT(CDesIdleDlg)
-	m_Value = 0;
+	m_Value = currentDesiredIdle;
 	//}}AFX_DATA_INIT
 
 	//CSpinButtonCtrl
@@ -32,7 +30,7 @@ void CDesIdleDlg::DoDataExchange(CDataExchange* pDX)
 	//{{AFX_DATA_MAP(CDesIdleDlg)
 	DDX_Control(pDX, IDC_SPIN, m_Spin);
 	DDX_Text(pDX, IDC_VALUE, m_Value);
-	DDV_MinMaxUInt(pDX, m_Value, 800, 1800);
+	DDV_MinMaxUInt(pDX, m_Value, CDesIdleDlg::MIN, CDesIdleDlg::MAX);
 	//}}AFX_DATA_MAP
 }
 
@@ -42,22 +40,22 @@ BEGIN_MESSAGE_MAP(CDesIdleDlg, CDialog)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
+UINT CDesIdleDlg::getDesiredIdle() {
+	return m_Value;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // CDesIdleDlg message handlers
 
 BOOL CDesIdleDlg::OnInitDialog() 
 {
-	CDialog::OnInitDialog();
+	BOOL onInit = CDialog::OnInitDialog();
 	
-	m_Spin.SetRange(800, 1800);
-	m_Value= 800;
+	m_Spin.SetRange(CDesIdleDlg::MIN, CDesIdleDlg::MAX);
 
-	UDACCEL uda;
-
-	uda.nSec = 0;
-	uda.nInc = 25;
+	UDACCEL uda = { /*nSec =*/ 0, /*nInc =*/ 25};
 	m_Spin.SetAccel(1, &uda);
 
-	return TRUE;  // return TRUE unless you set the focus to a control
-	              // EXCEPTION: OCX Property Pages should return FALSE
+	return onInit;  // return TRUE unless you set the focus to a control
+					// EXCEPTION: OCX Property Pages should return FALSE
 }

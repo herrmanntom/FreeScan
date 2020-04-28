@@ -98,17 +98,17 @@ BOOL CAdvancedDlg::OnInitDialog() {
 }
 
 void CAdvancedDlg::OnSetdesidle() {
-	CDesIdleDlg		dlg;
-
-	dlg.m_Value = 850;;
-	if (CEcuData::isValid(m_pSupervisor->GetEcuData()->m_iDesiredIdle)) {
-		dlg.m_Value = m_pSupervisor->GetEcuData()->m_iDesiredIdle;
+	UINT	currentDesiredIdle = 1000;
+	int		ecuDataDesiredIdle = m_pSupervisor->GetEcuData()->m_iDesiredIdle;
+	if (CEcuData::isValid(ecuDataDesiredIdle) && ecuDataDesiredIdle > CDesIdleDlg::MIN && ecuDataDesiredIdle < CDesIdleDlg::MAX) {
+		currentDesiredIdle = ecuDataDesiredIdle;
 	}
+
+	CDesIdleDlg		dlg(this, currentDesiredIdle);
 	
 	if (dlg.DoModal() == IDOK) {
 		// Sends the ECU command to set the desired idle
-		unsigned char uc;
-		uc = (unsigned char) ((dlg.m_Value / 25) * 2);
+		unsigned char uc = (unsigned char) ((dlg.getDesiredIdle() / 25) * 2);
 		m_pSupervisor->ECUMode(ECU_SET_DES_IDLE, uc);
 	}
 }

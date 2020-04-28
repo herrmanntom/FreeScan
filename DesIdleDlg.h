@@ -27,10 +27,17 @@ class CDesIdleDlg : public CDialog
 {
 // Construction
 public:
-	CDesIdleDlg(CWnd* pParent = NULL);   // standard constructor
+	CDesIdleDlg(CWnd* pParent, UINT currentDesiredIdle);   // standard constructor
+
+	static const UINT MIN = 800;
+	static const UINT MAX = 1800;
+
+	UINT getDesiredIdle();
 
 // Dialog Data
 	//{{AFX_DATA(CDesIdleDlg)
+
+private:
 	enum { IDD = IDD_DESIDLE };
 	CSpinButtonCtrl	m_Spin;
 	UINT	m_Value;
@@ -40,7 +47,7 @@ public:
 // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CDesIdleDlg)
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//}}AFX_VIRTUAL
 

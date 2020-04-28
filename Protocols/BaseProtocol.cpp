@@ -50,9 +50,14 @@ BOOL CBaseProtocol::Init(CSerialPort* pcom) {
 
 // Write a string to the port - This can even write NULL characters
 void CBaseProtocol::WriteToECU(unsigned char* string, int stringlength, BOOL bDelay) {
-	m_pcom->WriteToPort(string, stringlength, bDelay);
-	if (stringlength > 0) {
-		m_pSupervisor->IncreaseSentBytes(stringlength);
+	if (m_bInteract == TRUE) {
+		m_pcom->WriteToPort(string, stringlength, bDelay);
+		if (stringlength > 0) {
+			m_pSupervisor->IncreaseSentBytes(stringlength);
+		}
+	}
+	else {
+		WriteStatus("Blocked writing to ECU: Interaction is not allowed");
 	}
 }
 
