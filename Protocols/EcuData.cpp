@@ -65,18 +65,13 @@ CEcuData::CEcuData() {
 	m_iRPM = c_iUNSUPPORTED;
 	m_iIACPosition = c_iUNSUPPORTED;
 	m_iDesiredIdle = c_iUNSUPPORTED;
-	m_iMPH = c_iUNSUPPORTED;
-	m_iMPH_inKPH = c_iUNSUPPORTED;
-	m_fStartWaterTemp = c_fUNSUPPORTED;
-	m_fStartWaterTemp_inF = c_fUNSUPPORTED;
-	m_fWaterTemp = c_fUNSUPPORTED;
-	m_fWaterTemp_inF = c_fUNSUPPORTED;
-	m_iWaterTempADC = c_iUNSUPPORTED;
+	m_iRoadSpeed_MPH = c_iUNSUPPORTED;
+	m_fStartCoolantTemp = c_fUNSUPPORTED;
+	m_fCoolantTemp = c_fUNSUPPORTED;
+	m_iCoolantTempADC = c_iUNSUPPORTED;
 	m_fOilTemp = c_fUNSUPPORTED;
-	m_fOilTemp_inF = c_fUNSUPPORTED;
-	m_fWaterVolts = c_fUNSUPPORTED;
-	m_fMATTemp = c_fUNSUPPORTED;
-	m_fMATTemp_inF = c_fUNSUPPORTED;
+	m_fCoolantVolts = c_fUNSUPPORTED;
+	m_fMATemp = c_fUNSUPPORTED;
 	m_fMATVolts = c_fUNSUPPORTED;
 	m_iMATADC = c_iUNSUPPORTED;
 	m_iEpromID = c_iUNSUPPORTED;
@@ -153,18 +148,13 @@ void CEcuData::copyFields(const CEcuData* const other) {
 	m_iRPM = other->m_iRPM;
 	m_iIACPosition = other->m_iIACPosition;
 	m_iDesiredIdle = other->m_iDesiredIdle;
-	m_iMPH = other->m_iMPH;
-	m_iMPH_inKPH = other->m_iMPH_inKPH;
-	m_fStartWaterTemp = other->m_fStartWaterTemp;
-	m_fStartWaterTemp_inF = other->m_fStartWaterTemp_inF;
-	m_fWaterTemp = other->m_fWaterTemp;
-	m_fWaterTemp_inF = other->m_fWaterTemp_inF;
-	m_fWaterVolts = other->m_fWaterVolts;
-	m_iWaterTempADC = other->m_iWaterTempADC;
+	m_iRoadSpeed_MPH = other->m_iRoadSpeed_MPH;
+	m_fStartCoolantTemp = other->m_fStartCoolantTemp;
+	m_fCoolantTemp = other->m_fCoolantTemp;
+	m_fCoolantVolts = other->m_fCoolantVolts;
+	m_iCoolantTempADC = other->m_iCoolantTempADC;
 	m_fOilTemp = other->m_fOilTemp;
-	m_fOilTemp_inF = other->m_fOilTemp_inF;
-	m_fMATTemp = other->m_fMATTemp;
-	m_fMATTemp_inF = other->m_fMATTemp_inF;
+	m_fMATemp = other->m_fMATemp;
 	m_fMATVolts = other->m_fMATVolts;
 	m_iMATADC = other->m_iMATADC;
 	m_iEpromID = other->m_iEpromID;
@@ -220,6 +210,40 @@ static inline void copyAndSet(unsigned char* const target, const int targetLengt
 	}
 }
 
+inline int CEcuData::convertSpeed(const BOOL inMph, const int valueInMph) {
+	if (inMph == TRUE) {
+		return valueInMph;
+	}
+	else {
+		if (CEcuData::isValid(valueInMph)) {
+			return (int)((float)valueInMph * 1.609344f);
+		}
+		else if (CEcuData::isSupported(valueInMph)) {
+			return CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+		}
+		else {
+			return CEcuData::c_iUNSUPPORTED;
+		}
+	}
+}
+
+inline float CEcuData::convertTemperature(const BOOL inDgC, const float valueInDgC) {
+	if (inDgC == TRUE) {
+		return valueInDgC;
+	}
+	else {
+		if (CEcuData::isValid(valueInDgC)) {
+			return (valueInDgC * 1.8f) + 32.0f;
+		}
+		else if (CEcuData::isSupported(valueInDgC)) {
+			return CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+		}
+		else {
+			return CEcuData::c_fUNSUPPORTED;
+		}
+	}
+}
+
 void CEcuData::copyToF005(const unsigned char* const sourceBuffer, const int sourceLength) {
 	copyAndSet(m_ucF005, MAX_RAW_DATA_SIZE, sourceBuffer, sourceLength);
 }
@@ -239,6 +263,22 @@ void CEcuData::copyToF004(const unsigned char* const sourceBuffer, const int sou
 	copyAndSet(m_ucF004, MAX_RAW_DATA_SIZE, sourceBuffer, sourceLength);
 }
 
+void CEcuData::setRoadSpeed_MPH(const int value) {
+	m_iRoadSpeed_MPH = value;
+}
+void CEcuData::setStartCoolantTemp_dgC(const float value) {
+	m_fStartCoolantTemp = value;
+}
+void CEcuData::setCoolantTemp_dgC(const float value) {
+	m_fCoolantTemp = value;
+}
+void CEcuData::setOilTemp_dgC(const float value) {
+	m_fOilTemp = value;
+}
+void CEcuData::setMATemp_dgC(const float value) {
+	m_fMATemp = value;
+}
+
 void CEcuData::copyFromF005(unsigned char* const targetBuffer, int targetBufferLen) const {
 	copyAndSet(targetBuffer, targetBufferLen, m_ucF005, MAX_RAW_DATA_SIZE);
 }
@@ -256,6 +296,22 @@ void CEcuData::copyFromF003(unsigned char* const targetBuffer, int targetBufferL
 }
 void CEcuData::copyFromF004(unsigned char* const targetBuffer, int targetBufferLen) const {
 	copyAndSet(targetBuffer, targetBufferLen, m_ucF004, MAX_RAW_DATA_SIZE);
+}
+
+int CEcuData::getRoadSpeed(const BOOL inMph) const {
+	return convertSpeed(inMph, m_iRoadSpeed_MPH);
+}
+float CEcuData::getStartCoolantTemp(const BOOL inDgC) const {
+	return convertTemperature(inDgC, m_fStartCoolantTemp);
+}
+float CEcuData::getCoolantTemp(const BOOL inDgC) const {
+	return convertTemperature(inDgC, m_fCoolantTemp);
+}
+float CEcuData::getOilTemp(const BOOL inDgC) const {
+	return convertTemperature(inDgC, m_fOilTemp);
+}
+float CEcuData::getMATemp(const BOOL inDgC) const {
+	return convertTemperature(inDgC, m_fMATemp);
 }
 
 static CString generateCsvColumn(const BOOL header, int* const columnCount, const float fValue, const char* const title, const char* const format) {
@@ -302,16 +358,16 @@ CString CEcuData::generateCsvLine(const BOOL header) {
 	// main engine / vehicle fields
 	csBuf += generateCsvColumn(header, &columnCount, m_iRPM, "Engine Speed (RPM)", "%d");
 	csBuf += generateCsvColumn(header, &columnCount, m_iDesiredIdle, "Desired Idle (RPM)", "%d");
-	csBuf += generateCsvColumn(header, &columnCount, m_iMPH, "Road Speed (MPH)", "%d");
-	csBuf += generateCsvColumn(header, &columnCount, m_iMPH_inKPH, "Road Speed (KPH)", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, m_iRoadSpeed_MPH, "Road Speed (MPH)", "%d");
+	csBuf += generateCsvColumn(header, &columnCount, convertSpeed(FALSE, m_iRoadSpeed_MPH), "Road Speed (KPH)", "%d");
 	csBuf += generateCsvColumn(header, &columnCount, m_fOilTemp, "Oil Temperature (°C)", "%3.1f");
-	csBuf += generateCsvColumn(header, &columnCount, m_fWaterTemp, "Coolant Temperature (°C)", "%3.1f");
-	csBuf += generateCsvColumn(header, &columnCount, m_fStartWaterTemp, "Start Coolant Temperature (°C)", "%3.1f");
+	csBuf += generateCsvColumn(header, &columnCount, m_fCoolantTemp, "Coolant Temperature (°C)", "%3.1f");
+	csBuf += generateCsvColumn(header, &columnCount, m_fStartCoolantTemp, "Start Coolant Temperature (°C)", "%3.1f");
 	csBuf += generateCsvColumn(header, &columnCount, m_iThrottlePos, "Throttle Position (%)", "%d");
 	csBuf += generateCsvColumn(header, &columnCount, m_iEngineLoad, "Engine Load (%)", "%d");
 	csBuf += generateCsvColumn(header, &columnCount, m_fBaro, "Atmospheric Pressure (bar)", "%4.2f");
 	csBuf += generateCsvColumn(header, &columnCount, m_fMAP, "Manifold Air Pressure (bar)", "%4.2f");
-	csBuf += generateCsvColumn(header, &columnCount, m_fMATTemp, "Manifold Air Temperature (°C)", "%3.1f");
+	csBuf += generateCsvColumn(header, &columnCount, m_fMATemp, "Manifold Air Temperature (°C)", "%3.1f");
 	csBuf += generateCsvColumn(header, &columnCount, m_fAirFlow, "Air Flow", "%3.1f");
 	csBuf += generateCsvColumn(header, &columnCount, m_fBatteryVolts, "Battery (V)", "%3.1f");
 	csBuf += generateCsvColumn(header, &columnCount, m_bACRequest, "Air Conditioner Demand", "%d");
@@ -345,7 +401,7 @@ CString CEcuData::generateCsvLine(const BOOL header) {
 	csBuf += generateCsvColumn(header, &columnCount, m_iRunTime, "Engine Running Time (s)", "%d");
 
 	// redundant "raw voltages" from sensor that are represented with interpreted values above
-	csBuf += generateCsvColumn(header, &columnCount, m_fWaterVolts, "Coolant Sensor (V)", "%4.2f");
+	csBuf += generateCsvColumn(header, &columnCount, m_fCoolantVolts, "Coolant Sensor (V)", "%4.2f");
 	csBuf += generateCsvColumn(header, &columnCount, m_fThrottleVolts, "Throttle Position Sensor (V)", "%4.2f");
 	csBuf += generateCsvColumn(header, &columnCount, m_fBaroVolts, "Atmospheric Pressure Sensor (V)", "%4.2f");
 	csBuf += generateCsvColumn(header, &columnCount, m_fMAPVolts, "Manifold Air Pressure Sensor (V)", "%4.2f");
@@ -383,18 +439,13 @@ void CEcuData::SetVariablesForGuiTest(void)
 	m_iRPM = 4321;
 	m_iIACPosition = 48;
 	m_iDesiredIdle = 987;
-	m_iMPH = 133;
-	m_iMPH_inKPH = 214;
-	m_fStartWaterTemp = 16.3f;
-	m_fStartWaterTemp_inF = 61.34f;
-	m_fWaterTemp = 89.8f;
-	m_fWaterTemp_inF = 193.64f;
-	m_iWaterTempADC = 115;
+	m_iRoadSpeed_MPH = 133;
+	m_fStartCoolantTemp = 16.3f;
+	m_fCoolantTemp = 89.8f;
+	m_iCoolantTempADC = 115;
 	m_fOilTemp = c_fUNSUPPORTED;
-	m_fOilTemp_inF = c_fUNSUPPORTED;
-	m_fWaterVolts = 2.25f;
-	m_fMATTemp = -38.0f;
-	m_fMATTemp_inF = -36.4f;
+	m_fCoolantVolts = 2.25f;
+	m_fMATemp = -38.0f;
 	m_fMATVolts = 5.0f;
 	m_iMATADC = 0;
 	m_iEpromID = 2475;

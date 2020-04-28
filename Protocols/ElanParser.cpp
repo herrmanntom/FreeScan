@@ -30,18 +30,20 @@ CElanParser::~CElanParser() {
 void CElanParser::InitializeSupportedValues(CEcuData* const ecuData) {
 	ecuData->m_csDTC = "No reported faults.";
 	ecuData->m_iEpromID = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
-	ecuData->m_fWaterTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
-	ecuData->m_fStartWaterTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->setCoolantTemp_dgC(CEcuData::c_fSUPPORTED_BY_PROTOCOL);
+	ecuData->setStartCoolantTemp_dgC(CEcuData::c_fSUPPORTED_BY_PROTOCOL);
 	ecuData->m_fThrottleVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iThrottleADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iThrottlePos = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iRPM = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fSparkAdvance = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
-	ecuData->m_iMPH = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->setRoadSpeed_MPH(CEcuData::c_iSUPPORTED_BY_PROTOCOL);
 	ecuData->m_iIACPosition = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iDesiredIdle = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fBatteryVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fMAP = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fMAPVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iMAPADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fO2VoltsLeft = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fAFRatio = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iRunTime = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
@@ -214,18 +216,20 @@ BOOL CElanParser::ParseMode1_0(const unsigned char* buffer, int len, CEcuData* c
 	m_ucDTC[0] = buffer[3]; // Fault code byte 1
 	m_ucDTC[1] = buffer[4]; // Fault code byte 2
 	m_ucDTC[2] = buffer[5]; // Fault code byte 3
-	ecuData->m_fWaterTemp = ((float)buffer[6] * (float)0.75) - (float)40.0; // in °C
-	ecuData->m_fStartWaterTemp = ((float)buffer[7] * (float)0.75) - (float)40.0; // in °C
+	ecuData->setCoolantTemp_dgC(((float)buffer[6] * 0.75f) - 40.0f); // in °C
+	ecuData->setStartCoolantTemp_dgC(((float)buffer[7] * 0.75f) - 40.0f); // in °C
 	ecuData->m_fThrottleVolts = (float)(((float)buffer[9] / (float)255.0) * (float) 5.0);
+	ecuData->m_iThrottleADC = (int)buffer[9];
 	ecuData->m_iThrottlePos = (int)((float)buffer[10] / (float)2.55);
 	ecuData->m_iRPM = ((int)buffer[11] * 25);
 	ecuData->m_fSparkAdvance = (float)buffer[12]; // in °
-	ecuData->m_iMPH = (int)buffer[17]; // Count is in MPH
+	ecuData->setRoadSpeed_MPH((int)buffer[17]); // Count is in MPH
 	ecuData->m_iIACPosition = (int)buffer[21];
 	ecuData->m_iDesiredIdle = (int)((float)buffer[22] * (float) 12.5);
 	ecuData->m_fBatteryVolts = (float)buffer[26] / (float)10.0;
 	ecuData->m_fMAP = (((float)buffer[28] - (float)128.0)/ (float)100) + (float) 1.0; // in Bar Absolute
 	ecuData->m_fMAPVolts = ((float)buffer[28] / (float) 255.0) * (float) 5.0; // in Volts
+	ecuData->m_iMAPADC = (int)buffer[28];
 	ecuData->m_fO2VoltsLeft = (float) buffer[32] / (float) 226.0;
 	ecuData->m_fAFRatio = (float)buffer[33] / (float)10.0; // Air Fuel Ratio
 	ecuData->m_iRunTime = (buffer[49] * 256) + buffer[50]; // Total running time

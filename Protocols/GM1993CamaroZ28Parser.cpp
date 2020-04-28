@@ -33,7 +33,7 @@ void CGM1993CamaroZ28Parser::InitializeSupportedValues(CEcuData* const ecuData) 
 	ecuData->m_bACRequest = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bACClutch = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iEpromID = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
-	ecuData->m_fWaterTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->setCoolantTemp_dgC(CEcuData::c_fSUPPORTED_BY_PROTOCOL);
 	ecuData->m_fMAP = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fMAPVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iMAPADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
@@ -41,13 +41,13 @@ void CGM1993CamaroZ28Parser::InitializeSupportedValues(CEcuData* const ecuData) 
 	ecuData->m_fThrottleVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iThrottleADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fBatteryVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
-	ecuData->m_fOilTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->setOilTemp_dgC(CEcuData::c_fSUPPORTED_BY_PROTOCOL);
 	ecuData->m_fBaro = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fBaroVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iBaroADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fMATVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iMATADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
-	ecuData->m_fMATTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->setMATemp_dgC(CEcuData::c_fSUPPORTED_BY_PROTOCOL);
 	ecuData->m_fO2VoltsLeft = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fO2VoltsRight = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iBLM = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
@@ -60,7 +60,7 @@ void CGM1993CamaroZ28Parser::InitializeSupportedValues(CEcuData* const ecuData) 
 	ecuData->m_iRPM = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iRunTime = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fKnockRetard = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
-	ecuData->m_iMPH = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->setRoadSpeed_MPH(CEcuData::c_iSUPPORTED_BY_PROTOCOL);
 	ecuData->m_iEngineLoad = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 }
 
@@ -220,7 +220,7 @@ BOOL CGM1993CamaroZ28Parser::ParseMode1_0(const unsigned char* buffer, int len, 
 	m_ucDTC[2] = buffer[5]; // Fault code byte 3
 	m_ucDTC[3] = buffer[6]; // Fault code byte 4
 	m_ucDTC[4] = buffer[7]; // Fault code byte 5
-	ecuData->m_fWaterTemp = ((float)buffer[22] * (float)0.75) - (float)40.0; // in °C
+	ecuData->setCoolantTemp_dgC(((float)buffer[22] * 0.75f) - 40.0f); // in °C
 	ecuData->m_fMAP = (((float)buffer[23] + (float)28.06)/ (float)271); // in Bar Absolute
 	ecuData->m_fMAPVolts = ((float)buffer[23] / (float) 255.0) * (float) 5.0; // in Volts
 	ecuData->m_iMAPADC = buffer[23];
@@ -228,13 +228,13 @@ BOOL CGM1993CamaroZ28Parser::ParseMode1_0(const unsigned char* buffer, int len, 
 	ecuData->m_fThrottleVolts = (float)(((float)buffer[24] / (float)255.0) * (float) 5.0);
 	ecuData->m_iThrottleADC = buffer[24];
 	ecuData->m_fBatteryVolts = (float)buffer[25] / (float)10.0;
-	ecuData->m_fOilTemp = CGMBaseFunctions::ReturnTemp(buffer[26]); // Oil Temperature Deg C
+	ecuData->setOilTemp_dgC(CGMBaseFunctions::ReturnTemp(buffer[26])); // Oil Temperature Deg C
 	ecuData->m_fBaro = (((float)buffer[27] + (float)28.06)/ (float)271); // in Bar Absolute
 	ecuData->m_fBaroVolts = ((float)buffer[27] / (float) 255.0) * (float) 5.0; // in Volts
 	ecuData->m_iBaroADC = buffer[27];
 	ecuData->m_fMATVolts = ((float)buffer[28] * (float)5.0) / (float)255.0; // in Volts
 	ecuData->m_iMATADC = buffer[28];
-	ecuData->m_fMATTemp = CGMBaseFunctions::ReturnTemp(buffer[28]); // in °C
+	ecuData->setMATemp_dgC(CGMBaseFunctions::ReturnTemp(buffer[28])); // in °C
 	ecuData->m_fO2VoltsLeft = (float) buffer[29] * (float) 4.44; // 1st Bank
 	ecuData->m_fO2VoltsRight = (float) buffer[30] * (float) 4.44; // 2nd Bank
 	ecuData->m_iBLM = (int)buffer[31];
@@ -247,7 +247,7 @@ BOOL CGM1993CamaroZ28Parser::ParseMode1_0(const unsigned char* buffer, int len, 
 	ecuData->m_iRPM = buffer[46] * 25;
 	ecuData->m_iRunTime = (buffer[47] * 256) + buffer[48]; // Total running time
 	ecuData->m_fKnockRetard = ((float)buffer[49] / (float)2.0); // in °
-	ecuData->m_iMPH = (int)buffer[52]; // Count is in MPH
+	ecuData->setRoadSpeed_MPH((int)buffer[52]); // Count is in MPH
 	ecuData->m_iEngineLoad = (int)((float)buffer[53] / (float) 2.56);
 
 	ParseDTCs(ecuData); // Process the DTCs into text

@@ -30,7 +30,6 @@ private:
 	//}}AFX_DATA
 
 	CSupervisorInterface*	m_pSupervisor;
-	BOOL					m_bOneO2;	// True if only one O2 sensor
 
 // Overrides
 	// ClassWizard generate virtual function overrides

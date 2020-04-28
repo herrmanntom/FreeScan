@@ -9,6 +9,9 @@ private:
 	static const int   c_iUNSUPPORTED;
 	static const BOOL  c_bUNSUPPORTED;
 
+	static inline int convertSpeed(const BOOL inMph, const int valueInMph);
+	static inline float convertTemperature(const BOOL inDgC, const float valueInDgC);
+
 public:
 	static const float c_fSUPPORTED_BY_PROTOCOL;
 	static const int   c_iSUPPORTED_BY_PROTOCOL;
@@ -33,12 +36,24 @@ public:
 	void copyToF003(const unsigned char* const sourceBuffer, const int sourceLength);
 	void copyToF004(const unsigned char* const sourceBuffer, const int sourceLength);
 
+	void setRoadSpeed_MPH(const int value);
+	void setStartCoolantTemp_dgC(const float value);
+	void setCoolantTemp_dgC(const float value);
+	void setOilTemp_dgC(const float value);
+	void setMATemp_dgC(const float value);
+
 	void copyFromF005(unsigned char* const targetBuffer, const int targetBufferLen) const;
 	void copyFromF00A(unsigned char* const targetBuffer, const int targetBufferLen) const;
 	void copyFromF001(unsigned char* const targetBuffer, const int targetBufferLen) const;
 	void copyFromF002(unsigned char* const targetBuffer, const int targetBufferLen) const;
 	void copyFromF003(unsigned char* const targetBuffer, const int targetBufferLen) const;
 	void copyFromF004(unsigned char* const targetBuffer, const int targetBufferLen) const;
+
+	int getRoadSpeed(BOOL inMph) const;
+	float getStartCoolantTemp(BOOL inDgC) const;
+	float getCoolantTemp(BOOL inDgC) const;
+	float getOilTemp(BOOL inDgC) const;
+	float getMATemp(BOOL inDgC) const;
 
 	CString generateCsvLine(const BOOL header);
 
@@ -58,18 +73,8 @@ public:
 	int		m_iRPM;
 	int		m_iIACPosition; // Idle Stepper Motor Position 1 - 170
 	int		m_iDesiredIdle;
-	int		m_iMPH;
-	int		m_iMPH_inKPH;
-	float	m_fStartWaterTemp; // Coolant Temperature when engine was started Deg C
-	float	m_fStartWaterTemp_inF;
-	float	m_fWaterTemp; // Coolant Temperature Deg C
-	float	m_fWaterTemp_inF;
-	float	m_fWaterVolts; // Coolant Temperature Sensor Voltage
-	int		m_iWaterTempADC; // Coolant Temperature A/D Converter
-	float	m_fOilTemp; // Oil Temperature Deg C
-	float	m_fOilTemp_inF;
-	float	m_fMATTemp; // Manifold Air Temperature Deg C
-	float	m_fMATTemp_inF;
+	float	m_fCoolantVolts; // Coolant Temperature Sensor Voltage
+	int		m_iCoolantTempADC; // Coolant Temperature A/D Converter
 	float	m_fMATVolts; // Manifold Air Temperature Sensor Voltage
 	int 	m_iMATADC; // Manifold Air Temperature A/D Converter
 	int		m_iEpromID;
@@ -113,6 +118,12 @@ private:
 	unsigned char*	m_ucF002; // Mode 2 data buffer
 	unsigned char*	m_ucF003; // Mode 3 data buffer
 	unsigned char*	m_ucF004; // Mode 4 data buffer
+
+	int				m_iRoadSpeed_MPH;
+	float			m_fStartCoolantTemp; // Coolant Temperature when engine was started Deg C
+	float			m_fCoolantTemp; // Coolant Temperature Deg C
+	float			m_fOilTemp; // Oil Temperature Deg C
+	float			m_fMATemp; // Manifold Air Temperature Deg C
 
 	int				m_iCsvColumnCount;
 

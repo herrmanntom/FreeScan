@@ -33,15 +33,15 @@ void CGM1992PontiacParser::InitializeSupportedValues(CEcuData* const ecuData) {
 	ecuData->m_bACRequest = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bACClutch = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iEpromID = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
-	ecuData->m_fWaterTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
-	ecuData->m_fWaterVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
-	ecuData->m_iWaterTempADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
-	ecuData->m_fStartWaterTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->setCoolantTemp_dgC(CEcuData::c_fSUPPORTED_BY_PROTOCOL);
+	ecuData->m_fCoolantVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iCoolantTempADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->setStartCoolantTemp_dgC(CEcuData::c_fSUPPORTED_BY_PROTOCOL);
 	ecuData->m_fThrottleVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iThrottleADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iThrottlePos = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iRPM = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
-	ecuData->m_iMPH = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->setRoadSpeed_MPH(CEcuData::c_iSUPPORTED_BY_PROTOCOL);
 	ecuData->m_fO2VoltsLeft = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iRichLeanCounterL = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iBLM = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
@@ -57,7 +57,7 @@ void CGM1992PontiacParser::InitializeSupportedValues(CEcuData* const ecuData) {
 	ecuData->m_iMAPADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fMATVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iMATADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
-	ecuData->m_fMATTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->setMATemp_dgC(CEcuData::c_fSUPPORTED_BY_PROTOCOL);
 	ecuData->m_fBatteryVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fAirFlow = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fSparkAdvance = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
@@ -229,15 +229,15 @@ BOOL CGM1992PontiacParser::ParseMode1_0(const unsigned char* buffer, int len, CE
 	m_ucDTC[1] = buffer[4]; // Fault code byte 2
 	m_ucDTC[2] = buffer[5]; // Fault code byte 3
 	m_ucDTC[3] = buffer[6]; // Fault code byte 4
-	ecuData->m_fWaterTemp = ((float)buffer[7] * (float)0.75) - (float)40.0; // in °C
-	ecuData->m_fWaterVolts = (float)(((float)buffer[7] / (float)255.0) * (float) 5.0);
-	ecuData->m_iWaterTempADC = buffer[7];
-	ecuData->m_fStartWaterTemp = ((float)buffer[8] * (float)0.75) - (float)40.0; // in °C
+	ecuData->setCoolantTemp_dgC(((float)buffer[7] * 0.75f) - 40.0f); // in °C
+	ecuData->m_fCoolantVolts = (float)(((float)buffer[7] / 255.0f) * 5.0f);
+	ecuData->m_iCoolantTempADC = buffer[7];
+	ecuData->setStartCoolantTemp_dgC(((float)buffer[8] * 0.75f) - 40.0f); // in °C
 	ecuData->m_fThrottleVolts = (float)(((float)buffer[9] / (float)255.0) * (float) 5.0);
 	ecuData->m_iThrottleADC = buffer[9];
 	ecuData->m_iThrottlePos = (int)((float)buffer[10] / (float)2.55);
 	ecuData->m_iRPM = buffer[11] * 25;
-	ecuData->m_iMPH = (int)buffer[17]; // Count is in MPH
+	ecuData->setRoadSpeed_MPH((int)buffer[17]); // Count is in MPH
 	ecuData->m_fO2VoltsLeft = ((float) buffer[19]) * (4.42f/1000.0f); // 1st Bank in mV, so we divide by 1000 to get Volt
 	ecuData->m_iRichLeanCounterL = (int)buffer[20];
 	ecuData->m_iBLM = (int)buffer[22];
@@ -253,7 +253,7 @@ BOOL CGM1992PontiacParser::ParseMode1_0(const unsigned char* buffer, int len, CE
 	ecuData->m_iMAPADC = buffer[29];
 	ecuData->m_fMATVolts = ((float)buffer[30] / (float)255.0) * (float)5.0; // in Volts
 	ecuData->m_iMATADC = buffer[30];
-	ecuData->m_fMATTemp = CGMBaseFunctions::ReturnTemp(buffer[30]); // in °C
+	ecuData->setMATemp_dgC(CGMBaseFunctions::ReturnTemp(buffer[30])); // in °C
 	ecuData->m_fBatteryVolts = (float)buffer[34] / (float)10.0;
 	ecuData->m_fAirFlow = (float)buffer[37];
 	ecuData->m_fSparkAdvance = ((float)((buffer[38] * 256) + buffer[39])) * (90.0f / 256.0f); // in °

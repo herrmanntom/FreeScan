@@ -34,14 +34,14 @@ void CEspritParser::InitializeSupportedValues(CEcuData* const ecuData) {
 	ecuData->m_bEngineStalled = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bACRequest = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bACClutch = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
-	ecuData->m_fWaterVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
-	ecuData->m_iWaterTempADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
-	ecuData->m_fStartWaterTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_fCoolantVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iCoolantTempADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->setStartCoolantTemp_dgC(CEcuData::c_fSUPPORTED_BY_PROTOCOL);
 	ecuData->m_fThrottleVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iThrottleADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iDesiredIdle = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iRPM = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
-	ecuData->m_iMPH = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->setRoadSpeed_MPH(CEcuData::c_iSUPPORTED_BY_PROTOCOL);
 	ecuData->m_iCrankSensors = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fO2VoltsLeft = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iRichLeanCounterL = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
@@ -63,8 +63,8 @@ void CEspritParser::InitializeSupportedValues(CEcuData* const ecuData) {
 	ecuData->m_iEngineLoad = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iSecondaryInjPW = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fSparkAdvance = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
-	ecuData->m_fWaterTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
-	ecuData->m_fMATTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->setCoolantTemp_dgC(CEcuData::c_fSUPPORTED_BY_PROTOCOL);
+	ecuData->setMATemp_dgC(CEcuData::c_fSUPPORTED_BY_PROTOCOL);
 	ecuData->m_iKnockCount = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fKnockRetard = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iInjectorBasePWMsL = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
@@ -174,9 +174,9 @@ BOOL CEspritParser::ParseADC(const unsigned char* buffer, int len, CEcuData* con
 	else
 		ecuData->m_bEngineStalled = FALSE; // bit 6
 
-	ecuData->m_iMPH = (int)buffer[2]; // Count is in MPH
-	ecuData->m_fBatteryVolts = (float)buffer[4] / (float)10.0;
-	ecuData->m_fWaterTemp = ((float)buffer[9] * (float)0.75) - (float)40.0; // in °C
+	ecuData->setRoadSpeed_MPH((int)buffer[2]); // Count is in MPH
+	ecuData->m_fBatteryVolts = (float)buffer[4] / 10.0f;
+	ecuData->setCoolantTemp_dgC(((float)buffer[9] * 0.75f) - 40.0f); // in °C
 
 	return TRUE;
 }
@@ -241,14 +241,14 @@ BOOL CEspritParser::ParseMode1(const unsigned char* buffer, int len, CEcuData* c
 	m_ucDTC[0] = buffer[3]; // Fault code byte 1
 	m_ucDTC[1] = buffer[4]; // Fault code byte 2
 	m_ucDTC[2] = buffer[5]; // Fault code byte 3
-	ecuData->m_fWaterVolts = (float)(((float)buffer[8] / (float)255.0) * (float) 5.0);
-	ecuData->m_iWaterTempADC = buffer[8]; // in Counts
-	ecuData->m_fStartWaterTemp = ((float)buffer[9] * (float)0.75) - (float)40.0; // in °C
+	ecuData->m_fCoolantVolts = (float)(((float)buffer[8] / 255.0f) * 5.0f);
+	ecuData->m_iCoolantTempADC = buffer[8]; // in Counts
+	ecuData->setStartCoolantTemp_dgC(((float)buffer[9] * 0.75f) - 40.0f); // in °C
 	ecuData->m_fThrottleVolts = (float)(((float)buffer[10] / (float)255.0) * (float) 5.0);
 	ecuData->m_iThrottleADC = buffer[10]; // in Counts
 	ecuData->m_iDesiredIdle = (int)((float)buffer[11] * (float) 12.5);
 	ecuData->m_iRPM = ((int)buffer[12] * 256) + (int)buffer[13];
-	ecuData->m_iMPH = (int)buffer[14]; // Count is in MPH
+	ecuData->setRoadSpeed_MPH((int)buffer[14]); // Count is in MPH
 	ecuData->m_iCrankSensors = buffer[15];
 	ecuData->m_fO2VoltsLeft = (float) buffer[17] * (float) 0.00444;
 	ecuData->m_iRichLeanCounterL = (int)buffer[18];
@@ -270,8 +270,8 @@ BOOL CEspritParser::ParseMode1(const unsigned char* buffer, int len, CEcuData* c
 	ecuData->m_iEngineLoad = (int)((float)buffer[36] / (float) 2.55);
 	ecuData->m_iSecondaryInjPW = (int) ((float)buffer[37] / (float)2.55); // Secondary Injectors
 	ecuData->m_fSparkAdvance = ((float)((buffer[39] * 256) + buffer[40]) * (float)90.0) / (float)256.0; // in °
-	ecuData->m_fWaterTemp = ((float)buffer[41] * (float)0.75) - (float)40.0; // in °C
-	ecuData->m_fMATTemp = ((float)buffer[42] * (float)0.75) - (float)40.0; // in °C
+	ecuData->setCoolantTemp_dgC(((float)buffer[41] * 0.75f) - 40.0f); // in °C
+	ecuData->setMATemp_dgC(((float)buffer[42] * 0.75f) - 40.0f); // in °C
 	ecuData->m_iKnockCount = (int)buffer[43];
 	ecuData->m_fKnockRetard = ((float)buffer[44] * (float)22.5) / (float)256.0; // in °
 	ecuData->m_iInjectorBasePWMsL = (int) ( (float)((buffer[45] * 256) + buffer[46]) / (float)65.536);

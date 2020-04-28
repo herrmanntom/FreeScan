@@ -142,9 +142,9 @@ void CDashBoardDlg::Refresh(const CEcuData* const ecuData)
 {
 	updateField(&m_AirFuelRatio, &m_AirFuelRatioText, "%3.1f ", ecuData->m_fAFRatio, 10.0f, AIR_FUEL_RATIO_MIN, AIR_FUEL_RATIO_MAX);
 
-	updateField(&m_Water, &m_WaterText, "%3.1f ", ecuData->m_fWaterTemp, 10.0f, WATER_MIN, WATER_MAX);
+	updateField(&m_Water, &m_WaterText, "%3.1f ", ecuData->getCoolantTemp(TRUE), 10.0f, WATER_MIN, WATER_MAX);
 	
-	updateField(&m_MAT, &m_MATText, "%3.1f ", ecuData->m_fMATTemp, 10.0f, MAT_MIN, MAT_MAX);
+	updateField(&m_MAT, &m_MATText, "%3.1f ", ecuData->getMATemp(TRUE), 10.0f, MAT_MIN, MAT_MAX);
 	
 	updateField(&m_Volt, &m_VoltText, "%3.1f ", ecuData->m_fBatteryVolts, 10.0f, BAT_VOLT_MIN, BAT_VOLT_MAX);
 	
@@ -154,8 +154,8 @@ void CDashBoardDlg::Refresh(const CEcuData* const ecuData)
 
 	updateField(&m_Tacho, &m_TachoText, "%4d ", ecuData->m_iRPM, 1, TACHO_MIN, TACHO_MAX);
 
-	updateField(&m_Speedo, &m_SpeedoMphText, "%3d ", ecuData->m_iMPH,       1, SPEEDO_MIN, SPEEDO_MAX);
-	updateField(NULL,      &m_SpeedoKphText, "%3d ", ecuData->m_iMPH_inKPH, 1,          0,          0);
+	updateField(&m_Speedo, &m_SpeedoMphText, "%3d ", ecuData->getRoadSpeed(TRUE),  1, SPEEDO_MIN, SPEEDO_MAX);
+	updateField(NULL,      &m_SpeedoKphText, "%3d ", ecuData->getRoadSpeed(FALSE), 1,          0,          0);
 
 	updateField(&m_Throttle, NULL, NULL, ecuData->m_iThrottlePos, 1, THROTTLE_MIN, THROTTLE_MAX);
 

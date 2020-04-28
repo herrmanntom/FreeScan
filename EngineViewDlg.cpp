@@ -42,7 +42,6 @@ CEngineViewDlg::CEngineViewDlg() : CTTPropertyPage(CEngineViewDlg::IDD)
 	//{{AFX_DATA_INIT(CEngineViewDlg)
 	//}}AFX_DATA_INIT
 	m_pSupervisor = NULL;
-	m_bOneO2 = TRUE;	// True if only one O2 sensor
 }
 
 CEngineViewDlg::~CEngineViewDlg()
@@ -85,12 +84,17 @@ static inline void renderField(CClientDC * const client, const int column, const
 }
 
 // Updates all of our controls
-void CEngineViewDlg::Refresh(const CEcuData* const ecuData)
-{
+void CEngineViewDlg::Refresh(const CEcuData* const ecuData) {
 // This draws the actual data to the screen
 	CClientDC	Client(&m_view);
 	Client.SetBkColor(RGB(0,0,180)); // sets the background colour
 	Client.SetTextColor(RGB(255,255,255));
+
+	// A simple check to see if we have only one O2 sensor fitted
+	BOOL oneO2 = TRUE;
+	if (CEcuData::isSupported(ecuData->m_fO2VoltsLeft)) {
+		oneO2 = FALSE;
+	}
 
 	LOGFONT lf;
 	Client.GetCurrentFont()->GetLogFont(&lf);
@@ -109,12 +113,7 @@ void CEngineViewDlg::Refresh(const CEcuData* const ecuData)
 
 	renderField(&Client, COLD1, 3, "%5d", ecuData->m_iDesiredIdle);
 
-	if (m_pSupervisor->GetMiles() == TRUE) {
-		renderField(&Client, COLD1, 4, "%5d", ecuData->m_iMPH);
-	}
-	else {
-		renderField(&Client, COLD1, 4, "%5d", ecuData->m_iMPH_inKPH);
-	}
+	renderField(&Client, COLD1, 4, "%5d", ecuData->getRoadSpeed(m_pSupervisor->GetMiles()));
 
 	renderField(&Client, COLD1, 5, "%5d", ecuData->m_iThrottlePos);
 
@@ -126,7 +125,7 @@ void CEngineViewDlg::Refresh(const CEcuData* const ecuData)
 
 	renderField(&Client, COLD1, 9, "%5.3f", ecuData->m_fO2VoltsLeft);
 
-	if (m_bOneO2 == FALSE) {
+	if (oneO2 == FALSE) {
 		renderField(&Client, COLD1, 10, "%5.3f", ecuData->m_fO2VoltsRight);
 	}
 	else {
@@ -136,21 +135,11 @@ void CEngineViewDlg::Refresh(const CEcuData* const ecuData)
 	renderField(&Client, COLD1, 11, "%5d", ecuData->m_iRunTime);
 
 	// Draw second column
-	if (m_pSupervisor->GetCentigrade() == TRUE) {
-		renderField(&Client, COLD2, 0, "%3.0f", ecuData->m_fStartWaterTemp);
-		renderField(&Client, COLD2, 1, "%3.0f", ecuData->m_fWaterTemp);
-		renderField(&Client, COLD2, 2, "%3.0f", ecuData->m_fMATTemp);
-		if (CEcuData::isSupported(ecuData->m_fOilTemp)) {
-			renderField(&Client, COLD2, 3, "%3.0f", ecuData->m_fOilTemp);
-		}
-	}
-	else {
-		renderField(&Client, COLD2, 0, "%3.0f", ecuData->m_fStartWaterTemp_inF);
-		renderField(&Client, COLD2, 1, "%3.0f", ecuData->m_fWaterTemp_inF);
-		renderField(&Client, COLD2, 2, "%3.0f", ecuData->m_fMATTemp_inF);
-		if (CEcuData::isSupported(ecuData->m_fOilTemp)) {
-			renderField(&Client, COLD2, 3, "%3.0f", ecuData->m_fOilTemp_inF);
-		}
+	renderField(&Client, COLD2, 0, "%3.0f", ecuData->getStartCoolantTemp(m_pSupervisor->GetCentigrade()));
+	renderField(&Client, COLD2, 1, "%3.0f", ecuData->getCoolantTemp(m_pSupervisor->GetCentigrade()));
+	renderField(&Client, COLD2, 2, "%3.0f", ecuData->getMATemp(m_pSupervisor->GetCentigrade()));
+	if (CEcuData::isSupported(ecuData->getOilTemp(m_pSupervisor->GetCentigrade()))) {
+		renderField(&Client, COLD2, 3, "%3.0f", ecuData->getOilTemp(m_pSupervisor->GetCentigrade()));
 	}
 	
 	renderField(&Client, COLD2, 4, "%5.1f", ecuData->m_fSparkAdvance);
@@ -167,7 +156,7 @@ void CEngineViewDlg::Refresh(const CEcuData* const ecuData)
 	
 	renderField(&Client, COLD2, 9, "%5d", ecuData->m_iIntegratorL);
 
-	if (m_bOneO2 == FALSE) {
+	if (oneO2 == FALSE) {
 		renderField(&Client, COLD2, 10, "%5d", ecuData->m_iIntegratorR);
 	}
 	else {
@@ -185,7 +174,7 @@ void CEngineViewDlg::Refresh(const CEcuData* const ecuData)
 
 	renderField(&Client, COLD3, 9, "%5d", ecuData->m_iRichLeanCounterL);
 
-	if (m_bOneO2 == FALSE) {
+	if (oneO2 == FALSE) {
 		renderField(&Client, COLD2, 10, "%5d", ecuData->m_iRichLeanCounterR);
 	}
 	else {
@@ -223,10 +212,15 @@ void CEngineViewDlg::OnPaint()
 	const CEcuData *const ecuData = m_pSupervisor->GetEcuData();
 
 	// A simple check to see if we have only one O2 sensor fitted
-	if (!CEcuData::isSupported(ecuData->m_fO2VoltsRight))
-		m_bOneO2 = TRUE;
-	else
-		m_bOneO2 = FALSE;
+	BOOL oneO2 = TRUE;
+	if (CEcuData::isSupported(ecuData->m_fO2VoltsLeft)) {
+		oneO2 = FALSE;
+	}
+
+	BOOL oilTempSupported = FALSE;
+	if (CEcuData::isSupported(ecuData->getOilTemp(m_pSupervisor->GetCentigrade()))) {
+		oilTempSupported = TRUE;
+	}
 
 	RECT	Rect;
 	m_view.GetClientRect(&Rect);
@@ -246,7 +240,7 @@ void CEngineViewDlg::OnPaint()
 	Client.TextOut(COLT1, 6  * HS,"Engine Load");
 	Client.TextOut(COLT1, 7  * HS,"MAP");
 	Client.TextOut(COLT1, 8  * HS,"Barometer");
-	if (m_bOneO2 == FALSE) {
+	if (oneO2 == FALSE) {
 		Client.TextOut(COLT1, 9  * HS,"O2 Volts L");
 		Client.TextOut(COLT1, 10 * HS,"O2 Volts R");
 	}
@@ -265,7 +259,7 @@ void CEngineViewDlg::OnPaint()
 	Client.TextOut(COLT2, 0  * HS,"Start Temp");
 	Client.TextOut(COLT2, 1  * HS,"Coolant Temp");
 	Client.TextOut(COLT2, 2  * HS,"Mass Air Temp");
-	if (CEcuData::isSupported(ecuData->m_fOilTemp)) {
+	if (CEcuData::isSupported(ecuData->getOilTemp(m_pSupervisor->GetCentigrade()))) {
 		Client.TextOut(COLT2, 3  * HS,"Oil Temp");
 	}
 	Client.TextOut(COLT2, 4  * HS,"Spark Advance");
@@ -276,7 +270,7 @@ void CEngineViewDlg::OnPaint()
 		Client.TextOut(COLT2, 7 * HS, "Air Flow");
 	}
 	Client.TextOut(COLT2, 8  * HS,"Battery Volts");
-	if (m_bOneO2 == FALSE) {
+	if (oneO2 == FALSE) {
 		Client.TextOut(COLT2, 9  * HS,"Integrator L");
 		Client.TextOut(COLT2, 10 * HS,"Integrator R");
 	}
@@ -288,7 +282,7 @@ void CEngineViewDlg::OnPaint()
 		Client.TextOut(COLT2 + 130, 0  * HS,"°C");
 		Client.TextOut(COLT2 + 130, 1  * HS,"°C");
 		Client.TextOut(COLT2 + 130, 2  * HS,"°C");
-		if (CEcuData::isSupported(ecuData->m_fOilTemp)) {
+		if (oilTempSupported == TRUE) {
 			Client.TextOut(COLT2 + 130, 3 * HS, "°C");
 		}
 	}
@@ -296,7 +290,7 @@ void CEngineViewDlg::OnPaint()
 		Client.TextOut(COLT2 + 130, 0  * HS,"°F");
 		Client.TextOut(COLT2 + 130, 1  * HS,"°F");
 		Client.TextOut(COLT2 + 130, 2  * HS,"°F");
-		if (CEcuData::isSupported(ecuData->m_fOilTemp)) {
+		if (oilTempSupported == TRUE) {
 			Client.TextOut(COLT2 + 130, 3 * HS, "°F");
 		}
 	}
@@ -311,7 +305,7 @@ void CEngineViewDlg::OnPaint()
 	Client.TextOut(COLT3, 1  * HS,"A/F Ratio");
 	Client.TextOut(COLT3, 2  * HS,"BLM Contents");
 	Client.TextOut(COLT3, 3  * HS,"BLM Cell #");
-	if (m_bOneO2 == FALSE) {
+	if (oneO2 == FALSE) {
 		Client.TextOut(COLT3, 9  * HS,"Rich/Lean L");
 		Client.TextOut(COLT3, 10 * HS,"Rich/Lean R");
 	}

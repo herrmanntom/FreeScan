@@ -132,33 +132,17 @@ void CEngineDlg::Refresh(const CEcuData* const ecuData)
 
 	updateField(dwCurrentMode, &m_DesiredIdle, "%d", ecuData->m_iDesiredIdle);
 
-	if (m_pSupervisor->GetMiles() == TRUE) {
-		updateField(dwCurrentMode, &m_MPH, "%d", ecuData->m_iMPH);
-	}
-	else {
-		updateField(dwCurrentMode, &m_MPH, "%d", ecuData->m_iMPH_inKPH);
-	}
+	updateField(dwCurrentMode, &m_MPH, "%d", ecuData->getRoadSpeed(m_pSupervisor->GetMiles()));
 
 	updateField(dwCurrentMode, &m_BatteryVolts, "%3.1f", ecuData->m_fBatteryVolts);
 
-	if (m_pSupervisor->GetCentigrade() == TRUE) {
-		updateField(dwCurrentMode, &m_StartCoolant, "%3.1f", ecuData->m_fStartWaterTemp);
+	updateField(dwCurrentMode, &m_StartCoolant, "%3.1f", ecuData->getStartCoolantTemp(m_pSupervisor->GetCentigrade()));
 
-		updateField(dwCurrentMode, &m_CoolantTemp, "%3.1f", ecuData->m_fWaterTemp);
+	updateField(dwCurrentMode, &m_CoolantTemp, "%3.1f", ecuData->getCoolantTemp(m_pSupervisor->GetCentigrade()));
 
-		updateField(dwCurrentMode, &m_OilTemp, "%3.1f", ecuData->m_fOilTemp);
+	updateField(dwCurrentMode, &m_OilTemp, "%3.1f", ecuData->getOilTemp(m_pSupervisor->GetCentigrade()));
 
-		updateField(dwCurrentMode, &m_MAT, "%3.1f", ecuData->m_fMATTemp);
-	}
-	else {
-		updateField(dwCurrentMode, &m_StartCoolant, "%3.1f", ecuData->m_fStartWaterTemp_inF);
-
-		updateField(dwCurrentMode, &m_CoolantTemp, "%3.1f", ecuData->m_fWaterTemp_inF);
-
-		updateField(dwCurrentMode, &m_OilTemp, "%3.1f", ecuData->m_fOilTemp_inF);
-
-		updateField(dwCurrentMode, &m_MAT, "%3.1f", ecuData->m_fMATTemp_inF);
-	}
+	updateField(dwCurrentMode, &m_MAT, "%3.1f", ecuData->getMATemp(m_pSupervisor->GetCentigrade()));
 
 	updateField(dwCurrentMode, &m_RunTime, "%d", ecuData->m_iRunTime);
 

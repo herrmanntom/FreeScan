@@ -238,8 +238,6 @@ LONG CSupervisor::OnCharReceived(WPARAM ch, LPARAM BytesRead) {
 		delete ecuData;
 
 		if (modifiedEcuData == TRUE) {
-			ConvertMiles();
-			ConvertDegrees();
 			WriteCSV(false);
 			m_pMainDlg->Update(m_pEcuData);
 		}
@@ -278,47 +276,6 @@ void CSupervisor::WriteCSV(BOOL bTitle) {
 	csBuf += _T("\n"); // Line Feed because we're logging to disk
 	m_file.WriteString(csBuf);
 	m_dwCSVRecord = newCSVRecordNumber;
-}
-
-// Converts temps to degF
-void CSupervisor::ConvertDegrees(void) {
-	if (CEcuData::isValid(m_pEcuData->m_fStartWaterTemp)) {
-		m_pEcuData->m_fStartWaterTemp_inF = (float)((m_pEcuData->m_fStartWaterTemp * (float)1.8) + (float)32.0);
-	}
-	else if (CEcuData::isSupported(m_pEcuData->m_fStartWaterTemp)) {
-		m_pEcuData->m_fStartWaterTemp_inF = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
-	}
-
-	if (CEcuData::isValid(m_pEcuData->m_fWaterTemp)) {
-		m_pEcuData->m_fWaterTemp_inF = (float)((m_pEcuData->m_fWaterTemp * (float)1.8) + (float)32.0);
-	}
-	else if (CEcuData::isSupported(m_pEcuData->m_fWaterTemp)) {
-		m_pEcuData->m_fWaterTemp_inF = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
-	}
-
-	if (CEcuData::isValid(m_pEcuData->m_fOilTemp)) {
-		m_pEcuData->m_fOilTemp_inF = (float)((m_pEcuData->m_fOilTemp * (float)1.8) + (float)32.0);
-	}
-	else if (CEcuData::isSupported(m_pEcuData->m_fOilTemp)) {
-		m_pEcuData->m_fOilTemp_inF = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
-	}
-
-	if (CEcuData::isValid(m_pEcuData->m_fMATTemp)) {
-		m_pEcuData->m_fMATTemp_inF = (float)((m_pEcuData->m_fMATTemp * (float)1.8) + (float)32.0);
-	}
-	else if (CEcuData::isSupported(m_pEcuData->m_fMATTemp)) {
-		m_pEcuData->m_fMATTemp_inF = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
-	}
-}
-
-// Converts miles to kilometers
-void CSupervisor::ConvertMiles(void) {
-	if (CEcuData::isValid(m_pEcuData->m_iMPH)) {
-		m_pEcuData->m_iMPH_inKPH = (int)((float)m_pEcuData->m_iMPH * (float)1.609344f);
-	}
-	else if (CEcuData::isSupported(m_pEcuData->m_iMPH)) {
-		m_pEcuData->m_iMPH_inKPH = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
-	}
 }
 
 // Writes a line of ASCII to the spy window

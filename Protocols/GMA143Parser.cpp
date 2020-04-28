@@ -29,17 +29,16 @@ CGMA143Parser::~CGMA143Parser() {
 
 void CGMA143Parser::InitializeSupportedValues(CEcuData* const ecuData) {
 	ecuData->m_csDTC = "No reported faults.";
-	ecuData->m_iMPH = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->setRoadSpeed_MPH(CEcuData::c_iSUPPORTED_BY_PROTOCOL);
 	ecuData->m_fBatteryVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
-	ecuData->m_fWaterTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->setCoolantTemp_dgC(CEcuData::c_fSUPPORTED_BY_PROTOCOL);
 	ecuData->m_iRPM = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bEngineClosedLoop = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bEngineStalled = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bACRequest = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bACClutch = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iThrottlePos = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
-	ecuData->m_fWaterTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
-	ecuData->m_fStartWaterTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->setStartCoolantTemp_dgC(CEcuData::c_fSUPPORTED_BY_PROTOCOL);
 	ecuData->m_fThrottleVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iThrottleADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iEngineLoad = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
@@ -151,9 +150,9 @@ BOOL CGMA143Parser::ParseADC(const unsigned char* buffer, int len, CEcuData* con
 	ecuData->copyToF005(buffer, len);
 
 	// Work out real world data from the packet.
-	ecuData->m_iMPH = (int)buffer[2]; // Count is in MPH
+	ecuData->setRoadSpeed_MPH((int)buffer[2]); // Count is in MPH
 	ecuData->m_fBatteryVolts = (float)buffer[4] / (float)10.0;
-	ecuData->m_fWaterTemp = ((float)buffer[9] * (float)0.75) - (float)40.0; // in °C
+	ecuData->setCoolantTemp_dgC(((float)buffer[9] * 0.75f) - 40.0f); // in °C
 
 	return TRUE;
 }
@@ -214,12 +213,12 @@ BOOL CGMA143Parser::ParseMode1(const unsigned char* buffer, int len, CEcuData* c
 
 	// Analogues
 	ecuData->m_iThrottlePos = (int)((float)buffer[10] / (float)2.55);
-	ecuData->m_fWaterTemp = ((float)buffer[11] * (float)0.75) - (float)40.0; // in °C
-	ecuData->m_fStartWaterTemp = ((float)buffer[12] * (float)0.75) - (float)40.0; // in °C
+	ecuData->setCoolantTemp_dgC(((float)buffer[11] * 0.75f) - 40.0f); // in °C
+	ecuData->setStartCoolantTemp_dgC(((float)buffer[12] * 0.75f) - 40.0f); // in °C
 	ecuData->m_fThrottleVolts = (float)(((float)buffer[13] / (float)255.0) * (float) 5.0);
 	ecuData->m_iThrottleADC = buffer[13]; // in Counts
 	ecuData->m_iRPM = ((int)buffer[14] * 25);
-	ecuData->m_iMPH = (int)buffer[17]; // Count is in MPH
+	ecuData->setRoadSpeed_MPH((int)buffer[17]); // Count is in MPH
 	ecuData->m_iEngineLoad = (int)((float)buffer[19] / (float) 2.55);
 	ecuData->m_fO2VoltsLeft = (float) buffer[20] * (float) 0.00444;
 	ecuData->m_iRichLeanCounterL = (int)buffer[21];

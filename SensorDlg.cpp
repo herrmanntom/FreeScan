@@ -82,25 +82,19 @@ void CSensorDlg::Refresh(const CEcuData* const ecuData)
 {
 	DWORD	dwCurrentMode = m_pSupervisor->GetCurrentMode();
 
-	if (m_pSupervisor->GetCentigrade() == TRUE) {
-		updateField(dwCurrentMode, &m_CoolantTemp, "%3.1f", ecuData->m_fWaterTemp);
-		updateField(dwCurrentMode, &m_MAT, "%3.1f", ecuData->m_fMATTemp);
-	}
-	else {
-		updateField(dwCurrentMode, &m_CoolantTemp, "%3.1f", ecuData->m_fWaterTemp_inF);
-		updateField(dwCurrentMode, &m_MAT, "%3.1f", ecuData->m_fMATTemp_inF);
-	}
+	updateField(dwCurrentMode, &m_CoolantTemp, "%3.1f", ecuData->getCoolantTemp(m_pSupervisor->GetCentigrade()));
+	updateField(dwCurrentMode, &m_MAT, "%3.1f", ecuData->getMATemp(m_pSupervisor->GetCentigrade()));
 	updateField(dwCurrentMode, &m_ThrottlePos, "%3d", ecuData->m_iThrottlePos);
 	updateField(dwCurrentMode, &m_Baro, "%5.3f", ecuData->m_fBaro);
 	updateField(dwCurrentMode, &m_Boost, "%5.3f", ecuData->m_fMAP);
 
-	updateField(dwCurrentMode, &m_CoolantVolts, "%4.2f", ecuData->m_fWaterVolts);
+	updateField(dwCurrentMode, &m_CoolantVolts, "%4.2f", ecuData->m_fCoolantVolts);
 	updateField(dwCurrentMode, &m_MATVolts, "%4.2f", ecuData->m_fMATVolts);
 	updateField(dwCurrentMode, &m_ThrottleVolts, "%4.2f", ecuData->m_fThrottleVolts);
 	updateField(dwCurrentMode, &m_BaroVolts, "%4.2f", ecuData->m_fBaroVolts);
 	updateField(dwCurrentMode, &m_MapVolts, "%4.2f", ecuData->m_fMAPVolts);
 
-	updateField(dwCurrentMode, &m_CoolantADC, "0x%02X", ecuData->m_iWaterTempADC);
+	updateField(dwCurrentMode, &m_CoolantADC, "0x%02X", ecuData->m_iCoolantTempADC);
 	updateField(dwCurrentMode, &m_MATADC, "0x%02X", ecuData->m_iMATADC);
 	updateField(dwCurrentMode, &m_ThrottleADC, "0x%02X", ecuData->m_iThrottleADC);
 	updateField(dwCurrentMode, &m_BaroADC, "0x%02X", ecuData->m_iBaroADC);

@@ -29,15 +29,15 @@ CGMA140Parser::~CGMA140Parser() {
 
 void CGMA140Parser::InitializeSupportedValues(CEcuData* const ecuData) {
 	ecuData->m_csDTC = "No reported faults.";
-	ecuData->m_iMPH = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->setRoadSpeed_MPH(CEcuData::c_iSUPPORTED_BY_PROTOCOL);
 	ecuData->m_fBatteryVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
-	ecuData->m_fWaterTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->setCoolantTemp_dgC(CEcuData::c_fSUPPORTED_BY_PROTOCOL);
 	ecuData->m_iRPM = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bEngineClosedLoop = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bEngineStalled = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_bACRequest = CEcuData::c_bSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iEpromID = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
-	ecuData->m_fStartWaterTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->setStartCoolantTemp_dgC(CEcuData::c_fSUPPORTED_BY_PROTOCOL);
 	ecuData->m_fThrottleVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iThrottleADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iThrottlePos = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
@@ -56,7 +56,7 @@ void CGMA140Parser::InitializeSupportedValues(CEcuData* const ecuData) {
 	ecuData->m_iMAPADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fMATVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iMATADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
-	ecuData->m_fMATTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->setMATemp_dgC(CEcuData::c_fSUPPORTED_BY_PROTOCOL);
 	ecuData->m_fAirFlow = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fSparkAdvance = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fAFRatio = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
@@ -164,9 +164,9 @@ BOOL CGMA140Parser::ParseADC(const unsigned char* buffer, int len, CEcuData* con
 	ecuData->copyToF005(buffer, len);
 
 	// Work out real world data from the packet.
-	ecuData->m_iMPH = (int)buffer[2]; // Count is in MPH
+	ecuData->setRoadSpeed_MPH((int)buffer[2]); // Count is in MPH
 	ecuData->m_fBatteryVolts = (float)buffer[4] / (float)10.0;
-	ecuData->m_fWaterTemp = ((float)buffer[9] * (float)0.75) - (float)40.0; // in °C
+	ecuData->setCoolantTemp_dgC(((float)buffer[9] * 0.75f) - 40.0f); // in °C
 
 	return TRUE;
 }
@@ -226,13 +226,13 @@ BOOL CGMA140Parser::ParseMode1(const unsigned char* buffer, int len, CEcuData* c
 	m_ucDTC[2] = buffer[5]; // Fault code byte 3
 	m_ucDTC[3] = buffer[6]; // Fault code byte 4
 	// Analogues
-	ecuData->m_fWaterTemp = ((float)buffer[7] * (float)0.75) - (float)40.0; // in °C
-	ecuData->m_fStartWaterTemp = ((float)buffer[8] * (float)0.75) - (float)40.0; // in °C
+	ecuData->setCoolantTemp_dgC(((float)buffer[7] * 0.75f) - 40.0f); // in °C
+	ecuData->setStartCoolantTemp_dgC(((float)buffer[8] * 0.75f) - 40.0f); // in °C
 	ecuData->m_fThrottleVolts = (float)(((float)buffer[9] / (float)255.0) * (float) 5.0);
 	ecuData->m_iThrottleADC = buffer[9]; // in Counts
 	ecuData->m_iThrottlePos = (int)((float)buffer[10] / (float)2.55);
 	ecuData->m_iRPM = ((int)buffer[11] * 25);
-	ecuData->m_iMPH = (int)buffer[17]; // Count is in MPH
+	ecuData->setRoadSpeed_MPH((int)buffer[17]); // Count is in MPH
 	ecuData->m_fO2VoltsLeft = (float) buffer[19] * (float) 0.00442;
 	ecuData->m_iRichLeanCounterL = (int)buffer[20];
 	ecuData->m_iBLM = (int)buffer[22];
@@ -248,7 +248,7 @@ BOOL CGMA140Parser::ParseMode1(const unsigned char* buffer, int len, CEcuData* c
 	ecuData->m_iMAPADC = buffer[29]; // in Counts
 	ecuData->m_fMATVolts = ((float)buffer[30] / (float)255.0) * (float)5.0; // in Volts
 	ecuData->m_iMATADC = buffer[30]; // in Counts
-	ecuData->m_fMATTemp = CGMBaseFunctions::ReturnTemp(buffer[30]); // in °C
+	ecuData->setMATemp_dgC(CGMBaseFunctions::ReturnTemp(buffer[30])); // in °C
 	ecuData->m_fBatteryVolts = (float)buffer[34] / (float)10.0;
 	ecuData->m_fAirFlow = (float) buffer[37];
 	ecuData->m_fSparkAdvance = ((float)((buffer[38] * 256) + buffer[39]) * (float)90.0) / (float)256.0; // in °

@@ -52,8 +52,6 @@ private:
 public:
 	void Init(int iModel);// Initialises the Supervisor and Protocol
 
-	void ConvertDegrees(void); // converts all temps to degF
-	void ConvertMiles(void); // converts speeds to kph
 	void SetCurrentPort(UINT nPort);// Sets current com port
 	UINT GetCurrentPort(void);// Returns the current com port
 	DWORD GetWriteDelay(void);//Gets the Write Delay from the serial port

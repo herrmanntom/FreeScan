@@ -30,15 +30,19 @@ CLotusCarltonParser::~CLotusCarltonParser() {
 void CLotusCarltonParser::InitializeSupportedValues(CEcuData* const ecuData) {
 	ecuData->m_csDTC = "No reported faults.";
 	ecuData->m_iEpromID = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
-	ecuData->m_fWaterTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->setCoolantTemp_dgC(CEcuData::c_fSUPPORTED_BY_PROTOCOL);
 	ecuData->m_fMAPVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iMAPADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fMAP = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fThrottleVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iThrottleADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fBatteryVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fBaro = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fBaroVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iBaroADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fMATVolts = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
-	ecuData->m_fMATTemp = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
+	ecuData->m_iMATADC = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->setMATemp_dgC(CEcuData::c_fSUPPORTED_BY_PROTOCOL);
 	ecuData->m_fO2VoltsLeft = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fO2VoltsRight = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iBLM = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
@@ -54,7 +58,7 @@ void CLotusCarltonParser::InitializeSupportedValues(CEcuData* const ecuData) {
 	ecuData->m_iRunTime = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 	ecuData->m_fKnockRetard = CEcuData::c_fSUPPORTED_BY_PROTOCOL;
 	ecuData->m_iKnockCount = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
-	ecuData->m_iMPH = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
+	ecuData->setRoadSpeed_MPH(CEcuData::c_iSUPPORTED_BY_PROTOCOL);
 	ecuData->m_iThrottlePos = CEcuData::c_iSUPPORTED_BY_PROTOCOL;
 }
 
@@ -222,15 +226,19 @@ BOOL CLotusCarltonParser::ParseMode1_0(const unsigned char* buffer, int len, CEc
 	m_ucDTC[2] = buffer[5]; // Fault code byte 3
 	m_ucDTC[2] = buffer[6]; // Fault code byte 4
 	m_ucDTC[2] = buffer[7]; // Fault code byte 5
-	ecuData->m_fWaterTemp = ((float)buffer[22] * (float)0.75) - (float)40.0; // in °C
+	ecuData->setCoolantTemp_dgC(((float)buffer[22] * 0.75f) - 40.0f); // in °C
 	ecuData->m_fMAPVolts = ((float)buffer[23] / (float) 255.0) * (float) 5.0; // in Volts
+	ecuData->m_iMAPADC = (int)buffer[23];
 	ecuData->m_fMAP = (((float)buffer[23] - (float)128.0)/ (float)100) + (float) 1.0; // in Bar Absolute
 	ecuData->m_fThrottleVolts = (float)(((float)buffer[24] / (float)255.0) * (float) 5.0);
+	ecuData->m_iThrottleADC = (int)buffer[24];
 	ecuData->m_fBatteryVolts = (float)buffer[25] / (float)10.0;
 	ecuData->m_fBaro = (((float)buffer[26] - (float)128.0)/ (float)100) + (float) 1.0; // in Bar Absolute
 	ecuData->m_fBaroVolts = ((float)buffer[26] / (float) 255.0) * (float) 5.0; // in Volts
+	ecuData->m_iBaroADC = (int)buffer[26];
 	ecuData->m_fMATVolts = ((float)buffer[28] / (float)255.0) * (float)5.0; // in Volts
-	ecuData->m_fMATTemp = CGMBaseFunctions::ReturnTemp(buffer[28]); // in °C
+	ecuData->m_iMATADC = (int)buffer[28];
+	ecuData->setMATemp_dgC(CGMBaseFunctions::ReturnTemp(buffer[28])); // in °C
 	ecuData->m_fO2VoltsLeft = (float) buffer[29] * (float) 0.00442;
 	ecuData->m_fO2VoltsRight = (float) buffer[30] * (float) 0.00442;
 	ecuData->m_iBLM = (int)buffer[31];
@@ -246,7 +254,7 @@ BOOL CLotusCarltonParser::ParseMode1_0(const unsigned char* buffer, int len, CEc
 	ecuData->m_iRunTime = (buffer[47] * 256) + buffer[48]; // Total running time
 	ecuData->m_fKnockRetard = ((float)buffer[49] * (float)45.0) / (float)256.0; // in °
 	ecuData->m_iKnockCount = (int)(buffer[50] * 256) + buffer[51];
-	ecuData->m_iMPH = (int)buffer[52]; // Count is in MPH
+	ecuData->setRoadSpeed_MPH((int)buffer[52]); // Count is in MPH
 	ecuData->m_iThrottlePos = (int)((float)buffer[53] / (float)2.55);
 
 //	ecuData->m_fStartWaterTemp = ((float)buffer[7] * (float)0.75) - (float)40.0; // in °C
