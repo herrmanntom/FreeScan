@@ -844,7 +844,8 @@ void CSerialPort::ReceiveChar(CSerialPort* port, COMSTAT comstat)
 void CSerialPort::WriteToPort(unsigned char* string, int stringlength, BOOL bDelay)
 {	
 	DWORD messageLength = max(stringlength, 0);
-	DWORD halfDelay = max(5, m_nWriteDelay / 2);
+	DWORD oneQuarterDelay = max(3, m_nWriteDelay / 4);
+	DWORD threeQuarterDelay = max(7, m_nWriteDelay - oneQuarterDelay);
 
 	assert(m_hComm != 0);
 
@@ -869,15 +870,15 @@ void CSerialPort::WriteToPort(unsigned char* string, int stringlength, BOOL bDel
 		time_t timeSinceLastWrite = ((currentTime.time - m_timeLastWrittenToPort.time) * 1000) + (currentTime.millitm - m_timeLastWrittenToPort.millitm);
 		if (timeSinceLastWrite < 0) {
 			// overflow...
-			Sleep(halfDelay);
+			Sleep(threeQuarterDelay);
 		}
-		else if (timeSinceLastWrite < halfDelay) {
-			Sleep((DWORD) (halfDelay - timeSinceLastWrite));
+		else if (timeSinceLastWrite < threeQuarterDelay) {
+			Sleep((DWORD) (threeQuarterDelay - timeSinceLastWrite));
 		}
 	}
 	WriteChar(this); // Write to port immediately
 	if (bDelay) { // sleep to reduce stress on ECU serial port.
-		Sleep(halfDelay);
+		Sleep(oneQuarterDelay);
 	}
 	ftime(&m_timeLastWrittenToPort);
 }
