@@ -37,8 +37,7 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // CSupervisor
 
-CSupervisor::CSupervisor(CFreeScanDlg* pMainDlg, CStatusWriter* pStatusDlg)
-{
+CSupervisor::CSupervisor(CFreeScanDlg* pMainDlg, CStatusWriter* pStatusDlg) {
 	m_pMainDlg = pMainDlg;
 	m_pStatusDlg = pStatusDlg;
 	
@@ -53,6 +52,7 @@ CSupervisor::CSupervisor(CFreeScanDlg* pMainDlg, CStatusWriter* pStatusDlg)
 	m_bHasRun = FALSE;
 	m_iModel = 0;
 
+	m_lastTimeCsvFileFlushed = { 0 };
 	m_csCSVLogFile = pApp->GetProfileString("Supervisor", "CSV Log Filename", "");
 	m_dwCSVRecord = 0; // Initialise the CSV record number
 
@@ -65,12 +65,11 @@ CSupervisor::CSupervisor(CFreeScanDlg* pMainDlg, CStatusWriter* pStatusDlg)
 	m_pEcuData = new CEcuData();
 }
 
-CSupervisor::~CSupervisor()
-{
-	if (m_file.m_hFile != CFile::hFileNull)
+CSupervisor::~CSupervisor() {
+	if (m_csvFile.m_hFile != CFile::hFileNull)
 	{ // close our log file if it's open
-		m_file.Flush();
-		m_file.Close(); // close the logging file when we exit.
+		m_csvFile.Flush();
+		m_csvFile.Close(); // close the logging file when we exit.
 	}
 
 	// Save our settings to the registry
@@ -248,7 +247,7 @@ LONG CSupervisor::OnCharReceived(WPARAM ch, LPARAM BytesRead) {
 //WriteCSV(..) Writes CSV data to our log file.
 //If bTitle is true, the first title line is written, otherwise the data is written.
 void CSupervisor::WriteCSV(BOOL bTitle) {
-	if (m_file.m_pStream == NULL || (!bTitle && m_dwCSVRecord == 0)) {// i.e. no file open, or writing line before title
+	if (m_csvFile.m_pStream == NULL || (!bTitle && m_dwCSVRecord == 0)) {// i.e. no file open, or writing line before title
 		return;
 	}
 
@@ -274,8 +273,17 @@ void CSupervisor::WriteCSV(BOOL bTitle) {
 		newCSVRecordNumber = m_dwCSVRecord + 1;
 	}
 	csBuf += _T("\n"); // Line Feed because we're logging to disk
-	m_file.WriteString(csBuf);
+	m_csvFile.WriteString(csBuf);
 	m_dwCSVRecord = newCSVRecordNumber;
+
+	struct timeb currentTime = { 0 };
+	ftime(&currentTime);
+
+	time_t timeSinceLastWrite = ((currentTime.time - m_lastTimeCsvFileFlushed.time) * 1000) + (currentTime.millitm - m_lastTimeCsvFileFlushed.millitm);
+	if (timeSinceLastWrite > (60*1000)) { // flush every minute
+		ftime(&m_lastTimeCsvFileFlushed);
+		m_csvFile.Flush();
+	}
 }
 
 // Writes a line of ASCII to the spy window
@@ -389,10 +397,12 @@ BOOL CSupervisor::StartCSVLog(BOOL bStart) {
 	CString csBuf = "";
 
 	if (!bStart) { // we want to close the logging file
-		if (m_file.m_hFile != CFile::hFileNull)	{
+		if (m_csvFile.m_hFile != CFile::hFileNull)	{
 			WriteStatusLogged("CSV Log file has been stopped");
 			m_dwCSVRecord = 0;
-			m_file.Close(); // close the logging file when we exit.
+
+			m_csvFile.Flush();
+			m_csvFile.Close(); // close the logging file when we exit.
 		}
 		else {
 			WriteStatusLogged("CSV Log file is already closed");
@@ -417,7 +427,7 @@ BOOL CSupervisor::StartCSVLog(BOOL bStart) {
 		m_csCSVLogFile = Dialog.GetPathName();
 
 		m_dwCSVRecord = 0;
-		if (!m_file.Open(m_csCSVLogFile, CFile::modeCreate | CFile::modeReadWrite | CFile::typeText)) {
+		if (!m_csvFile.Open(m_csCSVLogFile, CFile::modeCreate | CFile::modeReadWrite | CFile::typeText)) {
 			csBuf.Format("Cannot open %s", m_csCSVLogFile.GetString());
 			WriteStatus(csBuf);
 			AfxMessageBox(csBuf, MB_OK | MB_ICONSTOP);
@@ -425,13 +435,16 @@ BOOL CSupervisor::StartCSVLog(BOOL bStart) {
 		}
 
 		WriteStatusLogged("CSV Log file has been opened");
+
+		ftime(&m_lastTimeCsvFileFlushed); // init this to senseble value
+
 		WriteCSV(TRUE);
 	}
 	else { // User pressed cancel
 		WriteStatus("User cancelled CSV log file");
 	}
 
-	if (m_file.m_hFile != NULL) {
+	if (m_csvFile.m_hFile != NULL) {
 		return TRUE;
 	}
 	else {

@@ -8,6 +8,7 @@
 #include "BaseDefines.h"
 
 #include <afxwin.h>
+#include <sys/timeb.h>
 
 #include "resource.h"
 #include "StatusWriter.h"
@@ -33,22 +34,23 @@ public:
 	BOOL StartLog(BOOL bStart);
 	void Hide(BOOL yes);
 	BOOL IsHidden(void);
-	void PumpMessages(void);
-	void PrintRect(LPRECT lpR);
 
+private:
 // Dialog Data
 	//{{AFX_DATA(CStatusDlg)
 	enum { IDD = IDD_STATUS };
-	CEdit	m_Time;
+	CEdit		m_Time;
 	CListBox	m_Status;
 	//}}AFX_DATA
 
-protected:
-	CTime		m_now; // Put the current date and time into the log file
-	CStdioFile	m_file; // File class for logging to disk
-	CString		m_csLogFile; // Filename for logging
-	BOOL		m_hidden; // Is status windows visible?
-	RECT		m_WindowPos; // Stores the postion of the Window
+	CTime			m_now; // Put the current date and time into the log file
+	CStdioFile		m_logFile; // File class for logging to disk
+	struct timeb    m_lastTimeLogFileFlushed;
+	CString			m_csLogFile; // Filename for logging
+	BOOL			m_hidden; // Is status windows visible?
+	RECT			m_WindowPos; // Stores the postion of the Window
+
+	void FlushLogIfRequired(void);
 
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -62,6 +64,8 @@ protected:
 
 // Implementation
 protected:
+	void PumpMessages(void);
+	void PrintRect(LPRECT lpR);
 
 	// Generated message map functions
 	//{{AFX_MSG(CStatusDlg)

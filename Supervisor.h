@@ -8,6 +8,7 @@
 #include "BaseDefines.h"
 
 #include <afxwin.h>
+#include <sys/timeb.h>
 
 #include "SerialPort.h"
 #include "EcuData.h"
@@ -39,7 +40,8 @@ private:
 	DWORD			m_dwBytesReceived;
 	BOOL			m_bHasRun; // Has the com port been started?
 
-	CStdioFile		m_file;// File class for logging to disk
+	CStdioFile		m_csvFile;// File class for logging to disk
+	struct timeb    m_lastTimeCsvFileFlushed;
 	CString			m_csCSVLogFile;// Filename for CSV logging
 	DWORD			m_dwCSVRecord;//CSV record number
 

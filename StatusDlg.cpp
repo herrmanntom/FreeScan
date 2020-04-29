@@ -24,14 +24,14 @@ static char THIS_FILE[] = __FILE__;
 // CStatusDlg dialog
 
 
-CStatusDlg::CStatusDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(CStatusDlg::IDD, pParent)
-{
+CStatusDlg::CStatusDlg(CWnd* pParent /*=NULL*/)	: CDialog(CStatusDlg::IDD, pParent) {
 	//{{AFX_DATA_INIT(CStatusDlg)
 	//}}AFX_DATA_INIT
 	//Load hide status
 	CWinApp* pApp = AfxGetApp();
 	m_hidden = pApp->GetProfileInt(_T("StatusDlg"), _T("Hide Status"), FALSE);
+
+	m_lastTimeLogFileFlushed = { 0 };
 	m_csLogFile = pApp->GetProfileString(_T("StatusDlg"), _T("Log Filename"), _T(""));
 
 	m_WindowPos.left = 0;
@@ -40,12 +40,10 @@ CStatusDlg::CStatusDlg(CWnd* pParent /*=NULL*/)
 	m_WindowPos.bottom = 0;
 }
 
-CStatusDlg::~CStatusDlg()
-{
-	if (m_file.m_hFile != CFile::hFileNull)
-	{ // close our log file if it's open
-		m_file.Flush();
-		m_file.Close(); // close the logging file when we exit.
+CStatusDlg::~CStatusDlg() {
+	if (m_logFile.m_hFile != CFile::hFileNull) { // close our log file if it's open
+		m_logFile.Flush();
+		m_logFile.Close(); // close the logging file when we exit.
 	}
 
 	//Save hide status
@@ -72,59 +70,71 @@ BEGIN_MESSAGE_MAP(CStatusDlg, CDialog)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
-/////////////////////////////////////////////////////////////////////////////
-// CStatusDlg access functions
+
+void CStatusDlg::FlushLogIfRequired(void) {
+	struct timeb currentTime = { 0 };
+	ftime(&currentTime);
+
+	time_t timeSinceLastWrite = ((currentTime.time - m_lastTimeLogFileFlushed.time) * 1000) + (currentTime.millitm - m_lastTimeLogFileFlushed.millitm);
+	if (timeSinceLastWrite > (60 * 1000) && m_logFile.m_hFile != CFile::hFileNull) { // flush every minute
+		ftime(&m_lastTimeLogFileFlushed);
+		m_logFile.Flush();
+	}
+}
 
 //WriteStatus enters text into the list box at the end of the list
-void CStatusDlg::WriteStatus(CString csText) 
-{ //CListBox
+void CStatusDlg::WriteStatus(CString csText) {
 
-	if (m_hidden) // don't write to window when hidden
+	if (m_hidden && m_logFile.m_hFile == CFile::hFileNull) {
+		// don't write to window when hidden and file is closed
 		return;
+	}
 
-//	TRACE_T(("%s\n"), csText);
-	if (IsWindow(m_hWnd))
-	{
+	if (!m_hidden && IsWindow(m_hWnd)) {
 		PumpMessages();
-		if(m_Status.GetCount() == 100) // Maximum number of strings we want
-		{
-//			TRACE("Listbox > 100 items, deleting first string\n");
+		if(m_Status.GetCount() == 100) {// Maximum number of strings we want
 			m_Status.DeleteString(0);
 		}
 		m_Status.AddString(csText); // Add the new string in again.
-		SendDlgItemMessage(IDC_STATUS, WM_VSCROLL , MAKEWPARAM(SB_LINEDOWN, NULL), NULL );
+		SendDlgItemMessage(IDC_STATUS, WM_VSCROLL, MAKEWPARAM(SB_BOTTOM, NULL), NULL );
 	}
 
-	if (m_file.m_pStream != NULL) // i.e. we have a file open
-	{
+	if (m_logFile.m_pStream != NULL) { // i.e. we have a file open
 		csText = csText + _T("\n"); // Line Feed while we log to disk
-		m_file.WriteString(csText);
+		m_logFile.WriteString(csText);
+		FlushLogIfRequired();
 	}
-	if (IsWindow(m_hWnd))
+	if (!m_hidden && IsWindow(m_hWnd)) {
 		UpdateWindow();
+	}
 }
 
 //WriteStatus enters text into the list box at the end of the list with timestamp
-void CStatusDlg::WriteStatusTimeLogged(CString csText) 
-{
-	if (m_hidden) // don't write to window when hidden
+void CStatusDlg::WriteStatusTimeLogged(CString csText) {
+
+	if (m_hidden && m_logFile.m_hFile == CFile::hFileNull) {
+		// don't write to window when hidden and file is closed
 		return;
+	}
 
 	CString csBuf;
 	m_now = CTime::GetCurrentTime();
-	csBuf = m_now.Format("%d %b %y %H:%M:%S - ");
-	if (IsWindow(m_Time.m_hWnd))
+	csBuf = m_now.Format("%F %T - ");
+	if (!m_hidden && IsWindow(m_Time.m_hWnd)) {
 		m_Time.SetWindowText(csBuf); // Updates the time string
+	}
 	csBuf = csBuf + csText;
 
 	WriteStatus(csBuf);
 }
 
 //Writes the contents of the given buffer as a Hex-dump
-void CStatusDlg::WriteASCII(const unsigned char* const buffer, int ilength)
-{
-	if (m_hidden) // don't write to window when hidden
+void CStatusDlg::WriteASCII(const unsigned char* const buffer, int ilength) {
+
+	if (m_logFile.m_hFile == CFile::hFileNull) {
+		// don't write when file is closed
 		return;
+	}
 
 	CString	cs;
 	int		iIndex;
@@ -138,7 +148,7 @@ void CStatusDlg::WriteASCII(const unsigned char* const buffer, int ilength)
 	}
 
 	// Now write the string.
-	WriteStatusTimeLogged(cs);
+	WriteLogEntry(cs);
 }
 
 //Writes a formatted log entry to the log file
@@ -146,13 +156,9 @@ void CStatusDlg::WriteASCII(const unsigned char* const buffer, int ilength)
 //		WriteLogEntry("Processed %d bytes", 91341);
 //		WriteLogEntry("%d error(s) found in %d line(s)", 10, 1351);
 //		WriteLogEntry("Program completed");
-void CStatusDlg::WriteLogEntry(LPCTSTR pstrFormat, ...)
-{
-	if (m_hidden) // don't write to window when hidden
-		return;
+void CStatusDlg::WriteLogEntry(LPCTSTR pstrFormat, ...) {
 
-	if (m_file.m_hFile == CFile::hFileNull)
-	{ // No log-file open
+	if (m_logFile.m_hFile == CFile::hFileNull) { // No log-file open
 		return;
 	}
 
@@ -160,34 +166,34 @@ void CStatusDlg::WriteLogEntry(LPCTSTR pstrFormat, ...)
 	timeWrite = CTime::GetCurrentTime();
 
 	// write the time out
-	CString str = timeWrite.Format("%d %b %y %H:%M:%S - ");
-	m_file.Write(str, str.GetLength());
+	CString str = timeWrite.Format("%F %T - ");
+	m_logFile.Write(str, str.GetLength());
 
 	// format and write the data we were given
 	va_list args;
 	va_start(args, pstrFormat);
 	str.FormatV(pstrFormat, args);
-	m_file.Write(str, str.GetLength());
+	m_logFile.Write(str, str.GetLength());
 
 	// put a newline
-	m_file.Write("\n", 1);
-	return;
+	m_logFile.Write("\n", 1);
+
+	FlushLogIfRequired();
 }
 
 // Starts or stops logging to file
-BOOL CStatusDlg::StartLog(BOOL bStart)
-{
+BOOL CStatusDlg::StartLog(BOOL bStart) {
 	CString csBuf = _T("");
 
-	if (!bStart)
-	{ // we want to close the logging file
-		if (m_file.m_hFile != CFile::hFileNull)
-		{
+	if (!bStart) { // we want to close the logging file
+		if (m_logFile.m_hFile != CFile::hFileNull) {
 			WriteStatusTimeLogged(_T("Log file stopped"));
-			m_file.Close(); // close the logging file when we exit.
+			m_logFile.Flush();
+			m_logFile.Close(); // close the logging file when we exit.
 		}
-		else
+		else {
 			WriteStatusTimeLogged(_T("Log file is already closed"));
+		}
 		
 		return FALSE;
 	}
@@ -251,8 +257,7 @@ BOOL CStatusDlg::StartLog(BOOL bStart)
 	// Copy filename from our dialog to the CString member variable
 	m_csLogFile.Format(_T("%s"),ofn.lpstrFile);
 
-	if (!m_file.Open(m_csLogFile, CFile::modeCreate | CFile::modeReadWrite | CFile::typeText))
-	{
+	if (!m_logFile.Open(m_csLogFile, CFile::modeCreate | CFile::modeReadWrite | CFile::typeText)) {
 		csBuf.Format(_T("Cannot open %s"), m_csLogFile.GetString());
 		WriteStatus(csBuf);
 		AfxMessageBox(csBuf, MB_OK | MB_ICONSTOP );
@@ -261,38 +266,14 @@ BOOL CStatusDlg::StartLog(BOOL bStart)
 
 	WriteStatusTimeLogged(_T("Log file has started"));
 
-/*
-	// Construct our File Dialog
-	CFileDialog		Dialog(FALSE, "txt", 
-						m_csLogFile, 
-						OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT,
-						"log Files (*.txt)|*.txt|All Files (*.*)|*.*||", NULL);
+	ftime(&m_lastTimeLogFileFlushed); // init this to senseble value
 
-	// Change the title
-	Dialog.m_ofn.lpstrTitle = "Create/Open Logging File";
-
-	// Display the dialog box
-	if (Dialog.DoModal() == IDOK)
-	{
-		m_csLogFile = Dialog.GetPathName();
-
-		if (!m_file.Open(m_csLogFile, CFile::modeCreate | CFile::modeReadWrite | CFile::typeText))
-		{
-			csBuf.Format("Cannot open %s", m_csLogFile);
-			WriteStatus(csBuf);
-			AfxMessageBox(csBuf, MB_OK | MB_ICONSTOP );
-			return FALSE;
-		}
-
-		WriteStatusLogged("Log file has started");
-	}
-	else // User pressed cancel
-		WriteStatus("User cancelled log file");
-*/
-	if (m_file.m_hFile != CFile::hFileNull)
+	if (m_logFile.m_hFile != CFile::hFileNull) {
 		return TRUE;
-	else
+	}
+	else {
 		return FALSE;
+	}
 }
 
 // Hides the status window from view
